@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ontology>
+	<environment>
+		<attribute name="person.number"/>
+		<attribute name="air.temperature"/>
+		<attribute name="air.humidity"/>
+		<attribute name="air.smoke"/>
+		<attribute name="light.brightness"/>
+		<attribute name="sound.loudness"/>
+		<attribute name="sound.ultrasonic"/>
+		<attribute name="is_raining"/>
+		<attribute name="is_on_fire"/>
+		<attribute name="is_touched"/>
+	</environment>
+	<sensors>
+		<sensor name="temperature_sensor">
+			<attribute name="air.temperature"/>
+		</sensor>
+		<sensor name="humidity_sensor">
+			<attribute name="air.humidity"/>
+		</sensor>
+		<sensor name="brightness_sensor">
+			<attribute name="light.brightness"/>
+		</sensor>
+		<sensor name="rain_sensor">
+			<attribute name="is_raining"/>
+		</sensor>
+		<sensor name="fire_sensor">
+			<attribute name="is_on_fire"/>
+		</sensor>
+		<sensor name="smoke_sensor">
+			<attribute name="air.smoke"/>
+		</sensor>
+		<sensor name="touch_sensor">
+			<attribute name="is_touched"/>
+		</sensor>
+		<sensor name="sound_sensor">
+			<attribute name="sound.loudness"/>
+		</sensor>
+		<sensor name="ultrasonic_sensor">
+			<attribute name="sound.ultrasonic"/>
+		</sensor>
+	</sensors>
+	<devices>
+		<device name="bulb">
+			<states>
+				<state name="bon" init="false">
+					<adjust_entity name="light.brightness" rate="50000" method="prompt"/>
+				</state>
+				<state name="boff" init="true">
+					<adjust_entity name="light.brightness" rate="0" method="prompt"/>
+				</state>
+			</states>
+		</device>
+		<device name="ac">
+			<states>
+				<state name="coldOn" init="false">
+					<adjust_entity name="air.temperature" rate="-0.2" method="/second"/>
+				</state>
+				<state name="hotOn" init="false">
+					<adjust_entity name="air.temperature" rate="0.2" method="/second"/>
+				</state>
+				<state name="aoff" init="true"> 
+					<adjust_entity name="air.temperature" rate="0" method="prompt"/>
+				</state>
+			</states>
+		</device>
+	</devices>
+	<statemachines>
+	  <device name="bulb">
+		<events>
+			<event>bturnon</event>
+			<event>bturnoff</event>
+		</events>
+		<states>
+		  <state>bon</state>
+		  <state>boff</state>
+		</states>
+		<transitions>
+		  <transition from="bon" event="bturnoff" action="boffPulse" to="boff"/>
+		  <transition from="boff" event="bturnoff" action="boffPulse" to="boff"/>
+		  <transition from="bon" event="bturnon" action="bonPulse" to="bon"/>
+		  <transition from="boff" event="bturnon" action="bonPulse" to="bon"/>
+		</transitions>
+	  </device>
+	  <device name="blind">
+		<events>
+			<event>bopen</event>
+			<event>bclose</event>
+		</events>
+		<states>
+		  <state>bopen</state>
+		  <state>bclosed</state>
+		</states>
+		<transitions>
+		  <transition from="bopen" event="bclose" action="bclosePulse" to="bclosed"/>
+		  <transition from="bclosed" event="bclose" action="bclosePulse" to="bclosed"/>
+		  <transition from="bopen" event="bopen" action="bopenPulse" to="bopen"/>
+		  <transition from="bclosed" event="bopen" action="bopenPulse" to="bopen"/>
+		</transitions>
+	  </device>
+	  <device name="projector">
+		<events>
+			<event>pturnon</event>
+			<event>pturnoff</event>
+		</events>
+		<states>
+		  <state>pon</state>
+		  <state>poff</state>
+		</states>
+		<transitions>
+		  <transition from="pon" event="pturnoff" action="poffPulse" to="poff"/>
+		  <transition from="poff" event="pturnoff" action="poffPulse" to="poff"/>
+		  <transition from="pon" event="pturnon" action="ponPulse" to="pon"/>
+		  <transition from="poff" event="pturnon" action="ponPulse" to="pon"/>
+		</transitions>
+	  </device>
+	  <device name="mc">
+		<events>
+			<event>mturnon</event>
+			<event>mturnoff</event>
+		</events>
+		<states>
+		  <state>mon</state>
+		  <state>moff</state>
+		</states>
+		<transitions>
+		  <transition from="mon" event="mturnoff" action="moffPulse" to="moff"/>
+		  <transition from="moff" event="mturnoff" action="moffPulse" to="moff"/>
+		  <transition from="mon" event="mturnon" action="monPulse" to="mon"/>
+		  <transition from="moff" event="mturnon" action="monPulse" to="mon"/>
+		</transitions>
+	  </device>
+	  <device name="window">
+		<events>
+			<event>wopen</event>
+			<event>wclose</event>
+		</events>
+		<states>
+		  <state>wopen</state>
+		  <state>wclosed</state>
+		</states>
+		<transitions>
+		  <transition from="wopen" event="wclose" action="wclosePulse" to="wclosed"/>
+		  <transition from="wclosed" event="wclose" action="wclosePulse" to="wclosed"/>
+		  <transition from="wopen" event="wopen" action="wopenPulse" to="wopen"/>
+		  <transition from="wclosed" event="wopen" action="wopenPulse" to="wopen"/>
+		</transitions>
+	  </device>
+	  <device name="ac">
+		<events>
+			<event>turnoncold</event>
+			<event>turnonhot</event>
+			<event>aturnoff</event>
+		</events>
+		<states>
+		  <state>coldOn</state>
+		  <state>hotOn</state>
+		  <state>aoff</state>
+		</states>
+		<transitions>
+		  <transition from="aoff" event="aturnoff" action="aoffPulse" to="aoff"/>
+		  <transition from="aoff" event="turnoncold" action="coldPulse" to="coldOn"/>
+		  <transition from="aoff" event="turnonhot" action="hotPulse" to="hotOn"/>
+		  <transition from="coldOn" event="aturnoff" action="aoffPulse" to="aoff"/>
+		  <transition from="coldOn" event="turnoncold" action="coldPulse" to="coldOn"/>
+		  <transition from="coldOn" event="turnonhot" action="hotPulse" to="hotOn"/>
+		  <transition from="hotOn" event="aturnoff" action="aoffPulse" to="aoff"/>
+		  <transition from="hotOn" event="turnoncold" action="coldPulse" to="coldOn"/>
+		  <transition from="hotOn" event="turnonhot" action="hotPulse" to="hotOn"/>
+		</transitions>
+	  </device>
+	</statemachines>
+</ontology>
