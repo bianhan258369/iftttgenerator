@@ -1,7 +1,10 @@
 package com.example.bianhan.iftttgenerator.pojo;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class IfThenRequirement{
     private List<String> triggerList;
     private List<String> actionList;
@@ -10,30 +13,6 @@ public class IfThenRequirement{
     public IfThenRequirement(List<String> triggerList, List<String> actionList, String time) {
         this.triggerList = triggerList;
         this.actionList = actionList;
-        this.time = time;
-    }
-
-    public List<String> getTriggerList() {
-        return triggerList;
-    }
-
-    public void setTriggerList(List<String> triggerList) {
-        this.triggerList = triggerList;
-    }
-
-    public List<String> getActionList() {
-        return actionList;
-    }
-
-    public void setActionList(List<String> actionList) {
-        this.actionList = actionList;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
         this.time = time;
     }
 

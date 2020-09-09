@@ -110,12 +110,13 @@ public class ProblemFrameService {
             Oval oval = new Oval(900,100 * ovalNum);
             oval.setText("Requirement" + ovalNum);
             oval.setDes(1);
+            oval.setBiaohao(ovalNum);
             ovals.add(oval);
             ovalNum++;
             for(String trigger : requirement.getTriggerList()){
                 String entityName = trigger.split("\\.")[0];
                 String attributeValue = trigger.split("\\.")[1];
-                Rect rect = new Rect(500, 100 * recNum);
+                Rect rect = new Rect(500, 150 * recNum);
                 rect.setState(1);
                 rect.setText(entityName);
                 rect.setShortName(entityName);
@@ -126,12 +127,11 @@ public class ProblemFrameService {
                 else rect = rects.get(rects.indexOf(rect));
                 Line interfacee = new Line(machine, rect,0);
                 Line reference = new Line(oval, rect,1);
-                interfacee.setName("interface" + (intNum++));
-                reference.setName("ref" + (refNum++));
                 Phenomenon phenomenon = new Phenomenon(attributeValue,"state",rect,machine,pheNum);
                 pheNum++;
                 phenomenon.setRequirement(oval);
                 if(!lines.contains(reference)){
+                    reference.setName("ref" + (refNum++));
                     reference.addPhenomenon(phenomenon);
                     lines.add(reference);
                 }
@@ -139,6 +139,7 @@ public class ProblemFrameService {
                     lines.get(lines.indexOf(reference)).addPhenomenon(phenomenon);
                 }
                 if(!lines.contains(interfacee)){
+                    interfacee.setName("int" + (intNum++));
                     interfacee.addPhenomenon(phenomenon);
                     lines.add(interfacee);
                 }
@@ -163,8 +164,7 @@ public class ProblemFrameService {
                 else rect = rects.get(rects.indexOf(rect));
                 Line interfacee = new Line(machine, rect,0);
                 Line constraint = new Line(oval, rect,2);
-                interfacee.setName("interface" + (intNum++));
-                constraint.setName("con" + (conNum++));
+
                 Phenomenon constraintPhenomenon;
                 Phenomenon interfacePhenomenon;
 
@@ -184,6 +184,7 @@ public class ProblemFrameService {
                 constraintPhenomenon.setRequirement(oval);
                 interfacePhenomenon.setRequirement(oval);
                 if(!lines.contains(constraint)){
+                    constraint.setName("con" + (conNum++));
                     constraint.addPhenomenon(constraintPhenomenon);
                     lines.add(constraint);
                 }
@@ -191,6 +192,7 @@ public class ProblemFrameService {
                     lines.get(lines.indexOf(constraint)).addPhenomenon(constraintPhenomenon);
                 }
                 if(!lines.contains(interfacee)){
+                    interfacee.setName("int" + (intNum++));
                     interfacee.addPhenomenon(interfacePhenomenon);
                     lines.add(interfacee);
                 }

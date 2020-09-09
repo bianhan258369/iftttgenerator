@@ -1,5 +1,8 @@
 package com.example.bianhan.iftttgenerator.pojo;
 
+import lombok.Data;
+
+@Data
 public class AffectedAttribute {
     private String attributeName;//air.temperature
     private Double adjustRate;
@@ -8,30 +11,6 @@ public class AffectedAttribute {
     public AffectedAttribute(String attributeName, Double adjustRate, String adjustMethod) {
         this.attributeName = attributeName;
         this.adjustRate = adjustRate;
-        this.adjustMethod = adjustMethod;
-    }
-
-    public String getAttributeName() {
-        return attributeName;
-    }
-
-    public void setAttributeName(String attributeName) {
-        this.attributeName = attributeName;
-    }
-
-    public Double getAdjustRate() {
-        return adjustRate;
-    }
-
-    public void setAdjustRate(Double adjustRate) {
-        this.adjustRate = adjustRate;
-    }
-
-    public String getAdjustMethod() {
-        return adjustMethod;
-    }
-
-    public void setAdjustMethod(String adjustMethod) {
         this.adjustMethod = adjustMethod;
     }
 

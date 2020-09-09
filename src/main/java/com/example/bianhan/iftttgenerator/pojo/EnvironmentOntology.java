@@ -1,5 +1,6 @@
 package com.example.bianhan.iftttgenerator.pojo;
 
+import lombok.Data;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+@Data
 public class EnvironmentOntology {
     private String ontologyPath;
     private Set<String> attributes;
@@ -96,99 +98,12 @@ public class EnvironmentOntology {
         }
     }
 
-    public Set<String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Set<String> attributes) {
-        this.attributes = attributes;
-    }
-
-    public Set<String> getStates() {
-        return states;
-    }
-
-    public void setStates(Set<String> states) {
-        this.states = states;
-    }
-
-    public Set<String> getDevices() {
-        return devices;
-    }
-
-    public void setDevices(Set<String> devices) {
-        this.devices = devices;
-    }
-
-    public Map<String, String> getActionMappingToState() {
-        return actionMappingToState;
-    }
-
-    public void setActionMappingToState(Map<String, String> actionMappingToState) {
-        this.actionMappingToState = actionMappingToState;
-    }
-
-    public Set<String> getEvents() {
-        return events;
-    }
-
-    public void setEvents(Set<String> events) {
-        this.events = events;
-    }
-
-    public Map<String, String> getEventMappingToState() {
-        return eventMappingToState;
-    }
-
-    public void setEventMappingToState(Map<String, String> eventMappingToState) {
-        this.eventMappingToState = eventMappingToState;
-    }
-
-    public Map<String, String> getEventMappingToAction() {
-        return eventMappingToAction;
-    }
-
-    public void setEventMappingToAction(Map<String, String> eventMappingToAction) {
-        this.eventMappingToAction = eventMappingToAction;
-    }
-
-    public Map<String, String> getStateMappingToAction() {
-        return stateMappingToAction;
-    }
-
-    public void setStateMappingToAction(Map<String, String> stateMappingToAction) {
-        this.stateMappingToAction = stateMappingToAction;
-    }
-
-    public List<Device> getDevicesAffectingEnvironment() {
-        return devicesAffectingEnvironment;
-    }
-
-    public void setDevicesAffectingEnvironment(List<Device> devicesAffectingEnvironment) {
-        this.devicesAffectingEnvironment = devicesAffectingEnvironment;
-    }
-
-    public Map<String, List<String>> getDeviceMappingToStates() {
-        return deviceMappingToStates;
-    }
-
-    public void setDeviceMappingToStates(Map<String, List<String>> deviceMappingToStates) {
-        this.deviceMappingToStates = deviceMappingToStates;
-    }
-
     public String getReverseState(String device, String state){
         List<String> stateList = deviceMappingToStates.get(device);
         stateList.remove(state);
         return stateList.get(0);
     }
 
-    public Map<String, String> getDeviceMappingToInitState() {
-        return deviceMappingToInitState;
-    }
-
-    public void setDeviceMappingToInitState(Map<String, String> deviceMappingToInitState) {
-        this.deviceMappingToInitState = deviceMappingToInitState;
-    }
 
     public static void main(String[] args) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology("ontology_SmartConferenceRoom.xml");

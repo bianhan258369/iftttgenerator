@@ -590,14 +590,11 @@ public class GenerateService {
         return sb.toString();
     }
 
-    public List<String> refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+    public JSONObject refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+        JSONObject result = new JSONObject();
         List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        List<String> refinedRequirements = new ArrayList<>();
-        refinedRequirements.addAll(tempRequirements);
-        refinedRequirements.add("");
-        refinedRequirements.add("Below Are The Refined Requirements, Change Them Carefully:");
-        for(String requirement : refinedRequirements){
+        for(String requirement : tempRequirements){
             if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")){
                 requirement = requirement.substring(3);
                 String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
@@ -631,8 +628,12 @@ public class GenerateService {
                 }
             }
         }
-        refinedRequirements.addAll(getRefinedRequirements(ifThenRequirements,ontologyPath));
-        return refinedRequirements;
+        List<String> refinedRequirements = new ArrayList<>();
+        List<String> add = getRefinedRequirements(ifThenRequirements,ontologyPath);
+        refinedRequirements.add("Below Are The Refined Requirements, Please Modify Them Carefully:");
+        refinedRequirements.addAll(add);
+        result.put("refined", refinedRequirements);
+        return result;
     }
 
     /**

@@ -27,8 +27,8 @@ public class GenerateController {
     private GenerateService generateService;
     @Autowired
     private ProblemFrameService pfService;
-    final String ontologyRootPath = "E:/JavaProject/iftttgenerator/ontologyFiles/";
-
+    //final String ontologyRootPath = "E:/JavaProject/iftttgenerator/ontologyFiles/";
+    final String ontologyRootPath = "/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
     @CrossOrigin
     @RequestMapping("/upload")
     @ResponseBody
@@ -58,7 +58,7 @@ public class GenerateController {
     public JSONObject refineRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
-        List<String> refinedRequirements = generateService.refineRequirements(requirementTexts, ontologyPath);
+        List<String> refinedRequirements = (List<String>) generateService.refineRequirements(requirementTexts, ontologyPath).get("refined");
         for(int i = 0;i < refinedRequirements.size();i++){
             String requirement = refinedRequirements.get(i);
             sb.append(requirement);
