@@ -182,7 +182,7 @@ public class GenerateService {
                     ruleIndex++;
                     groupIndex++;
                 }
-                else {
+                else if(requirement.contains("ACTIVE")){
                     String device = requirement.split(" ")[0].split("\\.")[0];
                     String state = requirement.split(" ")[0].split("\\.")[1];
                     String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device, state));
@@ -628,10 +628,7 @@ public class GenerateService {
                 }
             }
         }
-        List<String> refinedRequirements = new ArrayList<>();
-        List<String> add = getRefinedRequirements(ifThenRequirements,ontologyPath);
-        refinedRequirements.add("Below Are The Refined Requirements, Please Modify Them Carefully:");
-        refinedRequirements.addAll(add);
+        List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
         result.put("refined", refinedRequirements);
         return result;
     }
