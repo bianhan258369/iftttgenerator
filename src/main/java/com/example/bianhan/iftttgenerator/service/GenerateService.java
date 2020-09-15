@@ -17,6 +17,7 @@ import java.util.*;
 public class GenerateService {
     final String MAPPATH = "map.txt";
     public String toDrools(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+        System.out.println(requirementTexts);
         JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
         int ruleIndex = 1;
@@ -241,19 +242,19 @@ public class GenerateService {
                 String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
                 String action = requirement.split(" THEN ")[1];
                 String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                if(trigger.contains(" && ")){
+                if(trigger.contains(" AND ")){
                     List<String> triggers = new ArrayList<>();
                     List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" && "));
+                    triggers = Arrays.asList(trigger.split(" AND "));
                     if(action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
                     ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
                 }
-                else if(trigger.contains(" || ")){
-                    for(int i = 0;i < trigger.split(" || ").length;i++){
+                else if(trigger.contains(" OR ")){
+                    for(int i = 0;i < trigger.split(" OR ").length;i++){
                         List<String> triggers = new ArrayList<>();
                         List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" || ")[i]);
+                        triggers.add(trigger.split(" OR ")[i]);
                         if(action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
                         ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
@@ -293,15 +294,15 @@ public class GenerateService {
                         }
                     }
                 }
-                if(trigger.contains(" && ")){
+                if(trigger.contains(" AND ")){
                     List<String> triggers = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" && "));
+                    triggers = Arrays.asList(trigger.split(" AND "));
                     ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
                 }
-                else if(trigger.contains(" || ")){
-                    for(int i = 0;i < trigger.split(" || ").length;i++){
+                else if(trigger.contains(" OR ")){
+                    for(int i = 0;i < trigger.split(" OR ").length;i++){
                         List<String> triggers = new ArrayList<>();
-                        triggers.add(trigger.split(" || ")[i]);
+                        triggers.add(trigger.split(" OR ")[i]);
                         ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
                     }
                 }
@@ -349,6 +350,7 @@ public class GenerateService {
                                 when.add("Environ(" + trigger.replaceAll(entity, envVar) + ")");
                             }
                             else {
+                                System.out.println(trigger);
                                 for(int i = 0;i < triggerMap.get(trigger).size();i++){
                                     when.add(triggerMap.get(trigger).get(i));
                                 }
@@ -600,19 +602,19 @@ public class GenerateService {
                 String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
                 String action = requirement.split(" THEN ")[1];
                 String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                if(trigger.contains(" && ")){
+                if(trigger.contains(" AND ")){
                     List<String> triggers = new ArrayList<>();
                     List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" && "));
+                    triggers = Arrays.asList(trigger.split(" AND "));
                     if(action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
                     ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
                 }
-                else if(trigger.contains(" || ")){
-                    for(int i = 0;i < trigger.split(" || ").length;i++){
+                else if(trigger.contains(" OR ")){
+                    for(int i = 0;i < trigger.split(" OR ").length;i++){
                         List<String> triggers = new ArrayList<>();
                         List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" || ")[i]);
+                        triggers.add(trigger.split(" OR ")[i]);
                         if(action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
                         ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));

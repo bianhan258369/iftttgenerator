@@ -27,8 +27,8 @@ public class GenerateController {
     private GenerateService generateService;
     @Autowired
     private ProblemFrameService pfService;
-    final String ontologyRootPath = "E:/JavaProject/iftttgenerator/ontologyFiles/";
-    //final String ontologyRootPath = "/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
+//    final String ontologyRootPath = "E:/JavaProject/iftttgenerator/ontologyFiles/";
+    final String ontologyRootPath = "/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
     @CrossOrigin
     @RequestMapping("/upload")
     @ResponseBody

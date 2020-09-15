@@ -60,19 +60,19 @@ public class ProblemFrameService {
                 requirement = requirement.substring(3);
                 String trigger = requirement.split(" THEN ")[0];
                 String action = requirement.split(" THEN ")[1];
-                if(trigger.contains(" && ")){
+                if(trigger.contains(" AND ")){
                     List<String> triggers = new ArrayList<>();
                     List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" && "));
+                    triggers = Arrays.asList(trigger.split(" AND "));
                     if(action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
                     ifThenRequirements.add(new IfThenRequirement(triggers, actions, null));
                 }
-                else if(trigger.contains(" || ")){
-                    for(int i = 0;i < trigger.split(" || ").length;i++){
+                else if(trigger.contains(" OR ")){
+                    for(int i = 0;i < trigger.split(" OR ").length;i++){
                         List<String> triggers = new ArrayList<>();
                         List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" || ")[i]);
+                        triggers.add(trigger.split(" OR ")[i]);
                         if(action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
                         ifThenRequirements.add(new IfThenRequirement(triggers, actions, null));
