@@ -75,167 +75,17 @@ public class GenerateService {
 
         for(String requirement : requirements){
             //state SHOULD ALWAYS BE ACTIVE
-            //event SHOULD NEVER HAPPEN
-            //state SHOULD NEVER BE ACTIVE
             if(requirement.contains("ALWAYS")){
-                String state = requirement.split(" ")[0].split("\\.")[1];
-                String action = "M." + eo.getStateMappingToAction().get(state);
-                sb.append("rule R" + ruleIndex);
-                sb.append("\r\n");
-                sb.append("group G" + groupIndex);
-                sb.append("\r\n");
-                sb.append("salience 100");
-                sb.append("\r\n");
-                sb.append("lock-on-active true");
-                sb.append("\r\n");
-                List<String> when = new ArrayList<>();
-                List<String> then = new ArrayList<>();
-                List<String> actions = actionMap.get(action);
-                for(int i = 0;i < actions.size();i++){
-                    then.add(actions.get(i) + ";");
-                }
-                for(int i = 0;i < then.size();i++){
-                    String clause = then.get(i);
-                    boolean enterFlag = false;//whether enter the judge loop
-                    boolean flag = false;//whether when has the initialize statement
-                    if(clause.startsWith("$") && clause.contains(".")){
-                        enterFlag = true;
-                        for(int j = 0;j < when.size();j++){
-                            if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
-                                flag = true;
-                            }
-                        }
-                    }
-                    if(!flag && enterFlag){
-                        when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
-                    }
-                }
-                sb.append("  when");
-                sb.append("\r\n");
-                for(int i = 0;i < when.size();i++){
-                    sb.append("    " + when.get(i));
-                    sb.append("\r\n");
-                }
-
-                sb.append("  then");
-                sb.append("\r\n");
-                for(int i = 0;i < then.size();i++){
-                    sb.append("    " + then.get(i));
-                    sb.append("\r\n");
-                }
-                sb.append("end");
-                sb.append("\r\n");
-                sb.append("\r\n");
+                sb.append(transformAlwaysRequirements(requirement, eo, ruleIndex, groupIndex, actionMap, paraTypeMap));
                 ruleIndex++;
                 groupIndex++;
             }
+            //event SHOULD NEVER HAPPEN
+            //state SHOULD NEVER BE ACTIVE
             else if(requirement.contains("NEVER")){
-                if(requirement.contains("HAPPEN")){
-                    String device = requirement.split(" ")[0].split("\\.")[0];
-                    String event = requirement.split(" ")[0].split("\\.")[1];
-                    String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device,eo.getEventMappingToState().get(event)));
-                    sb.append("rule R" + ruleIndex);
-                    sb.append("\r\n");
-                    sb.append("group G" + groupIndex);
-                    sb.append("\r\n");
-                    sb.append("salience 100");
-                    sb.append("\r\n");
-                    sb.append("lock-on-active true");
-                    sb.append("\r\n");
-                    List<String> when = new ArrayList<>();
-                    List<String> then = new ArrayList<>();
-                    List<String> actions = actionMap.get(action);
-                    for(int i = 0;i < actions.size();i++){
-                        then.add(actions.get(i) + ";");
-                    }
-                    for(int i = 0;i < then.size();i++){
-                        String clause = then.get(i);
-                        boolean enterFlag = false;//whether enter the judge loop
-                        boolean flag = false;//whether when has the initialize statement
-                        if(clause.startsWith("$") && clause.contains(".")){
-                            enterFlag = true;
-                            for(int j = 0;j < when.size();j++){
-                                if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
-                                    flag = true;
-                                }
-                            }
-                        }
-                        if(!flag && enterFlag){
-                            when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
-                        }
-                    }
-                    sb.append("  when");
-                    sb.append("\r\n");
-                    for(int i = 0;i < when.size();i++){
-                        sb.append("    " + when.get(i));
-                        sb.append("\r\n");
-                    }
-
-                    sb.append("  then");
-                    sb.append("\r\n");
-                    for(int i = 0;i < then.size();i++){
-                        sb.append("    " + then.get(i));
-                        sb.append("\r\n");
-                    }
-                    sb.append("end");
-                    sb.append("\r\n");
-                    sb.append("\r\n");
-                    ruleIndex++;
-                    groupIndex++;
-                }
-                else if(requirement.contains("ACTIVE")){
-                    String device = requirement.split(" ")[0].split("\\.")[0];
-                    String state = requirement.split(" ")[0].split("\\.")[1];
-                    String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device, state));
-                    sb.append("rule R" + ruleIndex);
-                    sb.append("\r\n");
-                    sb.append("group G" + groupIndex);
-                    sb.append("\r\n");
-                    sb.append("salience 100");
-                    sb.append("\r\n");
-                    sb.append("lock-on-active true");
-                    sb.append("\r\n");
-                    List<String> when = new ArrayList<>();
-                    List<String> then = new ArrayList<>();
-                    List<String> actions = actionMap.get(action);
-                    for(int i = 0;i < actions.size();i++){
-                        then.add(actions.get(i) + ";");
-                    }
-                    for(int i = 0;i < then.size();i++){
-                        String clause = then.get(i);
-                        boolean enterFlag = false;//whether enter the judge loop
-                        boolean flag = false;//whether when has the initialize statement
-                        if(clause.startsWith("$") && clause.contains(".")){
-                            enterFlag = true;
-                            for(int j = 0;j < when.size();j++){
-                                if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
-                                    flag = true;
-                                }
-                            }
-                        }
-                        if(!flag && enterFlag){
-                            when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
-                        }
-                    }
-                    sb.append("  when");
-                    sb.append("\r\n");
-                    for(int i = 0;i < when.size();i++){
-                        sb.append("    " + when.get(i));
-                        sb.append("\r\n");
-                    }
-
-                    sb.append("  then");
-                    sb.append("\r\n");
-                    for(int i = 0;i < then.size();i++){
-                        sb.append("    " + then.get(i));
-                        sb.append("\r\n");
-                    }
-                    sb.append("end");
-                    sb.append("\r\n");
-                    sb.append("\r\n");
-                    ruleIndex++;
-                    groupIndex++;
-                }
+                sb.append(transformNeverRequirements(requirement, eo, ruleIndex, groupIndex, actionMap, paraTypeMap));
+                ruleIndex++;
+                groupIndex++;
             }
             else if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")){
                 requirement = requirement.substring(3);
@@ -633,6 +483,168 @@ public class GenerateService {
         List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
         result.put("refined", refinedRequirements);
         return result;
+    }
+
+    private String transformAlwaysRequirements(String requirement, EnvironmentOntology eo, int ruleIndex, int groupIndex,
+                                               Map<String, List<String>> actionMap, Map<String, String> paraTypeMap){
+        StringBuilder sb  =  new StringBuilder();
+        String state = requirement.split(" ")[0].split("\\.")[1];
+        String action = "M." + eo.getStateMappingToAction().get(state);
+        sb.append("rule R" + ruleIndex);
+        sb.append("\r\n");
+        sb.append("group G" + groupIndex);
+        sb.append("\r\n");
+        sb.append("salience 100");
+        sb.append("\r\n");
+        sb.append("lock-on-active true");
+        sb.append("\r\n");
+        List<String> when = new ArrayList<>();
+        List<String> then = new ArrayList<>();
+        List<String> actions = actionMap.get(action);
+        for(int i = 0;i < actions.size();i++){
+            then.add(actions.get(i) + ";");
+        }
+        for(int i = 0;i < then.size();i++){
+            String clause = then.get(i);
+            boolean enterFlag = false;//whether enter the judge loop
+            boolean flag = false;//whether when has the initialize statement
+            if(clause.startsWith("$") && clause.contains(".")){
+                enterFlag = true;
+                for(int j = 0;j < when.size();j++){
+                    if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
+                        flag = true;
+                    }
+                }
+            }
+            if(!flag && enterFlag){
+                when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
+            }
+        }
+        sb.append("  when");
+        sb.append("\r\n");
+        for(int i = 0;i < when.size();i++){
+            sb.append("    " + when.get(i));
+            sb.append("\r\n");
+        }
+
+        sb.append("  then");
+        sb.append("\r\n");
+        for(int i = 0;i < then.size();i++){
+            sb.append("    " + then.get(i));
+            sb.append("\r\n");
+        }
+        sb.append("end");
+        sb.append("\r\n");
+        sb.append("\r\n");
+        return sb.toString();
+    }
+
+    private String transformNeverRequirements(String requirement, EnvironmentOntology eo, int ruleIndex, int groupIndex,
+                                              Map<String, List<String>> actionMap, Map<String, String> paraTypeMap){
+        StringBuilder sb = new StringBuilder();
+        if(requirement.contains("HAPPEN")){
+            String device = requirement.split(" ")[0].split("\\.")[0];
+            String event = requirement.split(" ")[0].split("\\.")[1];
+            String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device,eo.getEventMappingToState().get(event)));
+            sb.append("rule R" + ruleIndex);
+            sb.append("\r\n");
+            sb.append("group G" + groupIndex);
+            sb.append("\r\n");
+            sb.append("salience 100");
+            sb.append("\r\n");
+            sb.append("lock-on-active true");
+            sb.append("\r\n");
+            List<String> when = new ArrayList<>();
+            List<String> then = new ArrayList<>();
+            List<String> actions = actionMap.get(action);
+            for(int i = 0;i < actions.size();i++){
+                then.add(actions.get(i) + ";");
+            }
+            for(int i = 0;i < then.size();i++){
+                String clause = then.get(i);
+                boolean enterFlag = false;//whether enter the judge loop
+                boolean flag = false;//whether when has the initialize statement
+                if(clause.startsWith("$") && clause.contains(".")){
+                    enterFlag = true;
+                    for(int j = 0;j < when.size();j++){
+                        if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
+                            flag = true;
+                        }
+                    }
+                }
+                if(!flag && enterFlag){
+                    when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
+                }
+            }
+            sb.append("  when");
+            sb.append("\r\n");
+            for(int i = 0;i < when.size();i++){
+                sb.append("    " + when.get(i));
+                sb.append("\r\n");
+            }
+
+            sb.append("  then");
+            sb.append("\r\n");
+            for(int i = 0;i < then.size();i++){
+                sb.append("    " + then.get(i));
+                sb.append("\r\n");
+            }
+            sb.append("end");
+            sb.append("\r\n");
+            sb.append("\r\n");
+        }
+        else if(requirement.contains("ACTIVE")){
+            String device = requirement.split(" ")[0].split("\\.")[0];
+            String state = requirement.split(" ")[0].split("\\.")[1];
+            String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device, state));
+            sb.append("rule R" + ruleIndex);
+            sb.append("\r\n");
+            sb.append("group G" + groupIndex);
+            sb.append("\r\n");
+            sb.append("salience 100");
+            sb.append("\r\n");
+            sb.append("lock-on-active true");
+            sb.append("\r\n");
+            List<String> when = new ArrayList<>();
+            List<String> then = new ArrayList<>();
+            List<String> actions = actionMap.get(action);
+            for(int i = 0;i < actions.size();i++){
+                then.add(actions.get(i) + ";");
+            }
+            for(int i = 0;i < then.size();i++){
+                String clause = then.get(i);
+                boolean enterFlag = false;//whether enter the judge loop
+                boolean flag = false;//whether when has the initialize statement
+                if(clause.startsWith("$") && clause.contains(".")){
+                    enterFlag = true;
+                    for(int j = 0;j < when.size();j++){
+                        if(when.get(j).contains(clause.substring(0, clause.indexOf(".")) + ":")){
+                            flag = true;
+                        }
+                    }
+                }
+                if(!flag && enterFlag){
+                    when.add(clause.substring(0, clause.indexOf(".")) + ":" + paraTypeMap.get(clause.substring(0, clause.indexOf("."))));
+                }
+            }
+            sb.append("  when");
+            sb.append("\r\n");
+            for(int i = 0;i < when.size();i++){
+                sb.append("    " + when.get(i));
+                sb.append("\r\n");
+            }
+
+            sb.append("  then");
+            sb.append("\r\n");
+            for(int i = 0;i < then.size();i++){
+                sb.append("    " + then.get(i));
+                sb.append("\r\n");
+            }
+            sb.append("end");
+            sb.append("\r\n");
+            sb.append("\r\n");
+        }
+        return sb.toString();
     }
 
     /**
