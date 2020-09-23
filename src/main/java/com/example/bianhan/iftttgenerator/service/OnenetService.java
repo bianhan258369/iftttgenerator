@@ -1,17 +1,15 @@
 package com.example.bianhan.iftttgenerator.service;
 
-import com.example.bianhan.iftttgenerator.pojo.AffectedAttribute;
-import com.example.bianhan.iftttgenerator.pojo.Device;
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("onnetService")
 public class OnenetService {
@@ -20,152 +18,20 @@ public class OnenetService {
     public String toOnenet(String requirementTexts, String ontologyPath) throws IOException, DocumentException{
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        List<String> requirements = new ArrayList<>();
-        List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        List<String> addRequirementTexts = new ArrayList<>();
-        for(String requirement : tempRequirements){
-            List<Device> devices = eo.getDevicesAffectingEnvironment();
-            if(requirement.contains("PREFERRED") && requirement.contains("IS")){
-                String attribute = requirement.split(" ")[1];
-                int value = Integer.parseInt(requirement.split(" ")[3]);
-                for(int j = 0;j < devices.size();j++){
-                    Device device = devices.get(j);
-                    Map map = device.getStateMappingToAffectedEntities();
-                    if(device.getAffectedAttributeNames().contains(attribute)){
-                        for(int k = 0;k < device.getStates().size();k++){
-                            String state = device.getStates().get(k);
-                            List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
-                            for(int m = 0;m < monitoredEntities.size();m++){
-                                AffectedAttribute monitoredEntity = monitoredEntities.get(m);
-                                if(monitoredEntity.getAttributeName().equals(attribute)){
-                                    if(monitoredEntity.getAdjustRate() > 0){
-                                        addRequirementTexts.add("IF " + attribute + "<" + value + " THEN " + device.getDeviceName() + "." + state);
-                                    }
-                                    else if(monitoredEntity.getAdjustRate() < 0){
-                                        addRequirementTexts.add("IF " + attribute + ">=" + value + " THEN " + device.getDeviceName() + "." + state);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        requirements.addAll(tempRequirements);
-        requirements.addAll(addRequirementTexts);
 
-        BufferedReader br = new BufferedReader(new FileReader(MAPPATH));
-        Map<String, List<String>> triggerMap = new HashMap<>();
-        Map<String, List<String>> actionMap = new HashMap<>();
-        String line = "";
-        while ((line = br.readLine()) != null){
-            List<String> temp = new ArrayList<>();
-            String left = line.split("->")[0];
-            String right = line.split("->")[1];
-            for(int i = 0;i < right.split("//").length;i++) temp.add(right.split("//")[i]);
-            if(left.startsWith("M.")) actionMap.put(left, temp);
-            else triggerMap.put(left,temp);
-        }
+        Map<String, String> intendMap = coputeMap(MAPPATH, "intendMap");
+        Map<String, List<String>> triggerMap = coputeMap(MAPPATH, "triggerMap");
+        Map<String, List<String>> actionMap = coputeMap(MAPPATH, "actionMap");
 
-        for(String requirement : requirements){
-            if(requirement.contains("ALWAYS")){
-                sb.append(transformAlwaysRequirements(requirement, eo, actionMap));
-            }
-
-            else if(requirement.contains("NEVER")){
-                sb.append(transformNeverRequirements(requirement,eo,actionMap));
-            }
-
-            else if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")){
-                requirement = requirement.substring(3);
-                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-                String action = requirement.split(" THEN ")[1];
-                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                if(trigger.contains(" AND ")){
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-                else if(trigger.contains(" OR ")){
-                    for(int i = 0;i < trigger.split(" OR ").length;i++){
-                        List<String> triggers = new ArrayList<>();
-                        List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
-                        if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                        else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                    }
-                }
-                else {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers.add(trigger);
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-            }
-
-            else if(requirement.contains("IF") && requirement.contains("THEN") && requirement.contains("SHOULD")){
-                requirement = requirement.substring(3);
-                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-                List<String> actions = new ArrayList<>();
-                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                String attributeName = requirement.split(" THEN ")[1].split(" ")[0];
-                for(int i = 0;i < eo.getDevicesAffectingEnvironment().size();i++){
-                    Device device = eo.getDevicesAffectingEnvironment().get(i);
-                    String deviceName = device.getDeviceName();
-                    Iterator it = device.getStateMappingToAffectedEntities().keySet().iterator();
-                    while (it.hasNext()){
-                        String state = (String) it.next();
-                        List<AffectedAttribute> affectedAttributes = device.getStateMappingToAffectedEntities().get(state);
-                        for(AffectedAttribute affectedAttribute : affectedAttributes){
-                            if(affectedAttribute.getAttributeName().equals(attributeName)){
-                                if(requirement.contains("INCREASE") && affectedAttribute.getAdjustRate() > 0){
-                                    actions.add(deviceName + "." + state);
-                                }
-                                else if(requirement.contains("DECREASE") && affectedAttribute.getAdjustRate() < 0){
-                                    actions.add(deviceName + "." + state);
-                                }
-                            }
-                        }
-                    }
-                }
-                if(trigger.contains(" AND ")){
-                    List<String> triggers = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-                else if(trigger.contains(" OR ")){
-                    for(int i = 0;i < trigger.split(" OR ").length;i++){
-                        List<String> triggers = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                    }
-                }
-                else {
-                    List<String> triggers = new ArrayList<>();
-                    triggers.add(trigger);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-            }
-        }
+        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, eo);
+        System.out.println(ifThenRequirements);
 
         for(IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {
                 sb.append("if (");
                 for (String trigger : requirement.getTriggerList()){
-                    String relation = "";
-                    if (trigger.contains(">=")) relation = ">=";
-                    else if (trigger.contains("<=")) relation = "<=";
-                    else if (trigger.contains("<")) relation = "<";
-                    else if (trigger.contains(">")) relation = ">";
-                    else if (trigger.contains("!=")) relation = "!=";
-                    else if (trigger.contains("=")) relation = "=";
+                    String relation = computeRelation(trigger);
                     if (!relation.equals("")) {
                         String attribute = trigger.split(relation)[0];
                         if (triggerMap.containsKey(attribute) && triggerMap.get(attribute).contains("env")) {
@@ -194,12 +60,14 @@ public class OnenetService {
                 sb.append("){");
                 sb.append("\r\n");
                 for (String action : requirement.getActionList()) {
-                    String left = action.split("\\.")[0];
-                    String right = action.split("\\.")[1];
-                    if (eo.getEvents().contains(right)) {
-                        right = eo.getEventMappingToState().get(right);
+                    if(!action.startsWith("M.")){
+                        String left = action.split("\\.")[0];
+                        String right = action.split("\\.")[1];
+                        if (eo.getEvents().contains(right)) {
+                            right = eo.getEventMappingToState().get(right);
+                        }
+                        action =  "M." + eo.getStateMappingToAction().get(right);
                     }
-                    action = "M." + eo.getStateMappingToAction().get(right);
                     List<String> actions = actionMap.get(action);
                     for(int i = 0;i < actions.size();i++){
                         sb.append(actions.get(i) + ";");
@@ -354,14 +222,8 @@ public class OnenetService {
                     List<String> actions = requirement.getActionList();
                     for(String action : actions){
                         if(action.split("\\.")[0].equals(deviceName) && requirement.getTriggerList().size() == 1){
-                            String relation = "";
                             String trigger = requirement.getTriggerList().get(0);
-                            if(trigger.contains("<=")) relation = "<=";
-                            else if(trigger.contains(">=")) relation = ">=";
-                            else if(trigger.contains(">")) relation = ">";
-                            else if(trigger.contains("<")) relation = "<";
-                            else if(trigger.contains("!=")) relation = "!=";
-                            else if(trigger.contains("=")) relation = "=";
+                            String relation = computeRelation(trigger);
                             String attribute = trigger.split(relation)[0];
                             String value = relation + trigger.split(relation)[1];
                             if(!attributeMappingToValue.containsKey(attribute)) attributeMappingToValue.put(attribute, new ArrayList<>());
@@ -379,7 +241,7 @@ public class OnenetService {
                 attribute = (String) it.next();
                 values = attributeMappingToValue.get(attribute);
             }
-            List<String> triggers = computeReverse(values);
+            List<String> triggers = computeReverseRange(values);
             for(String trigger : triggers){
                 refinedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
             }
@@ -397,64 +259,9 @@ public class OnenetService {
         return refinedRequirements;
     }
 
-    /**
-     *
-     * @param values [>30,>40,<20,<10]
-     * @return[>20,<30]
-     */
-    private List<String> computeReverse(List<String> values){
-        List<String> result = new ArrayList<>();
-        if(values.size() == 1){
-            String value = values.get(0);
-            if(value.contains(">=")) result.add("<" + value.substring(2));
-            else if(value.contains("<=")) result.add(">" + value.substring(2));
-            else if(value.contains(">")) result.add("<=" + value.substring(1));
-            else if(value.contains("<")) result.add(">=" + value.substring(1));
-            else if(value.contains("!=")) result.add("=" + value.substring(2));
-            else if(value.contains("=")) result.add("!=" + value.substring(1));
-        }
-        else {
-            double start = Double.NEGATIVE_INFINITY;
-            double end = Double.POSITIVE_INFINITY;
-            for(String value : values){
-                if(value.contains(">")){
-                    double temp = Double.parseDouble(value.substring(1));
-                    if(end > temp) end = temp;
-                }
-                else if(value.contains(">=")){
-                    double temp = Double.parseDouble(value.substring(2));
-                    if(end > temp) end = temp;
-                }
-                else if(value.contains("<")){
-                    double temp = Double.parseDouble(value.substring(1));
-                    if(start<temp) start = temp;
-                }
-                else if(value.contains("<=")){
-                    double temp = Double.parseDouble(value.substring(2));
-                    if(start<temp) start = temp;
-                }
-            }
-            if(start == Double.MIN_VALUE && end == Double.MAX_VALUE || start >= end){
-
-            }
-            else if(start == Double.MIN_VALUE){
-                result.add("<" + end);
-            }
-            else if(end == Double.MAX_VALUE){
-                result.add(">" + start);
-            }
-            else {
-                result.add(">" + start);
-                result.add("<" + end);
-            }
-
-        }
-        return result;
-    }
-
 
     public static void main(String[] args) throws IOException, DocumentException {
-        String re = "IF air.temperature>30 THEN air.temperature SHOULD DECREASE";
+        String re = "IF air.temperature>30 THEN allow ventilating the room//IF person.distanceFromMc<0.5 THEN mc.mon";
         OnenetService onenetService = new OnenetService();
         System.out.println(onenetService.toOnenet(re, "ontology_SmartConferenceRoom.xml"));
     }

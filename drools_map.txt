@@ -8,19 +8,19 @@ person.distanceFromMc<=2->$speaker:Speaker(state==true)
 person.distanceFromPro>2->$demonstrator:Demonstrator(state==false)
 person.distanceFromPro<=2->$demonstrator:Demonstrator(state==true)
 bulb.bon->$bulb:Light(state==1)
-M.bonPulse->$bulb.openDevice()//update($bulb)
+M.bonPulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
 M.boffPulse->$bulb.closeDevice()//update($bulb)
-M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)
-M.hotPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)
+M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should decrease
+M.hotPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should increase
 M.aoffPulse->$airConditionor.closeDevice()//update($airConditionor)
-M.monPulse->$microPhone.openDevice()//update($microPhone)
-M.moffPulse->$microPhone.closeDevice()//update($microPhone)
-M.ponPulse->$projector.openDevice()//update($projector)
-M.poffPulse->$projector.closeDevice()//update($projector)
-M.wopenPulse->$window.openDevice()//update($window)
-M.wclosePulse->$window.closeDevice()//update($window)
-M.bopenPulse->$blind.openDevice()//update($blind)
-M.bclosePulse->$blind.closeDevice()//update($blind)
+M.monPulse->$microPhone.openDevice()//update($microPhone)->allow using microphone
+M.moffPulse->$microPhone.closeDevice()//update($microPhone)->forbid using microphone
+M.ponPulse->$projector.openDevice()//update($projector)->allow using projector
+M.poffPulse->$projector.closeDevice()//update($projector)->forbid using projector
+M.wopenPulse->$window.openDevice()//update($window)->allow ventilating the room
+M.wclosePulse->$window.closeDevice()//update($window)->forbid ventilating the room
+M.bopenPulse->$blind.openDevice()//update($blind)->allow ventilating the room
+M.bclosePulse->$blind.closeDevice()//update($blind)->forbid ventilating the room
 $airConditionor->AirConditioner()
 $microPhone->MicroPhone()
 $projector->Projector()

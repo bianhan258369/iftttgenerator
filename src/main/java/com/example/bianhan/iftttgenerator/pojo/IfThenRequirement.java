@@ -18,10 +18,6 @@ public class IfThenRequirement{
 
     @Override
     public String toString() {
-        return "IfThenRequirement{" +
-                "triggerList=" + triggerList +
-                ", actionList=" + actionList +
-                ", time='" + time + '\'' +
-                '}';
+        return "IF " + triggerList + " FOR " + time + " THEN " + actionList;
     }
 }
