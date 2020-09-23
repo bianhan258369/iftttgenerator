@@ -1,20 +1,15 @@
 package com.example.bianhan.iftttgenerator.controller;
 
-import com.example.bianhan.iftttgenerator.service.GenerateService;
+import com.example.bianhan.iftttgenerator.service.DroolsService;
 import com.example.bianhan.iftttgenerator.service.ProblemFrameService;
-import com.github.jsonldjava.utils.Obj;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -24,11 +19,11 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class GenerateController {
     @Autowired
-    private GenerateService generateService;
+    private DroolsService droolsService;
     @Autowired
     private ProblemFrameService pfService;
-//    final String ontologyRootPath = "E:/JavaProject/iftttgenerator/ontologyFiles/";
-    final String ontologyRootPath = "/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
+    final String ontologyRootPath = System.getProperty("os.name").toLowerCase().startsWith("win") ?
+            "E:/JavaProject/iftttgenerator/ontologyFiles/" :"/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
     @CrossOrigin
     @RequestMapping("/upload")
     @ResponseBody
@@ -48,7 +43,7 @@ public class GenerateController {
     @RequestMapping("/transform")
     @ResponseBody
     public List<String> transformToDrools(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
-        List<String> drools = Arrays.asList(generateService.toDrools(requirementTexts, ontologyPath).split("\n"));
+        List<String> drools = Arrays.asList(droolsService.toDrools(requirementTexts, ontologyPath).split("\n"));
         return drools;
     }
 
@@ -58,7 +53,7 @@ public class GenerateController {
     public JSONObject refineRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
-        List<String> refinedRequirements = (List<String>) generateService.refineRequirements(requirementTexts, ontologyPath).get("refined");
+        List<String> refinedRequirements = (List<String>) droolsService.refineRequirements(requirementTexts, ontologyPath).get("refined");
         for(int i = 0;i < refinedRequirements.size();i++){
             String requirement = refinedRequirements.get(i);
             sb.append(requirement);

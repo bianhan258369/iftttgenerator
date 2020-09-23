@@ -1,0 +1,20 @@
+light.brightness->brightnessVal//env
+person.number->peopleNum//env
+air.temperature->tempeVal//env
+air.humidity->humidityVal//env
+person.distanceFromMc->microDistVal//env
+person.distanceFromPro->proDistVal//env
+indoor.is_raining->dropletSenVal==1
+M.bonPulse->bulbBtnVal=1//Test.addDatapoints(map, type, bulbBtnId, bulbBtnApi_key, bulbBtnVal, bulbBtnDatastrId)
+M.boffPulse->bulbBtnVal=0//Test.addDatapoints(map, type, bulbBtnId, bulbBtnApi_key, bulbBtnVal, bulbBtnDatastrId)
+M.coldPulse->cBtnVal=1//Test.addDatapoints(map, type, coldButtonId, coldBtnApi_key, cBtnVal, cBtnDatastrId)
+M.hotPulse->hBtnVal=1//Test.addDatapoints(map, type, heatButtonId, heatBtnApi_key, hBtnVal, hBtnDatastrId)
+M.aoffPulse->cBtnVal=0//hBtnVal=0//Test.addDatapoints(map, type, coldButtonId, coldBtnApi_key, cBtnVal, cBtnDatastrId)//Test.addDatapoints(map, type, heatButtonId, heatBtnApi_key, hBtnVal, hBtnDatastrId)
+M.monPulse->microBtnVal=1//Test.addDatapoints(map, type, microBtnId, microBtnApi_key, microBtnVal, microBtnDatastrId)
+M.moffPulse->microBtnVal=0//Test.addDatapoints(map, type, microBtnId, microBtnApi_key, microBtnVal, microBtnDatastrId)
+M.ponPulse->proBtnVal=1//Test.addDatapoints(map, type, proBtnId, proBtnApi_key, proBtnVal, proBtnDatastrId)
+M.poffPulse->proBtnVal=0//Test.addDatapoints(map, type, proBtnId, proBtnApi_key, proBtnVal, proBtnDatastrId)
+M.wopenPulse->windowBtnVal=1//Test.addDatapoints(map, type, windowBtnId, windowBtnApi_key, windowBtnVal, windowBtnDatastrId)
+M.wclosePulse->windowBtnVal=0//Test.addDatapoints(map, type, windowBtnId, windowBtnApi_key, windowBtnVal, windowBtnDatastrId)
+M.bopenPulse->blindBtnVal=1//Test.addDatapoints(map, type, blindBtnId, blindBtnApi_key, blindBtnVal, blindBtnDatastrId)
+M.bclosePulse->blindBtnVal=0//Test.addDatapoints(map, type, blindBtnId, blindBtnApi_key, blindBtnVal, blindBtnDatastrId)

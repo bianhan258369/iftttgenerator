@@ -14,11 +14,9 @@ import java.io.IOException;
 import java.util.*;
 
 @Service("generateService")
-public class GenerateService {
-    final String MAPPATH = "map.txt";
+public class DroolsService {
+    final String MAPPATH = "drools_map.txt";
     public String toDrools(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
-        System.out.println(requirementTexts);
-        JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
         int ruleIndex = 1;
         int groupIndex = 1;
@@ -785,13 +783,13 @@ public class GenerateService {
 
     public static void main(String[] args) throws IOException, DocumentException {
         String reqTexts = "IF air.temperature>30 THEN air.temperature SHOULD DECREASE";
-        GenerateService generateService = new GenerateService();
-        System.out.println(generateService.toDrools(reqTexts, "ontology_SmartConferenceRoom.xml"));
+        DroolsService droolsService = new DroolsService();
+        System.out.println(droolsService.toDrools(reqTexts, "ontology_SmartConferenceRoom.xml"));
 
 //        List<String> values = new ArrayList<>();
 //        values.add(">30");
 //        values.add("<0");
-//        GenerateService generateService = new GenerateService();
-//        System.out.println(generateService.computeReverse(values));
+//        DroolsService droolsService = new DroolsService();
+//        System.out.println(droolsService.computeReverse(values));
     }
 }
