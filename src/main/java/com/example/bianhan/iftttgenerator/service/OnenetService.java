@@ -24,7 +24,7 @@ public class OnenetService {
         Map<String, List<String>> actionMap = coputeMap(MAPPATH, "actionMap");
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, eo);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         System.out.println(ifThenRequirements);
 
         for(IfThenRequirement requirement : ifThenRequirements) {

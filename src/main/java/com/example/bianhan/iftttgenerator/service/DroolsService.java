@@ -27,7 +27,7 @@ public class DroolsService {
         Map<String, String> paraTypeMap = coputeMap(MAPPATH, "paraTypeMap");
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, eo);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
 
         for(IfThenRequirement requirement : ifThenRequirements){
             if(requirement.getTime()==null){
@@ -538,8 +538,10 @@ public class DroolsService {
                 values = attributeMappingToValue.get(attribute);
             }
             List<String> triggers = computeReverseRange(values);
-            for(String trigger : triggers){
-                refinedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
+            if(triggers.size() > 0 && attribute != null && !attribute.trim().equals("")){
+                for(String trigger : triggers){
+                    refinedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
+                }
             }
         }
 

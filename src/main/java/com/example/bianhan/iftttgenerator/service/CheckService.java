@@ -12,7 +12,10 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("checkService")
 public class CheckService {
-    public List<String> consistencyCheck(List<IfThenRequirement> ifThenRequirements, EnvironmentOntology eo){
+    public List<String> consistencyCheck(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, new HashMap<>(), ontologyPath);
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<String> errors = new ArrayList<>();
         Map<String, List<List<String>>> entityMappingToTriggers = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
@@ -41,6 +44,7 @@ public class CheckService {
 
         Iterator it = entityMappingToTriggers.keySet().iterator();
         while (it.hasNext()){
+            boolean flag = true;
             String key = (String) it.next();
             List<List<String>> triggerLists = entityMappingToTriggers.get(key);
             if(triggerLists.size() > 1){
@@ -49,12 +53,12 @@ public class CheckService {
                     List<String> triggerList2 = triggerLists.get(i + 1);
                     for(String trigger1 : triggerList1){
                         for(String trigger2 : triggerList2){
-                            if(isTriggerConflict(trigger1, trigger2)){
-                                errors.add(trigger1 + " and " + trigger2 + " on " + key + " has conflicts!");
-                            }
+                            if(isTriggerConflict(trigger1, trigger2))flag = flag & true;
+                            else flag = flag & false;
                         }
                     }
                 }
+                if(flag) errors.add("triggers on " + key + " have conflicts");
             }
         }
         return errors;
@@ -71,6 +75,7 @@ public class CheckService {
             if(attribute1.equals(attribute2)){
                 if(isRangeOverlapping(relation1, relation2, value1, value2)) return true;
             }
+            else return true;
         }
         return false;
     }
@@ -107,9 +112,7 @@ public class CheckService {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = coputeMap("onenet_map.txt", "intendMap");
         String re = "IF air.temperature>30 AND air.humidity<40 THEN window.wopen//IF air.temperature<40 THEN window.wclosed";
-        List<String> requirements = computeRequirements(re, ontologyPath);
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, eo);
-        System.out.println(checkService.consistencyCheck(ifThenRequirements, eo));
+        System.out.println(checkService.consistencyCheck(re, ontologyPath));
     }
 
 }

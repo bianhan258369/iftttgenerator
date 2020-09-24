@@ -1,5 +1,6 @@
 package com.example.bianhan.iftttgenerator.controller;
 
+import com.example.bianhan.iftttgenerator.service.CheckService;
 import com.example.bianhan.iftttgenerator.service.DroolsService;
 import com.example.bianhan.iftttgenerator.service.ProblemFrameService;
 import net.sf.json.JSONObject;
@@ -22,6 +23,8 @@ public class GenerateController {
     private DroolsService droolsService;
     @Autowired
     private ProblemFrameService pfService;
+    @Autowired
+    private CheckService checkService;
     final String ontologyRootPath = System.getProperty("os.name").toLowerCase().startsWith("win") ?
             "E:/JavaProject/iftttgenerator/ontologyFiles/" :"/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
     @CrossOrigin
@@ -71,5 +74,15 @@ public class GenerateController {
         JSONObject result = pfService.getElementsOfPD(requirementTexts, ontologyPath);
         result.put("result","success");
         return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/check")
+    @ResponseBody
+    public List<String> check(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
+        JSONObject result = new JSONObject();
+        List<String> errors = checkService.consistencyCheck(requirementTexts, ontologyPath);
+        if(errors.size() == 0) errors.add("No Errors!");
+        return errors;
     }
 }

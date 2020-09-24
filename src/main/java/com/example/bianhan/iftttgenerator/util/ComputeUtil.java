@@ -125,7 +125,6 @@ public class ComputeUtil {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<String> requirements = new ArrayList<>();
         List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
         List<String> addRequirementTexts = new ArrayList<>();
         for(String requirement : tempRequirements){
             List<Device> devices = eo.getDevicesAffectingEnvironment();
@@ -160,7 +159,8 @@ public class ComputeUtil {
         return requirements;
     }
 
-    public static List<IfThenRequirement> computeIfThenRequirements(List<String> requirements, Map<String, String> intendMap, EnvironmentOntology eo) {
+    public static List<IfThenRequirement> computeIfThenRequirements(List<String> requirements, Map<String, String> intendMap, String ontologyPath) throws IOException, DocumentException {
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
         for (String requirement : requirements) {
             if (requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")) {
