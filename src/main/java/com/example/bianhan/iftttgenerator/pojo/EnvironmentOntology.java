@@ -104,6 +104,16 @@ public class EnvironmentOntology {
         return stateList.get(0);
     }
 
+    public String getDeviceNameByState(String state){
+        Iterator it = deviceMappingToStates.keySet().iterator();
+        while (it.hasNext()){
+            String deviceName = (String) it.next();
+            List<String> states = deviceMappingToStates.get(deviceName);
+            if(states.contains(state)) return deviceName;
+        }
+        return null;
+    }
+
 
     public static void main(String[] args) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology("ontology_SmartConferenceRoom.xml");

@@ -1,0 +1,13 @@
+M.bonPulse->turn on the blind
+M.boffPulse->turn off the blind
+M.coldPulse->turn on the airconditioner cold
+M.hotPulse->turn on the airconditioner hot
+M.aoffPulse->turn off the airconditioner
+M.monPulse->turn on the microphone
+M.moffPulse->turn off the microphone
+M.ponPulse->turn on the projector
+M.poffPulse->turn off the projector
+M.wopenPulse->open the window
+M.wclosePulse->close the window
+M.bopenPulse->open the blind
+M.bclosePulse->close the blind

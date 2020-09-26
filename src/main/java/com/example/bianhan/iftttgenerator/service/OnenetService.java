@@ -2,6 +2,7 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
+import com.example.bianhan.iftttgenerator.util.Configuration;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
@@ -13,15 +14,13 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("onnetService")
 public class OnenetService {
-    final String MAPPATH = "onenet_map.txt";
-
     public String toOnenet(String requirementTexts, String ontologyPath) throws IOException, DocumentException{
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = coputeMap(MAPPATH, "intendMap");
-        Map<String, List<String>> triggerMap = coputeMap(MAPPATH, "triggerMap");
-        Map<String, List<String>> actionMap = coputeMap(MAPPATH, "actionMap");
+        Map<String, String> intendMap = computeMap(Configuration.ONENETMAPPATH, "intendMap",eo);
+        Map<String, List<String>> triggerMap = computeMap(Configuration.ONENETMAPPATH, "triggerMap",eo);
+        Map<String, List<String>> actionMap = computeMap(Configuration.ONENETMAPPATH, "actionMap",eo);
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);

@@ -5,94 +5,37 @@ import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Line;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Oval;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Phenomenon;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Rect;
-import net.sf.json.JSONArray;
+import com.example.bianhan.iftttgenerator.util.Configuration;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeIfThenRequirements;
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeMap;
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeRequirements;
 
 @Service("pfService")
 public class ProblemFrameService {
     public JSONObject getElementsOfPD(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        List<String> requirements = new ArrayList<>();
-        List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        List<String> addRequirementTexts = new ArrayList<>();
-        for(String requirement : tempRequirements){
-            List<Device> devices = eo.getDevicesAffectingEnvironment();
-            if(requirement.contains("PREFERRED") && requirement.contains("IS")){
-                String entity = requirement.split(" ")[1];
-                int value = Integer.parseInt(requirement.split(" ")[3]);
-                for(int j = 0;j < devices.size();j++){
-                    Device device = devices.get(j);
-                    Map map = device.getStateMappingToAffectedEntities();
-                    if(device.getAffectedAttributeNames().contains(entity)){
-                        for(int k = 0;k < device.getStates().size();k++){
-                            String state = device.getStates().get(k);
-                            List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
-                            for(int m = 0;m < monitoredEntities.size();m++){
-                                AffectedAttribute monitoredEntity = monitoredEntities.get(m);
-                                if(monitoredEntity.getAttributeName().equals(entity)){
-                                    if(monitoredEntity.getAdjustRate() > 0){
-                                        addRequirementTexts.add("IF " + entity + "<" + value + " THEN " + device.getDeviceName() + "." + state);
-                                    }
-                                    else if(monitoredEntity.getAdjustRate() < 0){
-                                        addRequirementTexts.add("IF " + entity + ">=" + value + " THEN " + device.getDeviceName() + "." + state);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        requirements.addAll(tempRequirements);
-        requirements.addAll(addRequirementTexts);
-        for(String requirement : requirements){
-            if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains(" FOR ")){
-                requirement = requirement.substring(3);
-                String trigger = requirement.split(" THEN ")[0];
-                String action = requirement.split(" THEN ")[1];
-                if(trigger.contains(" AND ")){
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, null));
-                }
-                else if(trigger.contains(" OR ")){
-                    for(int i = 0;i < trigger.split(" OR ").length;i++){
-                        List<String> triggers = new ArrayList<>();
-                        List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
-                        if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                        else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null));
-                    }
-                }
-                else {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers.add(trigger);
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, null));
-                }
-            }
-        }
-
-
+        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> sensorMap = computeMap(Configuration.DROOLSMAPPATH, "sensorMap", eo);
+        Set<String> monitoredEntities = new HashSet<>();
+        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<Oval> ovals = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
-        List<Line> lines = new ArrayList<>();
+        List<Line> lines = new ArrayList<>();//references and constraints
+        List<Line> linesWithSensors = new ArrayList<>();
+        List<Line> linesWithoutSensors = new ArrayList<>();
+        List<Rect> sensorRects = new ArrayList<>();
+        List<Rect> rectsWithSensors = new ArrayList<>();
+        List<Line> interfacesWithSensors = new ArrayList<>();
+        List<Line> interfacesWithoutSensors = new ArrayList<>();
         List<Phenomenon> phenomena = new ArrayList<>();
         List<Phenomenon> referencePhenomena = new ArrayList<>();
         int ovalNum = 1;
@@ -116,7 +59,7 @@ public class ProblemFrameService {
             for(String trigger : requirement.getTriggerList()){
                 String entityName = trigger.split("\\.")[0];
                 String attributeValue = trigger.split("\\.")[1];
-                Rect rect = new Rect(500, 150 * recNum);
+                Rect rect = new Rect(800, 150 * recNum);
                 rect.setState(1);
                 rect.setText(entityName);
                 rect.setShortName(entityName);
@@ -138,13 +81,13 @@ public class ProblemFrameService {
                 else {
                     lines.get(lines.indexOf(reference)).addPhenomenon(phenomenon);
                 }
-                if(!lines.contains(interfacee)){
+                if(!interfacesWithoutSensors.contains(interfacee)){
                     interfacee.setName("int" + (intNum++));
                     interfacee.addPhenomenon(phenomenon);
-                    lines.add(interfacee);
+                    interfacesWithoutSensors.add(interfacee);
                 }
                 else {
-                    lines.get(lines.indexOf(interfacee)).addPhenomenon(phenomenon);
+                    interfacesWithoutSensors.get(interfacesWithoutSensors.indexOf(interfacee)).addPhenomenon(phenomenon);
                 }
                 phenomena.add(phenomenon);
                 referencePhenomena.add(phenomenon);
@@ -153,7 +96,7 @@ public class ProblemFrameService {
             for(String action : requirement.getActionList()){
                 String deviceName = action.split("\\.")[0];
                 String deviceEventOrState = action.split("\\.")[1];
-                Rect rect = new Rect(500, 150 * recNum);
+                Rect rect = new Rect(800, 150 * recNum);
                 rect.setState(1);
                 rect.setText(deviceName);
                 rect.setShortName(deviceName);
@@ -191,13 +134,13 @@ public class ProblemFrameService {
                 else {
                     lines.get(lines.indexOf(constraint)).addPhenomenon(constraintPhenomenon);
                 }
-                if(!lines.contains(interfacee)){
+                if(!interfacesWithoutSensors.contains(interfacee)){
                     interfacee.setName("int" + (intNum++));
                     interfacee.addPhenomenon(interfacePhenomenon);
-                    lines.add(interfacee);
+                    interfacesWithoutSensors.add(interfacee);
                 }
                 else {
-                    lines.get(lines.indexOf(interfacee)).addPhenomenon(interfacePhenomenon);
+                    interfacesWithoutSensors.get(interfacesWithoutSensors.indexOf(interfacee)).addPhenomenon(interfacePhenomenon);
                 }
                 phenomena.add(constraintPhenomenon);
                 phenomena.add(interfacePhenomenon);
@@ -207,20 +150,84 @@ public class ProblemFrameService {
         machine.changeSize(200, 75 * recNum);
         for(int i = 0;i < ovals.size();i++){
             Oval oval = ovals.get(i);
-            oval.changeSize(900, 150 * (i + 1) * recNum / ovalNum);
+            oval.changeSize(1100, 150 * (i + 1) * recNum / ovalNum);
         }
-//        JSONArray ovalJS = JSONArray.fromObject(ovals);
-//        JSONArray rectJS = JSONArray.fromObject(rects);
-//        JSONArray lineJS = JSONArray.fromObject(lines);
-//        JSONArray phenomenonJS = JSONArray.fromObject(phenomena);
-//        JSONArray referenceJS = JSONArray.fromObject(referencePhenomena);
+
+        for(int i = 0;i < rects.size();i++){
+            Rect rect = rects.get(i);
+            Iterator it = sensorMap.keySet().iterator();
+            while (it.hasNext()){
+                String sensorName = (String) it.next();
+                List<String> attributes = sensorMap.get(sensorName);
+                for (String attribute : attributes){
+                    String entity = attribute.split("\\.")[0];
+                    if(rect.getText().equals(entity)){
+                        Rect sensorRect = new Rect(0,0);
+                        sensorRect.setState(1);
+                        sensorRect.changeSize(400, rect.getY1() + rect.getY2()/2);
+                        sensorRect.setText(sensorName);
+                        sensorRect.setShortName(sensorName);
+                        if(!sensorRects.contains(sensorRect)) sensorRects.add(sensorRect);
+                        for(Line line : interfacesWithoutSensors){
+                            if(line.getState() ==0 && line.getTo() instanceof Rect && (line.getTo()).equals(rect)){
+                                for(Phenomenon phenomenon : line.getPhenomena()){
+                                    if(phenomenon.getName().contains(attribute.split("\\.")[1])){
+                                        Line line1 = new Line(machine, sensorRect, 0);
+                                        Line line2 = new Line(sensorRect, rect, 3);
+                                        if(!interfacesWithSensors.contains(line1)){
+                                            line1.setName("int" + (intNum++));
+                                            line1.addPhenomenon(phenomenon);
+                                            interfacesWithSensors.add(line1);
+                                        }
+                                        if(!interfacesWithSensors.contains(line2)){
+                                            line2.setName("int" + (intNum++));
+                                            line2.addPhenomenon(phenomenon);
+                                            interfacesWithSensors.add(line2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        Iterator it = sensorMap.keySet().iterator();
+        while (it.hasNext()){
+            String sensorName = (String) it.next();
+            List<String> attributes = sensorMap.get(sensorName);
+            for (String attribute : attributes){
+                String entity = attribute.split("\\.")[0];
+                monitoredEntities.add(entity);
+            }
+        }
+
+        for (Line line : interfacesWithoutSensors){
+            if(!monitoredEntities.contains(((Rect)line.getTo()).getText())) interfacesWithSensors.add(line);
+        }
+
+        linesWithSensors.addAll(lines);
+        linesWithSensors.addAll(interfacesWithSensors);
+        linesWithoutSensors.addAll(lines);
+        linesWithoutSensors.addAll(interfacesWithoutSensors);
+        rectsWithSensors.addAll(rects);
+        rectsWithSensors.addAll(sensorRects);
+
         result.put("ovals", ovals);
-        result.put("rects", rects);
-        result.put("lines", lines);
+        result.put("rectsWithSensors", rectsWithSensors);
+        result.put("rectsWithoutSensors", rects);
+        result.put("linesWithSensors", linesWithSensors);
+        result.put("linesWithoutSensors", linesWithoutSensors);
         result.put("phenomena", phenomena);
         result.put("referencePhenomena", referencePhenomena);
+        rects.addAll(sensorRects);
+
         return result;
     }
+
+
 
     public static void main(String[] args) {
         String s = new String("aaa");

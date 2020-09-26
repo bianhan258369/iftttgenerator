@@ -2,6 +2,7 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
+import com.example.bianhan.iftttgenerator.util.Configuration;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,6 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("generateService")
 public class DroolsService {
-    final String MAPPATH = "drools_map.txt";
     public String toDrools(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         StringBuilder sb = new StringBuilder("");
         int ruleIndex = 1;
@@ -21,10 +21,10 @@ public class DroolsService {
         int clockIndex = 1;
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = coputeMap(MAPPATH, "intendMap");
-        Map<String, List<String>> triggerMap = coputeMap(MAPPATH, "triggerMap");
-        Map<String, List<String>> actionMap = coputeMap(MAPPATH, "actionMap");
-        Map<String, String> paraTypeMap = coputeMap(MAPPATH, "paraTypeMap");
+        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> triggerMap = computeMap(Configuration.DROOLSMAPPATH, "triggerMap", eo);
+        Map<String, List<String>> actionMap = computeMap(Configuration.DROOLSMAPPATH, "actionMap", eo);
+        Map<String, String> paraTypeMap = computeMap(Configuration.DROOLSMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
@@ -277,42 +277,10 @@ public class DroolsService {
 
     public JSONObject refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
-        List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        for(String requirement : tempRequirements){
-            if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")){
-                requirement = requirement.substring(3);
-                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-                String action = requirement.split(" THEN ")[1];
-                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                if(trigger.contains(" AND ")){
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-                else if(trigger.contains(" OR ")){
-                    for(int i = 0;i < trigger.split(" OR ").length;i++){
-                        List<String> triggers = new ArrayList<>();
-                        List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
-                        if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                        else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                    }
-                }
-                else {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers.add(trigger);
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-            }
-        }
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
         result.put("refined", refinedRequirements);
         return result;

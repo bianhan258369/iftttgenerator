@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.example.bianhan.iftttgenerator.util.Configuration.ontologyRootPath;
+
 @RestController
 @CrossOrigin
 @RequestMapping("/api")
@@ -25,8 +27,7 @@ public class GenerateController {
     private ProblemFrameService pfService;
     @Autowired
     private CheckService checkService;
-    final String ontologyRootPath = System.getProperty("os.name").toLowerCase().startsWith("win") ?
-            "E:/JavaProject/iftttgenerator/ontologyFiles/" :"/Users/bianhan/Desktop/project/iftttgenerator/ontologyFiles/";
+
     @CrossOrigin
     @RequestMapping("/upload")
     @ResponseBody

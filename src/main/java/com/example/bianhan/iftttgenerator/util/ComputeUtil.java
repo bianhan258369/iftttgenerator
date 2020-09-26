@@ -91,33 +91,48 @@ public class ComputeUtil {
     }
 
 
-    public static Map coputeMap(String mapPath, String type) throws IOException {
+    public static Map computeMap(String mapPath, String type, EnvironmentOntology eo) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(mapPath));
         Map<String, String> intendMap = new HashMap<>();
         Map<String, List<String>> triggerMap = new HashMap<>();
         Map<String, List<String>> actionMap = new HashMap<>();
         Map<String, String> paraTypeMap = new HashMap<>();
+        Map<String, List<String>> sensorMap = new HashMap<>();
         String line = "";
         while ((line = br.readLine()) != null){
+            line = line.trim();
+            if(line.equals("")) continue;
             List<String> temp = new ArrayList<>();
             String left = line.split("->")[0];
             String right = line.split("->")[1];
             for(int i = 0;i < right.split("//").length;i++) temp.add(right.split("//")[i]);
             if(left.startsWith("M.")){
                 actionMap.put(left, temp);
+                String action = left.split("\\.")[1];
+                String state = eo.getActionMappingToState().get(action);
+                String deviceName = eo.getDeviceNameByState(state);
                 if(line.indexOf("->") != line.lastIndexOf("->")){
                     String intend = line.split("->")[2];
-                    if(!intendMap.containsKey(intend)) intendMap.put(intend, left);
-                    else intendMap.put(intend, intendMap.get(intend) + "," + left);
+                    if(!intendMap.containsKey(intend))  intendMap.put(intend, deviceName + "." + state);
+                    else intendMap.put(intend, intendMap.get(intend) + "," + deviceName + "." + state);
                 }
             }
             else if(left.startsWith("$")) paraTypeMap.put(left, right);
+            else if(line.startsWith("s:")){
+                line = line.substring(2);
+                String sensor = line.split("->")[0];
+                String attribute = line.split("->")[1];
+                List<String> attributes = sensorMap.containsKey(sensor) ?  sensorMap.get(sensor) : new ArrayList<>();
+                attributes.add(attribute);
+                sensorMap.put(sensor, attributes);
+            }
             else triggerMap.put(left,temp);
         }
         if(type.equals("triggerMap")) return triggerMap;
         else if(type.equals("intendMap")) return intendMap;
         else if(type.equals("actionMap")) return actionMap;
         else if(type.equals("paraTypeMap")) return paraTypeMap;
+        else if(type.equals("sensorMap")) return sensorMap;
         else return null;
     }
 
@@ -127,6 +142,8 @@ public class ComputeUtil {
         List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
         List<String> addRequirementTexts = new ArrayList<>();
         for(String requirement : tempRequirements){
+            requirement = requirement.trim();
+            if(requirement.equals("")) continue;
             List<Device> devices = eo.getDevicesAffectingEnvironment();
             if(requirement.contains("PREFERRED") && requirement.contains("IS")){
                 String attribute = requirement.split(" ")[1];
@@ -163,6 +180,8 @@ public class ComputeUtil {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
         for (String requirement : requirements) {
+            requirement = requirement.trim();
+            if(requirement.equals("")) continue;
             if (requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")) {
                 requirement = requirement.substring(3);
                 String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];

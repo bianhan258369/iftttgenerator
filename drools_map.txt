@@ -7,7 +7,6 @@ person.distanceFromMc>2->$speaker:Speaker(state==false)
 person.distanceFromMc<=2->$speaker:Speaker(state==true)
 person.distanceFromPro>2->$demonstrator:Demonstrator(state==false)
 person.distanceFromPro<=2->$demonstrator:Demonstrator(state==true)
-bulb.bon->$bulb:Light(state==1)
 M.bonPulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
 M.boffPulse->$bulb.closeDevice()//update($bulb)
 M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should decrease
@@ -27,3 +26,7 @@ $projector->Projector()
 $bulb->Light()
 $blind->Blind()
 $window->Window()
+s:TemperatureSensor->air.temperature
+s:HumiditySensor->air.humidity
+s:LightSensor->light.brightness
+s:InfraredSensor->person.number
