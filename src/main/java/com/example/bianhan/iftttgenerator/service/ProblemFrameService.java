@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
+import static com.example.bianhan.iftttgenerator.util.Configuration.SCDPATH;
 
 @Service("pfService")
 public class ProblemFrameService {
@@ -225,14 +226,18 @@ public class ProblemFrameService {
         return result;
     }
 
-    public List<String> getSdDot(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
-        List<String> result = new ArrayList<>();
+    public JSONObject getSdPng(String requirementTexts, String ontologyPath, String scFolderPath) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = new JSONObject();
+        List<String> paths = new ArrayList<>();
+        List<Integer> indexes  = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(Configuration.DROOLSMAPPATH, "sensorMap", eo);
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
-        for(IfThenRequirement requirement : ifThenRequirements){
+        for(int i = 0;i < ifThenRequirements.size();i++){
+            indexes.add(i + 1);
+            IfThenRequirement requirement = ifThenRequirements.get(i);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
             int chainIndex = 1;
             for(String trigger : requirement.getTriggerList()){
@@ -268,19 +273,27 @@ public class ProblemFrameService {
                 scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1));
             }
             ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
-            result.add(scenarioDiagram.toDot(eo));
+            String scFilePath = scFolderPath + "ScenarioDiagram" + (i + 1);
+            System.out.println(scFilePath);
+            scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
+            String cmd = "neato " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
+            Process p = Runtime.getRuntime().exec(cmd);
+            p.waitFor();
+            p.destroy();
+            paths.add(scFilePath + ".png");
         }
+        result.put("paths", paths);
         return result;
     }
 
 
 
-    public static void main(String[] args) throws IOException, DocumentException {
+    public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
         ProblemFrameService problemFrameService = new ProblemFrameService();
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap("drools_map.txt", "intendMap", eo);
-        String re = "IF air.temperature>30 AND person.number>0 THEN window.wclose,ac.coldOn";
-        System.out.println(problemFrameService.getSdDot(re, ontologyPath));
+        String re = "IF air.temperature>30 AND person.number>0 THEN window.wclose,ac.coldOn//IF air.humidity>50 THEN window.wopen";
+        System.out.println(problemFrameService.getSdPng(re, ontologyPath, SCDPATH));
     }
 }

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.example.bianhan.iftttgenerator.util.Configuration.SCDPATH;
 import static com.example.bianhan.iftttgenerator.util.Configuration.ontologyRootPath;
 
 @RestController
@@ -74,6 +75,18 @@ public class GenerateController {
     public JSONObject getPD(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
         JSONObject result = pfService.getElementsOfPD(requirementTexts, ontologyPath);
         result.put("result","success");
+        return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/getSCD")
+    @ResponseBody
+    public JSONObject getSCD(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = new JSONObject();
+        String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
+        File folder = new File(folderPath);
+        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+        result = pfService.getSdPng(requirementTexts, ontologyPath, folderPath);
         return result;
     }
 

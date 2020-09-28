@@ -34,3 +34,7 @@ build/
 
 ### ontologyFoles ###
 /ontologyFiles/
+*.png
+*.dot
+*.dot
+*.png
