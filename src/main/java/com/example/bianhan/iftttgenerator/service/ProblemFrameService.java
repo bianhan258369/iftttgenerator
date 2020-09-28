@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 
-import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeIfThenRequirements;
-import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeMap;
-import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeRequirements;
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("pfService")
 public class ProblemFrameService {
@@ -227,12 +225,62 @@ public class ProblemFrameService {
         return result;
     }
 
+    public List<String> getSdDot(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+        List<String> result = new ArrayList<>();
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> sensorMap = computeMap(Configuration.DROOLSMAPPATH, "sensorMap", eo);
+        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        for(IfThenRequirement requirement : ifThenRequirements){
+            List<ScenarioNode> scenarioNodes = new ArrayList<>();
+            int chainIndex = 1;
+            for(String trigger : requirement.getTriggerList()){
+                String entityName = trigger.split("\\.")[0];
+                String attributeValue = trigger.split("\\.")[1];
+                String relation = computeRelation(attributeValue);
+                if(!relation.equals("")){
+                    String attribute = entityName + "." + attributeValue.split(relation)[0];
+                    Iterator it = sensorMap.keySet().iterator();
+                    while (it.hasNext()){
+                        String sensorName = (String) it.next();
+                        if(sensorMap.get(sensorName).contains(attribute)){
+                            scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,0,sensorName,chainIndex));
+                            scenarioNodes.add(new ScenarioNode(attributeValue,2,1,entityName,chainIndex));
+                            scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,2,sensorName,chainIndex));
+                            scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex));
+                            break;
+                        }
+                    }
+                }
+                else {
+                    scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex));
+                    scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex));
+                }
+                chainIndex++;
+            }
+            for(String action : requirement.getActionList()){
+                String deviceName = action.split("\\.")[0];
+                String deviceEventOrState = action.split("\\.")[1];
+                String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
+                String pulse = eo.getStateMappingToAction().get(state);
+                scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1));
+                scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1));
+            }
+            ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
+            result.add(scenarioDiagram.toDot(eo));
+        }
+        return result;
+    }
 
 
-    public static void main(String[] args) {
-        String s = new String("aaa");
-        List<String> ss = new ArrayList<>();
-        ss.add("aaa");
-        System.out.println(ss.indexOf(s));
+
+    public static void main(String[] args) throws IOException, DocumentException {
+        ProblemFrameService problemFrameService = new ProblemFrameService();
+        String ontologyPath = "ontology_SmartConferenceRoom.xml";
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> intendMap = computeMap("drools_map.txt", "intendMap", eo);
+        String re = "IF air.temperature>30 AND person.number>0 THEN window.wclose,ac.coldOn";
+        System.out.println(problemFrameService.getSdDot(re, ontologyPath));
     }
 }

@@ -255,4 +255,11 @@ public class ComputeUtil {
         }
         return ifThenRequirements;
     }
+
+    public static String modifyDot(String dot){
+        dot = dot.replaceAll("S:","");
+        dot = dot.replaceAll("\\>","\\\\>");
+        dot = dot.replaceAll("\\<","\\\\<");
+        return dot;
+    }
 }
