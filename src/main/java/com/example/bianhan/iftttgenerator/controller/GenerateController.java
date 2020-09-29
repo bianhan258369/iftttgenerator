@@ -9,14 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static com.example.bianhan.iftttgenerator.util.Configuration.SCDPATH;
-import static com.example.bianhan.iftttgenerator.util.Configuration.ontologyRootPath;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.ontologyRootPath;
 
 @RestController
 @CrossOrigin
@@ -86,8 +87,16 @@ public class GenerateController {
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+        System.out.println(folder.getAbsoluteFile());
         result = pfService.getSdPng(requirementTexts, ontologyPath, folderPath);
         return result;
+    }
+
+    //图片显示
+    @RequestMapping(value="/display",method = RequestMethod.GET)
+    @ResponseBody
+    public void diaplay(String fileName, HttpServletResponse response) {
+        pfService.ToPng(fileName, response);
     }
 
     @CrossOrigin
@@ -96,7 +105,9 @@ public class GenerateController {
     public List<String> check(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         List<String> errors = checkService.consistencyCheck(requirementTexts, ontologyPath);
-        if(errors.size() == 0) errors.add("No Errors!");
+        if(errors.size() == 0) errors.add("No Rule Errors!");
         return errors;
     }
+
+
 }

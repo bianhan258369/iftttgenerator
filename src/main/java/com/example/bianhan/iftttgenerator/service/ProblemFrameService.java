@@ -5,24 +5,25 @@ import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Line;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Oval;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Phenomenon;
 import com.example.bianhan.iftttgenerator.pojo.problemdiagram.Rect;
-import com.example.bianhan.iftttgenerator.util.Configuration;
+import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.util.*;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
-import static com.example.bianhan.iftttgenerator.util.Configuration.SCDPATH;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
 
 @Service("pfService")
 public class ProblemFrameService {
     public JSONObject getElementsOfPD(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
-        Map<String, List<String>> sensorMap = computeMap(Configuration.DROOLSMAPPATH, "sensorMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         Set<String> monitoredEntities = new HashSet<>();
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
@@ -231,8 +232,8 @@ public class ProblemFrameService {
         List<String> paths = new ArrayList<>();
         List<Integer> indexes  = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
-        Map<String, List<String>> sensorMap = computeMap(Configuration.DROOLSMAPPATH, "sensorMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         for(int i = 0;i < ifThenRequirements.size();i++){
@@ -284,6 +285,36 @@ public class ProblemFrameService {
         }
         result.put("paths", paths);
         return result;
+    }
+
+    public void ToPng(String filePath, HttpServletResponse response) {
+        // TODO Auto-generated method stub
+        FileInputStream is = null;
+        File filePic = new File(filePath);
+        if(filePic.exists()) {
+            try {
+                is = new FileInputStream(filePic);
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            response.setContentType("image/png");
+            if(is != null) {
+                try {
+                    int i = is.available();
+                    byte data[] = new byte[i];
+                    is.read(data);
+                    is.close();
+                    response.setContentType("image/png");
+                    OutputStream toClient = response.getOutputStream();
+                    toClient.write(data);
+                    toClient.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 

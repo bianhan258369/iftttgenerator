@@ -2,9 +2,8 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
-import com.example.bianhan.iftttgenerator.util.Configuration;
+import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import org.dom4j.DocumentException;
-import org.omg.CORBA.MARSHAL;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -16,7 +15,7 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 public class CheckService {
     public List<String> consistencyCheck(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<String> errors = new ArrayList<>();

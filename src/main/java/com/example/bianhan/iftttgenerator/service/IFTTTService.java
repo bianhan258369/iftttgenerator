@@ -2,12 +2,11 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
-import com.example.bianhan.iftttgenerator.util.Configuration;
+import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,10 +18,10 @@ public class IFTTTService {
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = computeMap(Configuration.IFTTTMAPPATH, "intendMap", eo);
-        Map<String, List<String>> triggerMap = computeMap(Configuration.IFTTTMAPPATH, "triggerMap", eo);
-        Map<String, List<String>> actionMap = computeMap(Configuration.IFTTTMAPPATH, "actionMap", eo);
-        Map<String, String> paraTypeMap = computeMap(Configuration.IFTTTMAPPATH, "paraTypeMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.IFTTTMAPPATH, "intendMap", eo);
+        Map<String, List<String>> triggerMap = computeMap(PathConfiguration.IFTTTMAPPATH, "triggerMap", eo);
+        Map<String, List<String>> actionMap = computeMap(PathConfiguration.IFTTTMAPPATH, "actionMap", eo);
+        Map<String, String> paraTypeMap = computeMap(PathConfiguration.IFTTTMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);

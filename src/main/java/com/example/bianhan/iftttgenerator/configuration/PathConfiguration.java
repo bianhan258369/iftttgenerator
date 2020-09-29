@@ -1,6 +1,6 @@
-package com.example.bianhan.iftttgenerator.util;
+package com.example.bianhan.iftttgenerator.configuration;
 
-public class Configuration {
+public class PathConfiguration {
     public static final String DROOLSMAPPATH = "drools_map.txt";
     public static final String ONENETMAPPATH = "onenet_map.txt";
     public static final String IFTTTMAPPATH = "ifttt_map.txt";

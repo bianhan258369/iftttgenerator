@@ -2,7 +2,7 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
 import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
-import com.example.bianhan.iftttgenerator.util.Configuration;
+import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
@@ -21,10 +21,10 @@ public class DroolsService {
         int clockIndex = 1;
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
-        Map<String, List<String>> triggerMap = computeMap(Configuration.DROOLSMAPPATH, "triggerMap", eo);
-        Map<String, List<String>> actionMap = computeMap(Configuration.DROOLSMAPPATH, "actionMap", eo);
-        Map<String, String> paraTypeMap = computeMap(Configuration.DROOLSMAPPATH, "paraTypeMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, List<String>> triggerMap = computeMap(PathConfiguration.DROOLSMAPPATH, "triggerMap", eo);
+        Map<String, List<String>> actionMap = computeMap(PathConfiguration.DROOLSMAPPATH, "actionMap", eo);
+        Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
@@ -278,7 +278,7 @@ public class DroolsService {
     public JSONObject refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(Configuration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
