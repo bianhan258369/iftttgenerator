@@ -153,6 +153,7 @@ public class ProblemFrameService {
             oval.changeSize(1100, 150 * (i + 1) * recNum / ovalNum);
         }
 
+        int positionY = -1;
         for(int i = 0;i < rects.size();i++){
             Rect rect = rects.get(i);
             Iterator it = sensorMap.keySet().iterator();
@@ -164,7 +165,10 @@ public class ProblemFrameService {
                     if(rect.getText().equals(entity)){
                         Rect sensorRect = new Rect(0,0);
                         sensorRect.setState(1);
-                        sensorRect.changeSize(400, rect.getY1() + rect.getY2()/2);
+                        if(positionY == rect.getY1() + rect.getY2()/2) positionY += 100;
+                        else positionY = rect.getY1() + rect.getY2()/2;
+                        sensorRect.changeSize(400, positionY);
+                        positionY = rect.getY1() + rect.getY2()/2;
                         sensorRect.setText(sensorName);
                         sensorRect.setShortName(sensorName);
                         if(!sensorRects.contains(sensorRect)) sensorRects.add(sensorRect);
