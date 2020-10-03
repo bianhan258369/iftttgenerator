@@ -25,7 +25,7 @@ public class ProblemFrameService {
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         Set<String> monitoredEntities = new HashSet<>();
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<Oval> ovals = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
@@ -234,17 +234,16 @@ public class ProblemFrameService {
     public JSONObject getSdPng(String requirementTexts, String ontologyPath, String scFolderPath) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
         List<String> paths = new ArrayList<>();
-        List<Integer> indexes  = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         for(int i = 0;i < ifThenRequirements.size();i++){
-            indexes.add(i + 1);
             IfThenRequirement requirement = ifThenRequirements.get(i);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
             int chainIndex = 1;
+            if(requirement.getIntend() != null) scenarioNodes.add(new ScenarioNode(requirement.getIntend(), 4, 3, "User",-1));
             for(String trigger : requirement.getTriggerList()){
                 String entityName = trigger.split("\\.")[0];
                 String attributeValue = trigger.split("\\.")[1];
@@ -281,7 +280,7 @@ public class ProblemFrameService {
             String scFilePath = scFolderPath + "ScenarioDiagram" + (i + 1);
             System.out.println(scFilePath);
             scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
-            String cmd = "neato " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
+            String cmd = "neato -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
             p.destroy();

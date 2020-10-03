@@ -16,7 +16,7 @@ public class CheckService {
     public List<String> consistencyCheck(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<String> errors = new ArrayList<>();
         Map<String, List<List<String>>> entityMappingToTriggers = new HashMap<>();

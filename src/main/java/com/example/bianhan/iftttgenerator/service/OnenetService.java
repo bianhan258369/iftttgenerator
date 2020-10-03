@@ -22,7 +22,7 @@ public class OnenetService {
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.ONENETMAPPATH, "triggerMap",eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.ONENETMAPPATH, "actionMap",eo);
 
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         System.out.println(ifThenRequirements);
 

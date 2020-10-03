@@ -7,6 +7,7 @@ import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class IFTTTService {
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.IFTTTMAPPATH, "actionMap", eo);
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.IFTTTMAPPATH, "paraTypeMap", eo);
 
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
 
         for (IfThenRequirement requirement : ifThenRequirements) {

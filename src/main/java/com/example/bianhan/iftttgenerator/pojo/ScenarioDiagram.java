@@ -36,28 +36,23 @@ public class ScenarioDiagram {
             ScenarioNode node = scenarioNodes.get(i);
             if(!positionX.containsKey(node.getLayer())) positionX.put(node.getLayer(), 200);
             else positionX.put(node.getLayer(), positionX.get(node.getLayer()) + 200);
-            int y = (maxLayer - node.getLayer() + 1) * 200;
+            int y = (maxLayer - node.getLayer() + 1) * 150;
             String pos = "\"" + positionX.get(node.getLayer()) + "," + y + "\"";
             if(node.getType() == 0){
-                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=blue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\"]");
+                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=skyblue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
                 
             }
             else if(node.getType() == 1){
-                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=green,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\"]");
+                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=cadetblue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
                 
             }
-            else{
-                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=orange,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=dashed]");
+            else if(node.getType() == 2){
+                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=orange,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
                 
             }
-//            if(!problemDomains.contains(node.getRelavantPD())){
-//                strs.add("PD" + (problemDomains.size() + 1) + "[shape = record, label = \"" + node.getRelavantPD() + "\"]");
-//                
-//                strs.add("N" + i + "->" + "PD" + (problemDomains.size() + 1));
-//                
-//            }
-//            problemDomains.add(node.getRelavantPD());
-
+            else {
+                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=pink,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
+            }
         }
         for(int i = 0;i < scenarioNodes.size();i++){
             ScenarioNode node1 = scenarioNodes.get(i);
@@ -74,14 +69,20 @@ public class ScenarioDiagram {
                         
                     }
                 }
-                else if(node1.getType() != 2 && node2.getType() != 2 && Math.abs(node1.getLayer() - node2.getLayer()) == 1
+                else if(node1.getType() == 2 && node2.getType() == 3 && node2.getLayer() - node1.getLayer() == 1){
+                    strs.add("N" + i + "->" + "N" + j + "[color=pink]");
+                }
+                else if(node1.getType() == 3 && node2.getType() == 2 && node1.getLayer() - node2.getLayer() == 1){
+                    strs.add("N" + j + "->" + "N" + i + "[color=pink]");
+                }
+                else if(node1.getType() != 2 && node1.getType() != 3 && node2.getType() != 2 && node2.getType() != 3 && Math.abs(node1.getLayer() - node2.getLayer()) == 1
                         && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)){
                     if(node1.getLayer() > node2.getLayer()){
-                        strs.add("N" + j + "->" + "N" + i + "[color=blue]");
+                        strs.add("N" + j + "->" + "N" + i + "[color=skyblue]");
                         
                     }
                     else{
-                        strs.add("N" + i + "->" + "N" + j + "[color=blue]");
+                        strs.add("N" + i + "->" + "N" + j + "[color=skyblue]");
                         
                     }
                 }
