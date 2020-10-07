@@ -2,6 +2,7 @@ light.brightness->outerLightRay//env
 person.number->peopleNum//env
 air.temperature->innerTemperature//env
 air.humidity->innerHumidity//env
+co.ppm->co_concentration//env
 person.distanceFromMc->distanceFromMc//env
 person.distanceFromPro->distanceFromPro//env
 indoor.is_raining->Sensors(rain==true)
@@ -18,7 +19,13 @@ M.wopenPulse->$window.openDevice()//update($window)->allow ventilating the room
 M.wclosePulse->$window.closeDevice()//update($window)->forbid ventilating the room
 M.bopenPulse->$blind.openDevice()//update($blind)->allow ventilating the room
 M.bclosePulse->$blind.closeDevice()//update($blind)->forbid ventilating the room
+M.afonPulse->$airFreshener.openDevice()//update($airFreshener)->allow freshing the room
+M.afoffPulse->$airFreshener.closeDevice()//update($airFreshener)->forbid freshing the room
+M.ahonPulse->$airHumidifier.openDevice()//update($airHumidifier)->allow humidifying the room
+M.ahoffPulse->$airHumidifier.closeDevice()//update($airHumidifier)->forbid humidifying the room
 $airConditionor->AirConditioner()
+$airFreshener->AirFreshener()
+$airHumidifier->AirHumidifier()
 $microPhone->MicroPhone()
 $projector->Projector()
 $bulb->Light()
@@ -30,3 +37,4 @@ s:LightSensor->light.brightness
 s:InfraredSensor->person.number
 s:InfraredSensor->person.distanceFromMc
 s:InfraredSensor->person.distanceFromPro
+s:COSensor->co.ppm

@@ -26,7 +26,7 @@ public class DroolsService {
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.DROOLSMAPPATH, "actionMap", eo);
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
 
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
 
         for(IfThenRequirement requirement : ifThenRequirements){
@@ -279,7 +279,7 @@ public class DroolsService {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
-        List<String> requirements = computeRequirements(requirementTexts, ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
         List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
         result.put("refined", refinedRequirements);

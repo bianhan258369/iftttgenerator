@@ -11,6 +11,7 @@
 		<attribute name="indoor.is_raining"/>
 		<attribute name="indoor.is_on_fire"/>
 		<attribute name="is_touched"/>
+		<attribute name="co.ppm"/>
 	</environment>
 	<sensors>
 		<sensor name="temperature_sensor">
@@ -40,15 +41,15 @@
 		<sensor name="ultrasonic_sensor">
 			<attribute name="sound.ultrasonic"/>
 		</sensor>
+		<sensor name="co_sensor">
+			<attribute name="co.ppm"/>
+		</sensor>
 	</sensors>
 	<devices>
 		<device name="bulb">
 			<states>
 				<state name="bon" init="false">
 					<adjust_entity name="light.brightness" rate="50000" method="prompt"/>
-				</state>
-				<state name="boff" init="true">
-					<adjust_entity name="light.brightness" rate="0" method="prompt"/>
 				</state>
 			</states>
 		</device>
@@ -60,8 +61,19 @@
 				<state name="hotOn" init="false">
 					<adjust_entity name="air.temperature" rate="0.2" method="/second"/>
 				</state>
-				<state name="aoff" init="true"> 
-					<adjust_entity name="air.temperature" rate="0" method="prompt"/>
+			</states>
+		</device>
+		<device name="af">
+			<states>
+				<state name="afon" init="false">
+					<adjust_entity name="co.ppm" rate="-10" method="/second"/>
+				</state>
+			</states>
+		</device>
+		<device name="ah">
+			<states>
+				<state name="ahon" init="false">
+					<adjust_entity name="air.humidity" rate="0.2" method="/second"/>
 				</state>
 			</states>
 		</device>
@@ -168,6 +180,38 @@
 		  <transition from="hotOn" event="aturnoff" action="aoffPulse" to="aoff"/>
 		  <transition from="hotOn" event="turnoncold" action="coldPulse" to="coldOn"/>
 		  <transition from="hotOn" event="turnonhot" action="hotPulse" to="hotOn"/>
+		</transitions>
+	  </device>
+	  <device name="af">
+		<events>
+			<event>afturnon</event>
+			<event>afturnoff</event>
+		</events>
+		<states>
+		  <state init="false">afon</state>
+		  <state init="true">afoff</state>
+		</states>
+		<transitions>
+		  <transition from="afon" event="afturnoff" action="afoffPulse" to="afoff"/>
+		  <transition from="afoff" event="afturnoff" action="afoffPulse" to="afoff"/>
+		  <transition from="afon" event="afturnon" action="afonPulse" to="afon"/>
+		  <transition from="afoff" event="afturnon" action="afonPulse" to="afon"/>
+		</transitions>
+	  </device>
+	  <device name="ah">
+		<events>
+			<event>ahturnon</event>
+			<event>ahturnoff</event>
+		</events>
+		<states>
+		  <state init="false">ahon</state>
+		  <state init="true">ahoff</state>
+		</states>
+		<transitions>
+		  <transition from="ahon" event="ahturnoff" action="ahoffPulse" to="ahoff"/>
+		  <transition from="ahoff" event="ahturnoff" action="ahoffPulse" to="ahoff"/>
+		  <transition from="ahon" event="ahturnon" action="ahonPulse" to="ahon"/>
+		  <transition from="ahoff" event="ahturnon" action="ahonPulse" to="ahon"/>
 		</transitions>
 	  </device>
 	</statemachines>
