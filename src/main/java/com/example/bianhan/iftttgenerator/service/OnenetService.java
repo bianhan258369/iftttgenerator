@@ -7,7 +7,7 @@ import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
@@ -258,10 +258,36 @@ public class OnenetService {
         return refinedRequirements;
     }
 
+    public void runSimulation(String onenetRules) throws IOException, InterruptedException {
+        BufferedReader br = new BufferedReader(new FileReader("onenet/com/test/temp.java"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter("onenet/com/test/SmartConferRoom.java"));
+        boolean flag = false;
+        String line = "";
+        while ((line = br.readLine()) != null){
+            bw.write(line);
+            bw.newLine();
+            bw.flush();
+            if(!line.trim().equals("//-----------") && !flag){
+                flag = true;
+                List<String> rules = Arrays.asList(onenetRules.split("\r\n"));
+                for(String rule : rules){
+                    bw.write(rule);
+                    bw.newLine();
+                    bw.flush();
+                }
+            }
+        }
+        bw.close();
+        String cmd = "Javac -encoding utf-8 com\\test\\SmartConferRoom.java && jar cmf MANIFEST.MF onenet.jar onenet\\ && java -jar onenet.jar";
+        Process p = Runtime.getRuntime().exec(cmd);
+        p.waitFor();
+        p.destroy();
+    }
 
-    public static void main(String[] args) throws IOException, DocumentException {
+
+    public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
         String re = "IF air.temperature>30 THEN allow ventilating the room//IF person.distanceFromMc<0.5 THEN mc.mon";
         OnenetService onenetService = new OnenetService();
-        System.out.println(onenetService.toOnenet(re, "ontology_SmartConferenceRoom.xml"));
+        onenetService.runSimulation(onenetService.toOnenet(re, "ontology_SmartConferenceRoom.xml"));
     }
 }
