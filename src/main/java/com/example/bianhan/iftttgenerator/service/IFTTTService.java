@@ -15,7 +15,7 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("iftttService")
 public class IFTTTService {
-    public String toIFTTT(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+    public String toIFTTT(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
@@ -25,7 +25,7 @@ public class IFTTTService {
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.IFTTTMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
 
         for (IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {
@@ -53,6 +53,6 @@ public class IFTTTService {
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
         IFTTTService iftttService = new IFTTTService();
         String requirementTexts = "IF air.temperature<30&&air.temperature>20 THEN ac.coldOn//IF air.temperature>10 THEN ac.hotOn";
-        System.out.println(iftttService.toIFTTT(requirementTexts, ontologyPath));
+        System.out.println(iftttService.toIFTTT(requirementTexts, ontologyPath,0));
     }
 }

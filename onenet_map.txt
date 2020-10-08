@@ -2,6 +2,7 @@ light.brightness->brightnessVal//env
 person.number->peopleNum//env
 air.temperature->tempeVal//env
 air.humidity->humidityVal//env
+co.ppm->coConcentrateVal//env
 person.distanceFromMc->microDistVal//env
 person.distanceFromPro->proDistVal//env
 indoor.is_raining->dropletSenVal==1
@@ -18,3 +19,14 @@ M.wopenPulse->windowBtnVal=1->allow ventilating the room
 M.wclosePulse->windowBtnVal=0->forbid ventilating the room
 M.bopenPulse->blindBtnVal=1->allow ventilating the room
 M.bclosePulse->blindBtnVal=0->forbid ventilating the room
+M.afonPulse->airFreshBtnVal=1->allow freshing the room
+M.afoffPulse->airFreshBtnVal=0->forbid freshing the room
+M.ahonPulse->airHumBtnVal=1->allow humidifying the room
+M.ahoffPulse->airHumBtnVal=0->forbid humidifying the room
+s:TemperatureSensor->air.temperature
+s:HumiditySensor->air.humidity
+s:LightSensor->light.brightness
+s:InfraredSensor->person.number
+s:InfraredSensor->person.distanceFromMc
+s:InfraredSensor->person.distanceFromPro
+s:COSensor->co.ppm

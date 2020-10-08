@@ -19,14 +19,14 @@ import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration
 
 @Service("pfService")
 public class ProblemFrameService {
-    public JSONObject getElementsOfPD(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+    public JSONObject getElementsOfPD(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         Set<String> monitoredEntities = new HashSet<>();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
         List<Oval> ovals = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
         List<Line> lines = new ArrayList<>();//references and constraints
@@ -231,14 +231,14 @@ public class ProblemFrameService {
         return result;
     }
 
-    public JSONObject getSdPng(String requirementTexts, String ontologyPath, String scFolderPath) throws IOException, DocumentException, InterruptedException {
+    public JSONObject getSdPng(String requirementTexts, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
         List<String> paths = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
@@ -328,6 +328,6 @@ public class ProblemFrameService {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap("drools_map.txt", "intendMap", eo);
         String re = "IF air.temperature>30 AND person.number>0 THEN window.wclose,ac.coldOn//IF air.humidity>50 THEN window.wopen";
-        System.out.println(problemFrameService.getSdPng(re, ontologyPath, SCDPATH));
+        System.out.println(problemFrameService.getSdPng(re, ontologyPath, SCDPATH,0));
     }
 }

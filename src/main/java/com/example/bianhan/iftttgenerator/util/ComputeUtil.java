@@ -1,5 +1,6 @@
 package com.example.bianhan.iftttgenerator.util;
 
+import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import com.example.bianhan.iftttgenerator.pojo.AffectedAttribute;
 import com.example.bianhan.iftttgenerator.pojo.Device;
 import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
@@ -137,9 +138,10 @@ public class ComputeUtil {
         else return null;
     }
 
-    public static List<IfThenRequirement> computeIfThenRequirements(List<String> requirements, Map<String, String> intendMap, String ontologyPath) throws IOException, DocumentException {
+    public static List<List<IfThenRequirement>> computeIfThenRequirements(List<String> requirements, Map<String, String> intendMap, String ontologyPath) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<Device> devices = eo.getDevicesAffectingEnvironment();
+        List<List<IfThenRequirement>> results = new ArrayList<>();
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
         for (String requirement : requirements) {
             requirement = requirement.trim();
@@ -277,49 +279,83 @@ public class ComputeUtil {
                     else actions.add(action);
                     ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,intend));
                 }
-//            } else if (requirement.contains("IF") && requirement.contains("THEN") && requirement.contains("SHOULD")) {
-//                requirement = requirement.substring(3);
-//                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-//                List<String> actions = new ArrayList<>();
-//                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-//                String attributeName = requirement.split(" THEN ")[1].split(" ")[0];
-//                for (int i = 0; i < eo.getDevicesAffectingEnvironment().size(); i++) {
-//                    Device device = eo.getDevicesAffectingEnvironment().get(i);
-//                    String deviceName = device.getDeviceName();
-//                    Iterator it = device.getStateMappingToAffectedEntities().keySet().iterator();
-//                    while (it.hasNext()) {
-//                        String state = (String) it.next();
-//                        List<AffectedAttribute> affectedAttributes = device.getStateMappingToAffectedEntities().get(state);
-//                        for (AffectedAttribute affectedAttribute : affectedAttributes) {
-//                            if (affectedAttribute.getAttributeName().equals(attributeName)) {
-//                                if (requirement.contains("INCREASE") && affectedAttribute.getAdjustRate() > 0) {
-//                                    actions.add(deviceName + "." + state);
-//                                } else if (requirement.contains("DECREASE") && affectedAttribute.getAdjustRate() < 0) {
-//                                    actions.add(deviceName + "." + state);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                if (trigger.contains(" AND ")) {
-//                    List<String> triggers = new ArrayList<>();
-//                    triggers = Arrays.asList(trigger.split(" AND "));
-//                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-//                } else if (trigger.contains(" OR ")) {
-//                    for (int i = 0; i < trigger.split(" OR ").length; i++) {
-//                        List<String> triggers = new ArrayList<>();
-//                        triggers.add(trigger.split(" OR ")[i]);
-//                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-//                    }
-//                } else {
-//                    List<String> triggers = new ArrayList<>();
-//                    triggers.add(trigger);
-//                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-//                }
             }
         }
-        return ifThenRequirements;
+        results.add(ifThenRequirements);
+        return results;
     }
+
+    public static List<String> computeComplementedRequirements(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<String> complementedRequirements = new ArrayList<>();
+        Map<String, List<String>> deviceMappingToStates = new HashMap<>();
+        for(IfThenRequirement requirement : ifThenRequirements){
+            if(requirement.getTime() == null){
+                List<String> actions = requirement.getActionList();
+                for(String action : actions){
+                    String deviceName = action.split("\\.")[0];
+                    String temp = action.split("\\.")[1];
+                    String state = eo.getEvents().contains(temp) ? eo.getEventMappingToState().get(temp) : temp;
+                    if(!deviceMappingToStates.containsKey(deviceName)) deviceMappingToStates.put(deviceName, new ArrayList<>());
+                    if(!deviceMappingToStates.get(deviceName).contains(state)) deviceMappingToStates.get(deviceName).add(state);
+                }
+            }
+        }
+        List<String> devicesShouldBeRefined = new ArrayList<>();
+        Iterator it = deviceMappingToStates.keySet().iterator();
+        while (it.hasNext()){
+            String deviceName = (String) it.next();
+            if(!deviceMappingToStates.get(deviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(deviceName);
+        }
+        for(String deviceName : devicesShouldBeRefined){
+            Map<String, List<String>> attributeMappingToValue = new HashMap<>();//[air.temperature->(>30,<10)]
+            for(IfThenRequirement requirement : ifThenRequirements){
+                if(requirement.getTime() == null){
+                    List<String> actions = requirement.getActionList();
+                    for(String action : actions){
+                        if(action.split("\\.")[0].equals(deviceName) && requirement.getTriggerList().size() == 1){
+                            String trigger = requirement.getTriggerList().get(0);
+                            String relation = computeRelation(trigger);
+                            String attribute = trigger.split(relation)[0];
+                            String value = relation + trigger.split(relation)[1];
+                            if(!attributeMappingToValue.containsKey(attribute)) attributeMappingToValue.put(attribute, new ArrayList<>());
+                            if(!attributeMappingToValue.get(attribute).contains(value)) attributeMappingToValue.get(attribute).add(value);
+                            break;
+                        }
+                    }
+                }
+            }
+            if(attributeMappingToValue.keySet().size() > 1) continue;
+            String attribute = "";
+            List<String> values = new ArrayList<>();
+            it = attributeMappingToValue.keySet().iterator();
+            while (it.hasNext()){
+                attribute = (String) it.next();
+                values = attributeMappingToValue.get(attribute);
+            }
+            List<String> triggers = computeReverseRange(values);
+            if(triggers.size() > 0 && attribute != null && !attribute.trim().equals("")){
+                for(String trigger : triggers){
+                    complementedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
+                }
+            }
+        }
+
+        StringBuilder returnInit = new StringBuilder("");
+        it = eo.getDeviceMappingToInitState().keySet().iterator();
+        while (it.hasNext()){
+            String deviceName = (String) it.next();
+            String initState = eo.getDeviceMappingToInitState().get(deviceName);
+            returnInit.append(deviceName + "." + initState);
+            if(it.hasNext()) returnInit.append(",");
+        }
+        complementedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
+        return complementedRequirements;
+    }
+
 
     public static String modifyDot(String dot){
         dot = dot.replaceAll("S:","");

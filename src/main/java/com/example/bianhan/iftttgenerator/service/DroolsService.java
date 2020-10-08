@@ -14,7 +14,7 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("generateService")
 public class DroolsService {
-    public String toDrools(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+    public String toDrools(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         StringBuilder sb = new StringBuilder("");
         int ruleIndex = 1;
         int groupIndex = 1;
@@ -27,7 +27,7 @@ public class DroolsService {
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements){
             if(requirement.getTime()==null){
@@ -275,17 +275,6 @@ public class DroolsService {
         return sb.toString();
     }
 
-    public JSONObject refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
-        JSONObject result = new JSONObject();
-        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
-        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
-        List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
-        result.put("refined", refinedRequirements);
-        return result;
-    }
-
     private String transformAlwaysRequirements(String requirement, EnvironmentOntology eo, int ruleIndex, int groupIndex,
                                                Map<String, List<String>> actionMap, Map<String, String> paraTypeMap){
         StringBuilder sb  =  new StringBuilder();
@@ -528,6 +517,6 @@ public class DroolsService {
     public static void main(String[] args) throws IOException, DocumentException {
         String re = "IF air.temperature>30 FOR 10m THEN allow ventilating the room//IF person.distanceFromMc<=2 THEN allow using microphone";
         DroolsService droolsService = new DroolsService();
-        System.out.println(droolsService.toDrools(re, "ontology_SmartConferenceRoom.xml"));
+        System.out.println(droolsService.toDrools(re, "ontology_SmartConferenceRoom.xml",0));
     }
 }

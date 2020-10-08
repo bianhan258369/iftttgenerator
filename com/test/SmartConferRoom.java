@@ -1,15 +1,4 @@
 package com.test;
-if (tempeVal>30){
-windowBtnVal=1;
-Test.addDatapoints(map, type, windowBtnId, windowBtnApi_key, windowBtnVal, windowBtnDatastrId);
-blindBtnVal=1;
-Test.addDatapoints(map, type, blindBtnId, blindBtnApi_key, blindBtnVal, blindBtnDatastrId);
-}
-
-if (microDistVal<0.5){
-microBtnVal=1;
-Test.addDatapoints(map, type, microBtnId, microBtnApi_key, microBtnVal, microBtnDatastrId);
-}
 
 
 
@@ -117,6 +106,26 @@ public class SmartConferRoom {
 		while(perNumVal>0) {
 			perNumSensor.addPerNumData(perNumVal);
 			//-----------
+if (tempeVal>30){
+windowBtnVal=1;
+blindBtnVal=1;
+}
+
+if (microDistVal<0.5){
+microBtnVal=1;
+}
+
+if (tempeVal<=30){
+blindBtnVal=0;
+}
+
+if (microDistVal>=0.5){
+microBtnVal=0;
+}
+
+if (tempeVal<=30){
+windowBtnVal=0;
+}
 			//此处增加if...then...value的变化
 			
 			//-----------

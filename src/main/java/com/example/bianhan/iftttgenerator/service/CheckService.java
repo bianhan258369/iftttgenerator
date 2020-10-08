@@ -13,11 +13,11 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("checkService")
 public class CheckService {
-    public List<String> consistencyCheck(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
+    public List<String> consistencyCheck(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
         List<String> errors = new ArrayList<>();
         Map<String, List<List<String>>> entityMappingToTriggers = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
@@ -113,7 +113,7 @@ public class CheckService {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap("onenet_map.txt", "intendMap", eo);
         String re = "IF air.temperature>30 AND air.humidity<40 THEN window.wopen//IF air.temperature<40 THEN window.wclosed";
-        System.out.println(checkService.consistencyCheck(re, ontologyPath));
+        System.out.println(checkService.consistencyCheck(re, ontologyPath,0));
     }
 
 }

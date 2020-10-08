@@ -14,7 +14,7 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("onnetService")
 public class OnenetService {
-    public String toOnenet(String requirementTexts, String ontologyPath) throws IOException, DocumentException{
+    public String toOnenet(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException{
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
@@ -23,8 +23,7 @@ public class OnenetService {
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.ONENETMAPPATH, "actionMap",eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath);
-        System.out.println(ifThenRequirements);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {
@@ -259,15 +258,15 @@ public class OnenetService {
     }
 
     public void runSimulation(String onenetRules) throws IOException, InterruptedException {
-        BufferedReader br = new BufferedReader(new FileReader("onenet/com/test/temp.java"));
-        BufferedWriter bw = new BufferedWriter(new FileWriter("onenet/com/test/SmartConferRoom.java"));
+        BufferedReader br = new BufferedReader(new FileReader("com/test/temp.java"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter("com/test/SmartConferRoom.java"));
         boolean flag = false;
         String line = "";
         while ((line = br.readLine()) != null){
             bw.write(line);
             bw.newLine();
             bw.flush();
-            if(!line.trim().equals("//-----------") && !flag){
+            if(line.trim().equals("//-----------") && !flag){
                 flag = true;
                 List<String> rules = Arrays.asList(onenetRules.split("\r\n"));
                 for(String rule : rules){
@@ -278,16 +277,21 @@ public class OnenetService {
             }
         }
         bw.close();
-        String cmd = "Javac -encoding utf-8 com\\test\\SmartConferRoom.java && jar cmf MANIFEST.MF onenet.jar onenet\\ && java -jar onenet.jar";
-        Process p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-        p.destroy();
+        System.out.println(111);
+        String cmd1 = "Javac -encoding utf-8 com\\test\\SmartConferRoom.java && jar cmf MANIFEST.MF onenet.jar .";
+        String cmd2 = "java -jar onenet.jar";
+        Process p1 = Runtime.getRuntime().exec(cmd1);
+        p1.waitFor();
+        p1.destroy();
+        Process p2 = Runtime.getRuntime().exec(cmd2);
+        p2.waitFor();
+        p2.destroy();
     }
 
 
     public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
         String re = "IF air.temperature>30 THEN allow ventilating the room//IF person.distanceFromMc<0.5 THEN mc.mon";
         OnenetService onenetService = new OnenetService();
-        onenetService.runSimulation(onenetService.toOnenet(re, "ontology_SmartConferenceRoom.xml"));
+        onenetService.runSimulation(onenetService.toOnenet(re, "ontology_SmartConferenceRoom.xml",0));
     }
 }
