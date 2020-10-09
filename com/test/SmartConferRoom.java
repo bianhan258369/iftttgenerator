@@ -106,24 +106,66 @@ public class SmartConferRoom {
 		while(perNumVal>0) {
 			perNumSensor.addPerNumData(perNumVal);
 			//-----------
-if (tempeVal>30){
+if (tempeVal>=5.0){
+cBtnVal=1;
+hBtnVal=0;
+}
+
+if (tempeVal<5.0){
+hBtnVal=1;
+cBtnVal=0;
+}
+
+if (brightnessVal<35){
+bulbBtnVal=1;
+}
+
+if (microDistVal<=2){
+microBtnVal=1;
+}
+
+if (proDistVal<=2){
+proBtnVal=1;
+}
+
+if (humidityVal<30){
 windowBtnVal=1;
 blindBtnVal=1;
 }
 
-if (microDistVal<0.5){
-microBtnVal=1;
+if (coConcentrateVal>1000.0){
+airFreshBtnVal=1;
 }
 
-if (tempeVal<=30){
+if (humidityVal<5.5){
+airHumBtnVal=1;
+}
+
+if (humidityVal>=30){
 blindBtnVal=0;
 }
 
-if (microDistVal>=0.5){
+if (proDistVal>2){
+proBtnVal=0;
+}
+
+if (coConcentrateVal<=1000.0){
+airFreshBtnVal=0;
+}
+
+if (microDistVal>2){
 microBtnVal=0;
 }
 
-if (tempeVal<=30){
+if (brightnessVal>=35){
+bulbBtnVal=0;
+}
+
+if (humidityVal>=5.5){
+airHumBtnVal=0;
+}
+
+if (humidityVal>=30){
 windowBtnVal=0;
 }
 			//此处增加if...then...value的变化

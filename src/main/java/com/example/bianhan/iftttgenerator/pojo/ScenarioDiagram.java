@@ -59,7 +59,8 @@ public class ScenarioDiagram {
             for(int j = i + 1;j < scenarioNodes.size();j++){
                 ScenarioNode node2 = scenarioNodes.get(j);
                 if(node1.getType() == 2 && node2.getType() == 2 && Math.abs(node1.getLayer() - node2.getLayer()) == 1
-                        && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)){
+                        && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
+                        && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                     if(node1.getLayer() > node2.getLayer()){
                         strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange]");
                         
@@ -76,7 +77,8 @@ public class ScenarioDiagram {
                     strs.add("N" + j + "->" + "N" + i + "[color=pink]");
                 }
                 else if(node1.getType() != 2 && node1.getType() != 3 && node2.getType() != 2 && node2.getType() != 3 && Math.abs(node1.getLayer() - node2.getLayer()) == 1
-                        && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)){
+                        && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
+                        && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                     if(node1.getLayer() > node2.getLayer()){
                         strs.add("N" + j + "->" + "N" + i + "[color=skyblue]");
                         

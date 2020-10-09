@@ -25,7 +25,7 @@ public class IFTTTService {
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.IFTTTMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
 
         for (IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {

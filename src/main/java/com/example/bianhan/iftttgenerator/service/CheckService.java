@@ -17,7 +17,7 @@ public class CheckService {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
         List<String> errors = new ArrayList<>();
         Map<String, List<List<String>>> entityMappingToTriggers = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
