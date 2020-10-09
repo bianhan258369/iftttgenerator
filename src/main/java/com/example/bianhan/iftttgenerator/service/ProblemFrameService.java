@@ -26,7 +26,7 @@ public class ProblemFrameService {
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         Set<String> monitoredEntities = new HashSet<>();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
         List<Oval> ovals = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
         List<Line> lines = new ArrayList<>();//references and constraints
@@ -238,46 +238,64 @@ public class ProblemFrameService {
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        Map<String, List<IfThenRequirement>> intendMappingToIfThenRequirements = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
+            String intend = requirement.getIntend();
+            if(intend != null){
+                List<IfThenRequirement> ifThenRequirementList = intendMappingToIfThenRequirements.containsKey(intend) ?
+                        intendMappingToIfThenRequirements.get(intend) : new ArrayList<>();
+                ifThenRequirementList.add(requirement);
+                intendMappingToIfThenRequirements.put(intend, ifThenRequirementList);
+            }
+        }
+        int pngIndex = 0;
+        int ifThenIndex = 1;
+        Iterator it = intendMappingToIfThenRequirements.keySet().iterator();
+        while (it.hasNext()){
+            String intend = (String) it.next();
+            List<IfThenRequirement> ifThenRequirementList = intendMappingToIfThenRequirements.get(intend);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
+            scenarioNodes.add(new ScenarioNode(intend, 4, 3, "User",-1, -1));
             int chainIndex = 1;
-            if(requirement.getIntend() != null) scenarioNodes.add(new ScenarioNode(requirement.getIntend(), 4, 3, "User",-1));
-            for(String trigger : requirement.getTriggerList()){
-                String entityName = trigger.split("\\.")[0];
-                String attributeValue = trigger.split("\\.")[1];
-                String relation = computeRelation(attributeValue);
-                if(!relation.equals("")){
-                    String attribute = entityName + "." + attributeValue.split(relation)[0];
-                    Iterator it = sensorMap.keySet().iterator();
-                    while (it.hasNext()){
-                        String sensorName = (String) it.next();
-                        if(sensorMap.get(sensorName).contains(attribute)){
-                            scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,0,sensorName,chainIndex));
-                            scenarioNodes.add(new ScenarioNode(attributeValue,2,1,entityName,chainIndex));
-                            scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,2,sensorName,chainIndex));
-                            scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex));
-                            break;
+            for(IfThenRequirement requirement : ifThenRequirementList){
+                for(String trigger : requirement.getTriggerList()){
+                    String entityName = trigger.split("\\.")[0];
+                    String attributeValue = trigger.split("\\.")[1];
+                    String relation = computeRelation(attributeValue);
+                    if(!relation.equals("")){
+                        String attribute = entityName + "." + attributeValue.split(relation)[0];
+                        Iterator iit = sensorMap.keySet().iterator();
+                        while (iit.hasNext()){
+                            String sensorName = (String) iit.next();
+                            if(sensorMap.get(sensorName).contains(attribute)){
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,0,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,1,entityName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,2,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex,ifThenIndex));
+                                break;
+                            }
                         }
                     }
+                    else {
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex,ifThenIndex));
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex,ifThenIndex));
+                    }
+                    chainIndex++;
                 }
-                else {
-                    scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex));
-                    scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex));
+                for(String action : requirement.getActionList()){
+                    String deviceName = action.split("\\.")[0];
+                    String deviceEventOrState = action.split("\\.")[1];
+                    String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
+                    String pulse = eo.getStateMappingToAction().get(state);
+                    scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1,ifThenIndex));
+                    scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1,ifThenIndex));
                 }
-                chainIndex++;
-            }
-            for(String action : requirement.getActionList()){
-                String deviceName = action.split("\\.")[0];
-                String deviceEventOrState = action.split("\\.")[1];
-                String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
-                String pulse = eo.getStateMappingToAction().get(state);
-                scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1));
-                scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1));
+                ifThenIndex++;
             }
             ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
-            String scFilePath = scFolderPath + "ScenarioDiagram" + (i + 1);
+            String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
             System.out.println(scFilePath);
             scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
             String cmd = "neato -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
@@ -285,6 +303,55 @@ public class ProblemFrameService {
             p.waitFor();
             p.destroy();
             paths.add(scFilePath + ".png");
+        }
+        for(int i = 0;i < ifThenRequirements.size();i++){
+            IfThenRequirement requirement = ifThenRequirements.get(i);
+            List<ScenarioNode> scenarioNodes = new ArrayList<>();
+            int chainIndex = 1;
+            if(requirement.getIntend() == null){
+                for(String trigger : requirement.getTriggerList()){
+                    String entityName = trigger.split("\\.")[0];
+                    String attributeValue = trigger.split("\\.")[1];
+                    String relation = computeRelation(attributeValue);
+                    if(!relation.equals("")){
+                        String attribute = entityName + "." + attributeValue.split(relation)[0];
+                        Iterator iit = sensorMap.keySet().iterator();
+                        while (iit.hasNext()){
+                            String sensorName = (String) iit.next();
+                            if(sensorMap.get(sensorName).contains(attribute)){
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,0,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,1,entityName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,2,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex,ifThenIndex));
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex,ifThenIndex));
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,2,entityName,chainIndex,ifThenIndex));
+                    }
+                    chainIndex++;
+                }
+                for(String action : requirement.getActionList()){
+                    String deviceName = action.split("\\.")[0];
+                    String deviceEventOrState = action.split("\\.")[1];
+                    String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
+                    String pulse = eo.getStateMappingToAction().get(state);
+                    scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1,ifThenIndex));
+                    scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1,ifThenIndex));
+                }
+                ifThenIndex++;
+                ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
+                String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
+                System.out.println(scFilePath);
+                scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
+                String cmd = "neato -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
+                Process p = Runtime.getRuntime().exec(cmd);
+                p.waitFor();
+                p.destroy();
+                paths.add(scFilePath + ".png");
+            }
         }
         result.put("paths", paths);
         return result;
@@ -326,8 +393,7 @@ public class ProblemFrameService {
         ProblemFrameService problemFrameService = new ProblemFrameService();
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap("drools_map.txt", "intendMap", eo);
-        String re = "IF air.temperature>30 AND person.number>0 THEN window.wclose,ac.coldOn//IF air.humidity>50 THEN window.wopen";
+        String re = "PREFERRED air.temperature IS 25//air.humidity SHOULD ALWAYS BE ABOVE 5.5//IF person.distanceFromMc<2 THEN mc.mon";
         System.out.println(problemFrameService.getSdPng(re, ontologyPath, SCDPATH,0));
     }
 }

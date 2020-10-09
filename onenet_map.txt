@@ -8,8 +8,8 @@ person.distanceFromPro->proDistVal//env
 indoor.is_raining->dropletSenVal==1
 M.bonPulse->bulbBtnVal=1->light.brightness should increase
 M.boffPulse->bulbBtnVal=0
-M.coldPulse->cBtnVal=1->air.temperature should decrease
-M.hotPulse->hBtnVal=1->air.temperature should increase
+M.coldPulse->cBtnVal=1//hBtnVal=0->air.temperature should decrease
+M.hotPulse->hBtnVal=1//cBtnVal=0->air.temperature should increase
 M.aoffPulse->cBtnVal=0//hBtnVal=0
 M.monPulse->microBtnVal=1->allow using microphone
 M.moffPulse->microBtnVal=0->forbid using microphone

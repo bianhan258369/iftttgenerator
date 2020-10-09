@@ -6,6 +6,13 @@ import java.util.List;
 
 @Data
 public class Requirement {
-    private String description;
-    private List<String>  meanings;
+    private String requirement;
+
+    public Requirement(){
+        this.requirement = null;
+    }
+
+    public Requirement(String requirement) {
+        this.requirement = requirement;
+    }
 }

@@ -1,10 +1,7 @@
 package com.example.bianhan.iftttgenerator.util;
 
 import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
-import com.example.bianhan.iftttgenerator.pojo.AffectedAttribute;
-import com.example.bianhan.iftttgenerator.pojo.Device;
-import com.example.bianhan.iftttgenerator.pojo.EnvironmentOntology;
-import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
+import com.example.bianhan.iftttgenerator.pojo.*;
 import org.dom4j.DocumentException;
 
 import java.io.BufferedReader;
@@ -138,73 +135,86 @@ public class ComputeUtil {
         else return null;
     }
 
-    public static List<List<IfThenRequirement>> computeIfThenRequirements(List<String> requirements, Map<String, String> intendMap, String ontologyPath) throws IOException, DocumentException {
+    public static List<Requirement> initRequirements(List<String> inputRequirements) throws IOException, DocumentException {
+        List<Requirement> requirements = new ArrayList<>();
+        for (String requirement : inputRequirements) {
+            requirement = requirement.trim();
+            //empty
+            if(requirement.equals("")) continue;
+            //OccurenceRequirement
+            else if(requirement.contains("OCCUR TOGETHER")){
+                List<String> states = Arrays.asList(requirement.split(" SHOULD ")[0].split(","));
+                requirements.add(new OccurenceRequirement(requirement, states));
+            }
+            //AlwaysNeverRequirement
+            else if(requirement.contains("ALWAYS") || requirement.contains("NEVER")){
+                String alwaysNever = requirement.contains("ALWAYS") ? "ALWAYS" : "NEVER";
+                if(requirement.contains("ABOVE") || requirement.contains("BELOW")){
+                    String attribute = requirement.split(" ")[0];
+                    String relation = requirement.contains("ABOVE") ? "ABOVE" : "BELOW";
+                    Double value = Double.parseDouble(requirement.split(" ")[5]);
+                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, attribute, relation, value));
+                }
+                else if(requirement.contains("ACTIVE") || requirement.contains("HAPPEN")){
+                    String eventOrState = requirement.split(" SHOULD ")[0];
+                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, eventOrState));
+                }
+            }
+            //PreferredRequirement
+            else if(requirement.contains("PREFERRED")){
+                String attribute = requirement.split(" ")[1];
+                Double value = Double.parseDouble(requirement.split(" ")[3]);
+                requirements.add(new PreferredRequirement(requirement, attribute, value));
+            }
+            //IfThenRequirement
+            else if(requirement.contains("IF") && requirement.contains("THEN")){
+                String tempRequirement = requirement.substring(3);
+                String trigger = tempRequirement.contains(" FOR ") ? tempRequirement.split(" THEN ")[0].split(" FOR ")[0] : tempRequirement.split(" THEN ")[0];
+                String action = tempRequirement.split(" THEN ")[1];
+                String time = tempRequirement.contains(" FOR ") ? tempRequirement.split(" THEN ")[0].split(" FOR ")[1] : null;
+                requirements.add(new TriggerActionRequirement(requirement, trigger, action, time));
+            }
+        }
+        return requirements;
+    }
+
+    public static List<List<IfThenRequirement>> computeIfThenRequirements(List<Requirement> requirements, Map<String, String> intendMap, String ontologyPath) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<Device> devices = eo.getDevicesAffectingEnvironment();
         List<List<IfThenRequirement>> results = new ArrayList<>();
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        for (String requirement : requirements) {
-            requirement = requirement.trim();
-            if(requirement.equals("")) continue;
-            else if(requirement.contains("ALWAYS") && (requirement.contains("ABOVE") || requirement.contains("BELOW"))){
-                String attribute = requirement.split(" ")[0];
-                Double value = Double.parseDouble(requirement.split(" ")[5]);
-                for(int j = 0;j < devices.size();j++){
-                    Device device = devices.get(j);
-                    Map map = device.getStateMappingToAffectedEntities();
-                    if(device.getAffectedAttributeNames().contains(attribute)){
-                        for(int k = 0;k < device.getStates().size();k++){
-                            String state = device.getStates().get(k);
-                            List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
-                            for(int m = 0;m < monitoredEntities.size();m++){
-                                AffectedAttribute monitoredEntity = monitoredEntities.get(m);
-                                if(monitoredEntity.getAttributeName().equals(attribute)){
-                                    if(monitoredEntity.getAdjustRate() > 0 && requirement.contains("ABOVE")){
+        for (Requirement requirement : requirements) {
+            String originalRequirement = requirement.getRequirement();
+            //AlwaysNeverRequirement
+            if(requirement instanceof AlwaysNeverRequirement){
+                AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
+                if(alwaysNeverRequirement.getAttribute() != null){
+                    String attribute = alwaysNeverRequirement.getAttribute();
+                    double value = alwaysNeverRequirement.getValue();
+                    for(int j = 0;j < devices.size();j++){
+                        Device device = devices.get(j);
+                        Map map = device.getStateMappingToAffectedEntities();
+                        if(device.getAffectedAttributeNames().contains(attribute)){
+                            for(int k = 0;k < device.getStates().size();k++){
+                                String state = device.getStates().get(k);
+                                List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
+                                for(int m = 0;m < monitoredEntities.size();m++){
+                                    AffectedAttribute monitoredEntity = monitoredEntities.get(m);
+                                    if(monitoredEntity.getAttributeName().equals(attribute)){
                                         List<String> triggers = new ArrayList<>();
                                         List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + "<" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
-                                    }
-                                    else if(monitoredEntity.getAdjustRate() < 0 && requirement.contains("BELOW")){
-                                        List<String> triggers = new ArrayList<>();
-                                        List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + ">" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else if(requirement.contains("NEVER") && (requirement.contains("ABOVE") || requirement.contains("BELOW"))){
-                String attribute = requirement.split(" ")[0];
-                Double value = Double.parseDouble(requirement.split(" ")[5]);
-                for(int j = 0;j < devices.size();j++){
-                    Device device = devices.get(j);
-                    Map map = device.getStateMappingToAffectedEntities();
-                    if(device.getAffectedAttributeNames().contains(attribute)){
-                        for(int k = 0;k < device.getStates().size();k++){
-                            String state = device.getStates().get(k);
-                            List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
-                            for(int m = 0;m < monitoredEntities.size();m++){
-                                AffectedAttribute monitoredEntity = monitoredEntities.get(m);
-                                if(monitoredEntity.getAttributeName().equals(attribute)){
-                                    if(monitoredEntity.getAdjustRate() > 0 && requirement.contains("BELOW")){
-                                        List<String> triggers = new ArrayList<>();
-                                        List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + "<" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
-                                    }
-                                    else if(monitoredEntity.getAdjustRate() < 0 && requirement.contains("ABOVE")){
-                                        List<String> triggers = new ArrayList<>();
-                                        List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + ">" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
+                                        if(monitoredEntity.getAdjustRate() > 0 && alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS") && alwaysNeverRequirement.getRelation().equals("ABOVE")
+                                        || monitoredEntity.getAdjustRate() > 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("BELOW")){
+                                            triggers.add(attribute + "<" + value);
+                                            actions.add(device.getDeviceName() + "." + state);
+                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        }
+                                        else if(monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS") && alwaysNeverRequirement.getRelation().equals("BELOW")
+                                        || monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("ABOVE")){
+                                            triggers.add(attribute + ">" + value);
+                                            actions.add(device.getDeviceName() + "." + state);
+                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        }
                                     }
                                 }
                             }
@@ -212,9 +222,11 @@ public class ComputeUtil {
                     }
                 }
             }
-            else if(requirement.contains("PREFERRED") && requirement.contains("IS")){
-                String attribute = requirement.split(" ")[1];
-                Double value = Double.parseDouble(requirement.split(" ")[3]);
+            //PreferredRequirement
+            else if(requirement instanceof PreferredRequirement){
+                PreferredRequirement preferredRequirement = (PreferredRequirement) requirement;
+                String attribute = preferredRequirement.getAttribute();
+                double value = preferredRequirement.getValue();
                 for(int j = 0;j < devices.size();j++){
                     Device device = devices.get(j);
                     Map map = device.getStateMappingToAffectedEntities();
@@ -230,14 +242,14 @@ public class ComputeUtil {
                                         List<String> actions = new ArrayList<>();
                                         triggers.add(attribute + "<" + value);
                                         actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
+                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
                                     }
                                     else if(monitoredEntity.getAdjustRate() < 0){
                                         List<String> triggers = new ArrayList<>();
                                         List<String> actions = new ArrayList<>();
                                         triggers.add(attribute + ">=" + value);
                                         actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, requirement));
+                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
                                     }
                                 }
                             }
@@ -245,23 +257,24 @@ public class ComputeUtil {
                     }
                 }
             }
-            else if (requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")) {
-                requirement = requirement.substring(3);
-                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-                String action = requirement.split(" THEN ")[1];
+            //TriggerActionRequirement
+            else if(requirement instanceof TriggerActionRequirement){
+                TriggerActionRequirement triggerActionRequirement = (TriggerActionRequirement) requirement;
+                String trigger = triggerActionRequirement.getTrigger();
+                String action = triggerActionRequirement.getAction();
+                String time = triggerActionRequirement.getTime();
                 String intend = null;
                 if (intendMap.containsKey(action)){
                     intend = action;
                     action = intendMap.get(action);
                 }
-                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
                 if (trigger.contains(" AND ")) {
                     List<String> triggers = new ArrayList<>();
                     List<String> actions = new ArrayList<>();
                     triggers = Arrays.asList(trigger.split(" AND "));
                     if (action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
+                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time, intend));
                 } else if (trigger.contains(" OR ")) {
                     for (int i = 0; i < trigger.split(" OR ").length; i++) {
                         List<String> triggers = new ArrayList<>();
@@ -289,7 +302,7 @@ public class ComputeUtil {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
         List<String> complementedRequirements = new ArrayList<>();
         Map<String, List<String>> deviceMappingToStates = new HashMap<>();
         for(IfThenRequirement requirement : ifThenRequirements){

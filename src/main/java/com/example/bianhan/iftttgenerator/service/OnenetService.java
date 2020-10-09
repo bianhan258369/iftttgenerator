@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
@@ -23,7 +24,7 @@ public class OnenetService {
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.ONENETMAPPATH, "actionMap",eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {
@@ -139,123 +140,6 @@ public class OnenetService {
         return sb.toString();
     }
 
-    public JSONObject refineRequirements(String requirementTexts, String ontologyPath) throws IOException, DocumentException {
-        JSONObject result = new JSONObject();
-        List<String> tempRequirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
-        for(String requirement : tempRequirements){
-            if(requirement.contains("IF") && requirement.contains("THEN") && !requirement.contains("SHOULD")){
-                requirement = requirement.substring(3);
-                String trigger = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[0] : requirement.split(" THEN ")[0];
-                String action = requirement.split(" THEN ")[1];
-                String time = requirement.contains(" FOR ") ? requirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                if(trigger.contains(" AND ")){
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-                else if(trigger.contains(" OR ")){
-                    for(int i = 0;i < trigger.split(" OR ").length;i++){
-                        List<String> triggers = new ArrayList<>();
-                        List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
-                        if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                        else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                    }
-                }
-                else {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers.add(trigger);
-                    if(action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time));
-                }
-            }
-        }
-        List<String> refinedRequirements = getRefinedRequirements(ifThenRequirements,ontologyPath);
-        result.put("refined", refinedRequirements);
-        return result;
-    }
-
-    /**
-     *
-     * @param ifThenRequirements
-     * @param ontologyPath
-     * @return
-     * @throws IOException
-     * @throws DocumentException
-     * need to be modified
-     */
-    private List<String> getRefinedRequirements(List<IfThenRequirement> ifThenRequirements, String ontologyPath) throws IOException, DocumentException {
-        List<String> refinedRequirements = new ArrayList<>();
-        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, List<String>> deviceMappingToStates = new HashMap<>();
-        for(IfThenRequirement requirement : ifThenRequirements){
-            if(requirement.getTime() == null){
-                List<String> actions = requirement.getActionList();
-                for(String action : actions){
-                    String deviceName = action.split("\\.")[0];
-                    String temp = action.split("\\.")[1];
-                    String state = eo.getEvents().contains(temp) ? eo.getEventMappingToState().get(temp) : temp;
-                    if(!deviceMappingToStates.containsKey(deviceName)) deviceMappingToStates.put(deviceName, new ArrayList<>());
-                    if(!deviceMappingToStates.get(deviceName).contains(state)) deviceMappingToStates.get(deviceName).add(state);
-                }
-            }
-        }
-        List<String> devicesShouldBeRefined = new ArrayList<>();
-        Iterator it = deviceMappingToStates.keySet().iterator();
-        while (it.hasNext()){
-            String deviceName = (String) it.next();
-            if(!deviceMappingToStates.get(deviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(deviceName);
-        }
-        for(String deviceName : devicesShouldBeRefined){
-            Map<String, List<String>> attributeMappingToValue = new HashMap<>();//[air.temperature->(>30,<10)]
-            for(IfThenRequirement requirement : ifThenRequirements){
-                if(requirement.getTime() == null){
-                    List<String> actions = requirement.getActionList();
-                    for(String action : actions){
-                        if(action.split("\\.")[0].equals(deviceName) && requirement.getTriggerList().size() == 1){
-                            String trigger = requirement.getTriggerList().get(0);
-                            String relation = computeRelation(trigger);
-                            String attribute = trigger.split(relation)[0];
-                            String value = relation + trigger.split(relation)[1];
-                            if(!attributeMappingToValue.containsKey(attribute)) attributeMappingToValue.put(attribute, new ArrayList<>());
-                            if(!attributeMappingToValue.get(attribute).contains(value)) attributeMappingToValue.get(attribute).add(value);
-                            break;
-                        }
-                    }
-                }
-            }
-            if(attributeMappingToValue.keySet().size() > 1) continue;
-            String attribute = "";
-            List<String> values = new ArrayList<>();
-            it = attributeMappingToValue.keySet().iterator();
-            while (it.hasNext()){
-                attribute = (String) it.next();
-                values = attributeMappingToValue.get(attribute);
-            }
-            List<String> triggers = computeReverseRange(values);
-            for(String trigger : triggers){
-                refinedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
-            }
-        }
-
-        StringBuilder returnInit = new StringBuilder("");
-        it = eo.getDeviceMappingToInitState().keySet().iterator();
-        while (it.hasNext()){
-            String deviceName = (String) it.next();
-            String initState = eo.getDeviceMappingToInitState().get(deviceName);
-            returnInit.append(deviceName + "." + initState);
-            if(it.hasNext()) returnInit.append(",");
-        }
-        refinedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
-        return refinedRequirements;
-    }
 
     public void runSimulation(String onenetRules) throws IOException, InterruptedException {
         BufferedReader br = new BufferedReader(new FileReader("com/test/temp.java"));
@@ -277,17 +161,53 @@ public class OnenetService {
             }
         }
         bw.close();
-        System.out.println(111);
-        String cmd1 = "Javac -encoding utf-8 com\\test\\SmartConferRoom.java && jar cmf MANIFEST.MF onenet.jar .";
-        String cmd2 = "java -jar onenet.jar";
+        String cmd1 = System.getProperty("os.name").toLowerCase().startsWith("win") ?
+                "Javac -encoding utf-8 -cp .;* com\\test\\SmartConferRoom.java" :
+                "Javac -encoding utf-8 -cp .:* com/test/SmartConferRoom.java";
+        String cmd2 = System.getProperty("os.name").toLowerCase().startsWith("win") ?
+                "java -cp .;* com\\test\\SmartConferRoom" :
+                "java -cp .:* com/test/SmartConferRoom";
         Process p1 = Runtime.getRuntime().exec(cmd1);
         p1.waitFor();
         p1.destroy();
+        System.out.println(cmd1);
         Process p2 = Runtime.getRuntime().exec(cmd2);
-        p2.waitFor();
-        p2.destroy();
+        // Any error message?
+        Thread errorGobbler
+                = new Thread(new StreamGobbler(p2.getErrorStream(), System.err));
+
+        // Any output?
+        Thread outputGobbler
+                = new Thread(new StreamGobbler(p2.getInputStream(), System.out));
+
+        errorGobbler.start();
+        outputGobbler.start();
+
+        // Any error?
+        int exitVal = p2.waitFor();
+        errorGobbler.join();   // Handle condition where the
+        outputGobbler.join();  // process ends before the threads finish
     }
 
+    class StreamGobbler implements Runnable {
+        private final InputStream is;
+        private final PrintStream os;
+
+        StreamGobbler(InputStream is, PrintStream os) {
+            this.is = is;
+            this.os = os;
+        }
+
+        public void run() {
+            try {
+                int c;
+                while ((c = is.read()) != -1)
+                    os.print((char) c);
+            } catch (IOException x) {
+                // Handle error
+            }
+        }
+    }
 
     public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
         String re = "IF air.temperature>30 THEN allow ventilating the room//IF person.distanceFromMc<0.5 THEN mc.mon";
