@@ -1,15 +1,15 @@
-light.brightness->outerLightRay//env
-person.number->peopleNum//env
-air.temperature->innerTemperature//env
-air.humidity->innerHumidity//env
-co.ppm->co_concentration//env
-person.distanceFromMc->distanceFromMc//env
-person.distanceFromPro->distanceFromPro//env
-indoor.is_raining->Sensors(rain==true)
-M.bonPulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
+Light.brightness->outerLightRay//env
+Person.number->peopleNum//env
+Air.temperature->innerTemperature//env
+Air.humidity->innerHumidity//env
+CO.ppm->co_concentration//env
+Person.distanceFromMc->distanceFromMc//env
+Person.distanceFromPro->distanceFromPro//env
+Indoor.is_raining->Sensors(rain==true)
+M.bonPulse->$bulb.openDevice()//update($bulb)->Light.brightness should increase
 M.boffPulse->$bulb.closeDevice()//update($bulb)
-M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should decrease
-M.hotPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should increase
+M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should decrease
+M.hotPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should increase
 M.aoffPulse->$airConditionor.closeDevice()//update($airConditionor)
 M.monPulse->$microPhone.openDevice()//update($microPhone)->allow using microphone
 M.moffPulse->$microPhone.closeDevice()//update($microPhone)->forbid using microphone
@@ -31,10 +31,10 @@ $projector->Projector()
 $bulb->Light()
 $blind->Blind()
 $window->Window()
-s:TemperatureSensor->air.temperature
-s:HumiditySensor->air.humidity
-s:LightSensor->light.brightness
-s:InfraredSensor->person.number
-s:InfraredSensor->person.distanceFromMc
-s:InfraredSensor->person.distanceFromPro
-s:COSensor->co.ppm
+s:TemperatureSensor->Air.temperature
+s:HumiditySensor->Air.humidity
+s:LightSensor->Light.brightness
+s:InfraredSensor->Person.number
+s:InfraredSensor->Person.distanceFromMc
+s:InfraredSensor->Person.distanceFromPro
+s:COSensor->CO.ppm

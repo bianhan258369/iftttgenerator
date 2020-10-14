@@ -25,6 +25,7 @@ public class DroolsService {
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.DROOLSMAPPATH, "triggerMap", eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.DROOLSMAPPATH, "actionMap", eo);
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
+        System.out.println(triggerMap);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
@@ -62,6 +63,7 @@ public class DroolsService {
                                 when.add("Environ(" + trigger.replaceAll(entity, envVar) + ")");
                             }
                             else {
+                                System.out.println(trigger);
                                 for(int i = 0;i < triggerMap.get(trigger).size();i++){
                                     when.add(triggerMap.get(trigger).get(i));
                                 }
@@ -510,7 +512,7 @@ public class DroolsService {
             returnInit.append(deviceName + "." + initState);
             if(it.hasNext()) returnInit.append(",");
         }
-        refinedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
+        refinedRequirements.add("IF Person.number=0 FOR 30m THEN " + returnInit.toString());
         return refinedRequirements;
     }
 

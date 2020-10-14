@@ -100,7 +100,6 @@ public class ComputeUtil {
         while ((line = br.readLine()) != null){
             line = line.trim();
             if(line.equals("")) continue;
-            System.out.println(line);
             List<String> temp = new ArrayList<>();
             String left = line.split("->")[0];
             String right = line.split("->")[1];
@@ -365,7 +364,7 @@ public class ComputeUtil {
             returnInit.append(deviceName + "." + initState);
             if(it.hasNext()) returnInit.append(",");
         }
-        complementedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
+        complementedRequirements.add("IF Person.number=0 FOR 30m THEN " + returnInit.toString());
         return complementedRequirements;
     }
 

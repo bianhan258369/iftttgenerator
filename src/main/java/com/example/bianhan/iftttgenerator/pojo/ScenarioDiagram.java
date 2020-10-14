@@ -26,7 +26,7 @@ public class ScenarioDiagram {
         List<String> strs = new ArrayList<>();
         Set<String> problemDomains = new HashSet<>();
         strs.add("digraph scenario{");
-        
+
         Map<Integer, Integer> positionX = new HashMap<>();
         int maxLayer = 0;
         for(int i = 0;i < scenarioNodes.size();i++){
@@ -40,15 +40,15 @@ public class ScenarioDiagram {
             String pos = "\"" + positionX.get(node.getLayer()) + "," + y + "\"";
             if(node.getType() == 0){
                 strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=skyblue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
-                
+
             }
             else if(node.getType() == 1){
                 strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=cadetblue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
-                
+
             }
             else if(node.getType() == 2){
-                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=orange,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
-                
+                strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=salmon2,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
+
             }
             else {
                 strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=pink,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
@@ -62,12 +62,12 @@ public class ScenarioDiagram {
                         && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
                         && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                     if(node1.getLayer() > node2.getLayer()){
-                        strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange]");
-                        
+                        strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=salmon2]");
+
                     }
                     else{
-                        strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=orange]");
-                        
+                        strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=salmon2]");
+
                     }
                 }
                 else if(node1.getType() == 2 && node2.getType() == 3 && node2.getLayer() - node1.getLayer() == 1){
@@ -81,38 +81,38 @@ public class ScenarioDiagram {
                         && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                     if(node1.getLayer() > node2.getLayer()){
                         strs.add("N" + j + "->" + "N" + i + "[color=skyblue]");
-                        
+
                     }
                     else{
                         strs.add("N" + i + "->" + "N" + j + "[color=skyblue]");
-                        
+
                     }
                 }
                 else if((node1.getType() == 0 || node1.getType() == 1) && node2.getType() == 2){
                     if(node1.getContent().equals(node2.getContent())){
-                        strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green]");
-                        
+                        strs.add("N" + i + "->" + "N" + j + "[dir=none,color=darkgreen]");
+
                     }
                     else {
                         String eventOrState = node2.getContent();
                         String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                         if(eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node1.getContent())){
-                            strs.add("N" + i + "->" + "N" + j + "[color=red]");
-                            
+                            strs.add("N" + i + "->" + "N" + j + "[color=blueviolet]");
+
                         }
                     }
                 }
                 else if((node1.getType() == 0 || node1.getType() == 1) && node1.getType() == 2){
                     if(node2.getContent().equals(node1.getContent())){
-                        strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green]");
-                        
+                        strs.add("N" + i + "->" + "N" + j + "[dir=none,color=darkgreen]");
+
                     }
                     else {
                         String eventOrState = node1.getContent();
                         String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                         if(eo.getStateMappingToAction().get(state).equals(node2.getContent())){
-                            strs.add("N" + i + "->" + "N" + j + "[color=red]");
-                            
+                            strs.add("N" + i + "->" + "N" + j + "[color=blueviolet]");
+
                         }
                     }
                 }
