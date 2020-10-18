@@ -25,7 +25,6 @@ public class DroolsService {
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.DROOLSMAPPATH, "triggerMap", eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.DROOLSMAPPATH, "actionMap", eo);
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
-        System.out.println(triggerMap);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
@@ -519,6 +518,6 @@ public class DroolsService {
     public static void main(String[] args) throws IOException, DocumentException {
         String re = "IF air.temperature>30 FOR 10m THEN allow ventilating the room//IF person.distanceFromMc<=2 THEN allow using microphone";
         DroolsService droolsService = new DroolsService();
-        System.out.println(droolsService.toDrools(re, "ontology_SmartConferenceRoom.xml",0));
+        System.out.println(toSystemBehaviours(re, "ontology_SmartConferenceRoom.xml",0));
     }
 }

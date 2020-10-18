@@ -142,8 +142,8 @@ public class ComputeUtil {
             if(requirement.equals("")) continue;
             //OccurenceRequirement
             else if(requirement.contains("OCCUR TOGETHER")){
-                List<String> states = Arrays.asList(requirement.split(" SHOULD ")[0].split(","));
-                requirements.add(new OccurenceRequirement(requirement, states));
+                List<String> deviceStates = Arrays.asList(requirement.split(" SHOULD ")[0].split(","));
+                requirements.add(new OccurenceRequirement(requirement, deviceStates));
             }
             //AlwaysNeverRequirement
             else if(requirement.contains("ALWAYS") || requirement.contains("NEVER")){
@@ -155,8 +155,8 @@ public class ComputeUtil {
                     requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, attribute, relation, value));
                 }
                 else if(requirement.contains("ACTIVE") || requirement.contains("HAPPEN")){
-                    String eventOrState = requirement.split(" SHOULD ")[0];
-                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, eventOrState));
+                    String deviceEventOrState = requirement.split(" SHOULD ")[0];
+                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, deviceEventOrState));
                 }
             }
             //PreferredRequirement
@@ -165,7 +165,7 @@ public class ComputeUtil {
                 Double value = Double.parseDouble(requirement.split(" ")[3]);
                 requirements.add(new PreferredRequirement(requirement, attribute, value));
             }
-            //IfThenRequirement
+            //TriggerActionRequirement
             else if(requirement.contains("IF") && requirement.contains("THEN")){
                 String tempRequirement = requirement.substring(3);
                 String trigger = tempRequirement.contains(" FOR ") ? tempRequirement.split(" THEN ")[0].split(" FOR ")[0] : tempRequirement.split(" THEN ")[0];
@@ -366,6 +366,44 @@ public class ComputeUtil {
         }
         complementedRequirements.add("IF Person.number=0 FOR 30m THEN " + returnInit.toString());
         return complementedRequirements;
+    }
+
+    public static String toSystemBehaviours(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+        StringBuilder sb = new StringBuilder("");
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+
+        for(IfThenRequirement requirement : ifThenRequirements){
+            String triggers = "";
+            String actions = "";
+            String time = requirement.getTime();
+            for(int i = 0;i < requirement.getActionList().size();i++){
+                String action = requirement.getActionList().get(i);
+                if(!action.startsWith("M.")){
+                    String left = action.split("\\.")[0];
+                    String right = action.split("\\.")[1];
+                    if (eo.getEvents().contains(right)) {
+                        right = eo.getEventMappingToState().get(right);
+                    }
+                    action =  "M." + eo.getStateMappingToAction().get(right);
+                    actions = actions + action;
+                    if(i != requirement.getActionList().size() - 1) actions = actions + ",";
+                }
+            }
+            for(int i = 0;i < requirement.getTriggerList().size();i++){
+                String trigger = requirement.getTriggerList().get(i);
+                System.out.println(trigger);
+                triggers = triggers + trigger;
+                if(i != requirement.getTriggerList().size() - 1) triggers = triggers + " AND ";
+            }
+            if(time == null) sb.append("IF " + triggers + " THEN " + actions);
+            else sb.append("IF " + triggers + " FOR " + time + " THEN " + actions);
+            sb.append("\r\n");
+        }
+        return sb.toString();
     }
 
 

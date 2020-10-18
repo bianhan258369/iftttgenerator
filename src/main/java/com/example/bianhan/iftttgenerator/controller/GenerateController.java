@@ -11,15 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPath;
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.ontologyRootPath;
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeComplementedRequirements;
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.toSystemBehaviours;
 
 @RestController
 @CrossOrigin
@@ -49,7 +50,13 @@ public class GenerateController {
         return result;
     }
 
-
+    @CrossOrigin
+    @RequestMapping("/transform2SystemBehaviour")
+    @ResponseBody
+    public List<String> transformToSystemBehaviour(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+        List<String> systemBehaviours = Arrays.asList(toSystemBehaviours(requirementTexts, ontologyPath, index).split("\n"));
+        return systemBehaviours;
+    }
 
     @CrossOrigin
     @RequestMapping("/transform2Drools")
@@ -101,7 +108,6 @@ public class GenerateController {
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        System.out.println(folder.getAbsoluteFile());
         result = pfService.getSdPng(requirementTexts, ontologyPath, folderPath, index);
         return result;
     }
@@ -121,6 +127,45 @@ public class GenerateController {
         List<String> errors = checkService.consistencyCheck(requirementTexts, ontologyPath, index);
         if(errors.size() == 0) errors.add("No Rule Errors!");
         return errors;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/z3Check")
+    @ResponseBody
+    public String z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+        String result = "";
+        File folder = new File(SMTPath);
+        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+        String filePath = SMTPath + UUID.randomUUID().toString() + ".smt2";
+        checkService.exportSMT(filePath, requirementTexts, ontologyPath, index);
+        String command = "z3 " + filePath;
+        System.out.println(filePath);
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedInputStream bis = new BufferedInputStream(
+                    process.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+            String line;
+            while ((line = br.readLine()) != null) {
+                result = result + line + " ";
+            }
+            process.waitFor();
+            if (process.exitValue() != 0) {
+                System.out.println("error!");
+            }
+            bis.close();
+            br.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println(result);
+        if(result.contains("unsat")) result = "unsat";
+        else result = "sat";
+        return result;
     }
 
     @CrossOrigin

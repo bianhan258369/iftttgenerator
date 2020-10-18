@@ -6,19 +6,19 @@ import java.util.List;
 
 @Data
 public class OccurenceRequirement extends Requirement{
-    private List<String> states;
+    private List<String> deviceStates;
 
     @Override
     public String toString() {
-        return states + " SHOULD NEVER OCCUR TOGEGHER";
+        return deviceStates + " SHOULD NEVER OCCUR TOGEGHER";
     }
 
-    public OccurenceRequirement(List<String> states) {
-        this.states = states;
+    public OccurenceRequirement(List<String> deviceStates) {
+        this.deviceStates = deviceStates;
     }
 
-    public OccurenceRequirement(String requirement, List<String> states) {
+    public OccurenceRequirement(String requirement, List<String> deviceStates) {
         super(requirement);
-        this.states = states;
+        this.deviceStates = deviceStates;
     }
 }
