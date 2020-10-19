@@ -132,40 +132,12 @@ public class GenerateController {
     @CrossOrigin
     @RequestMapping("/z3Check")
     @ResponseBody
-    public String z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
-        String result = "";
+    public JSONObject z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
         File folder = new File(SMTPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
         String filePath = SMTPath + UUID.randomUUID().toString() + ".smt2";
-        checkService.exportSMT(filePath, requirementTexts, ontologyPath, index);
-        String command = "z3 " + filePath;
-        System.out.println(filePath);
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedInputStream bis = new BufferedInputStream(
-                    process.getInputStream());
-            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
-            String line;
-            while ((line = br.readLine()) != null) {
-                result = result + line + " ";
-            }
-            process.waitFor();
-            if (process.exitValue() != 0) {
-                System.out.println("error!");
-            }
-            bis.close();
-            br.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println(result);
-        if(result.contains("unsat")) result = "unsat";
-        else result = "sat";
-        return result;
+        return checkService.z3Check(filePath, requirementTexts, ontologyPath, index);
+
     }
 
     @CrossOrigin

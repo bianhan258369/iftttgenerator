@@ -2,12 +2,12 @@ package com.example.bianhan.iftttgenerator.service;
 
 import com.example.bianhan.iftttgenerator.pojo.*;
 import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
+import net.sf.json.JSON;
+import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
@@ -67,7 +67,9 @@ public class CheckService {
         return errors;
     }
 
-    public void exportSMT(String smtFilePath ,String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+    public JSONObject z3Check(String smtFilePath , String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+        JSONObject result = new JSONObject();
+        String temp = "";
         List<String> formulas = getZ3Fomulas(requirementTexts, ontologyPath, index);
         BufferedWriter bw = new BufferedWriter(new FileWriter(smtFilePath));
         for(String formula : formulas){
@@ -77,6 +79,37 @@ public class CheckService {
         }
         bw.flush();
         bw.close();
+        String command = "z3 " + smtFilePath;
+        System.out.println(command);
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedInputStream bis = new BufferedInputStream(
+                    process.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+            String line;
+            while ((line = br.readLine()) != null) {
+                temp = temp + line + " ";
+            }
+            process.waitFor();
+            if (process.exitValue() != 0) {
+                result.put("result","failure");
+                System.out.println("error!");
+            }
+            process.destroy();
+            bis.close();
+            br.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        result.put("result","success");
+        if(temp.contains("unsat")) result.put("sat", "unsat");
+        else result.put("sat", "sat");
+        System.out.println(result);
+        return result;
     }
 
     private boolean isNotTriggerConflict(String trigger1, String trigger2){

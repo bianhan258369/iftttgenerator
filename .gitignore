@@ -40,3 +40,4 @@ build/
 *.png
 onenet.jar
 onenet.jar
+*.smt2
