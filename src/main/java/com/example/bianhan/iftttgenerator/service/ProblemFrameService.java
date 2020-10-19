@@ -233,12 +233,18 @@ public class ProblemFrameService {
 
     public JSONObject getSdPng(String requirementTexts, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
+        List<String> uncoveredRequirement = new ArrayList<>();
         List<String> paths = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
         Map<String, List<String>> sensorMap = computeMap(PathConfiguration.DROOLSMAPPATH, "sensorMap", eo);
-        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        List<Requirement> requirements = initRequirements(Arrays.asList(requirementTexts.split("//")));
+
+        for(Requirement requirement : requirements){
+            
+        }
+
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
         Map<String, List<IfThenRequirement>> intendMappingToIfThenRequirements = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
