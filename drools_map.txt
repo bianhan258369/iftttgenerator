@@ -2,10 +2,11 @@ Light.brightness->outerLightRay//env
 Person.number->peopleNum//env
 Air.temperature->innerTemperature//env
 Air.humidity->innerHumidity//env
-CO.ppm->co_concentration//env
+CO2.ppm->co2_concentration//env
 Person.distanceFromMc->distanceFromMc//env
 Person.distanceFromPro->distanceFromPro//env
-Indoor.is_raining->Sensors(rain==true)
+Air.rain=0->Sensors(rain==false)
+Air.rain=1->Sensors(rain==true)
 M.bonPulse->$bulb.openDevice()//update($bulb)->Light.brightness should increase
 M.boffPulse->$bulb.closeDevice()//update($bulb)
 M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should decrease
@@ -37,4 +38,5 @@ s:LightSensor->Light.brightness
 s:InfraredSensor->Person.number
 s:InfraredSensor->Person.distanceFromMc
 s:InfraredSensor->Person.distanceFromPro
-s:COSensor->CO.ppm
+s:CO2Sensor->CO2.ppm
+s:RainSensor->Air.rain

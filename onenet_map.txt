@@ -2,7 +2,7 @@ Light.brightness->brightnessVal//env
 Person.number->peopleNum//env
 Air.temperature->tempeVal//env
 Air.humidity->humidityVal//env
-CO.ppm->coConcentrateVal//env
+CO2.ppm->co2ConcentrateVal//env
 Person.distanceFromMc->microDistVal//env
 Person.distanceFromPro->proDistVal//env
 Indoor.is_raining->dropletSenVal==1
@@ -29,4 +29,5 @@ s:LightSensor->Light.brightness
 s:InfraredSensor->Person.number
 s:InfraredSensor->Person.distanceFromMc
 s:InfraredSensor->Person.distanceFromPro
-s:COSensor->CO.ppm
+s:CO2Sensor->CO2.ppm
+s:RainSensor->Air.rain

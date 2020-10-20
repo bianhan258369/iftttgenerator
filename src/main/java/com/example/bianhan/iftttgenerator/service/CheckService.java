@@ -212,9 +212,11 @@ public class CheckService {
                         if(!relation.equals("")){
                             String attribute = trigger.split(relation)[0];
                             String value = trigger.split(relation)[1];
-                            String expressions = "(=> (" + relation + " " + attribute + " " + value + ") " + "(= " + actionDevice + " " + stateIndex + "))";
+                            String expression = "";
+                            if(relation.equals("!=")) expression = "(=> (not( = " + attribute + " " + value + ")) " + "(= " + actionDevice + " " + stateIndex + "))";
+                            else expression = "(=> (" + relation + " " + attribute + " " + value + ") " + "(= " + actionDevice + " " + stateIndex + "))";
                             z3Fomula.getAttributes().add(attribute);
-                            z3Fomula.getExpressions().add(expressions);
+                            z3Fomula.getExpressions().add(expression);
                         }
                         else {
                             String triggerDevice = trigger.split("\\.")[0];
@@ -233,7 +235,9 @@ public class CheckService {
                             if(!relation.equals("")){
                                 String attribute = trigger.split(relation)[0];
                                 String value = trigger.split(relation)[1];
-                                String temp = "(" + relation + " " + attribute + " " + value + ")";
+                                String temp = "";
+                                if(relation.equals("!=")) temp = "(not ( =" + attribute + " " + value + "))";
+                                else temp = "(" + relation + " " + attribute + " " + value + ")";
                                 expressions.append(temp);
                                 z3Fomula.getAttributes().add(attribute);
                             }

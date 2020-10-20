@@ -305,22 +305,28 @@ public class ComputeUtil {
         List<String> complementedRequirements = new ArrayList<>();
         Map<String, List<String>> deviceMappingToStates = new HashMap<>();
         for(IfThenRequirement requirement : ifThenRequirements){
-            if(requirement.getTime() == null){
+            if(requirement.getTime() == null && requirement.getTriggerList().size() == 1){
                 List<String> actions = requirement.getActionList();
+                String trigger = requirement.getTriggerList().get(0);
                 for(String action : actions){
-                    String deviceName = action.split("\\.")[0];
+                    String attritbueOrTriggerDevice = "";
+                    String relation = computeRelation(trigger);
+                    if(relation.equals("")) attritbueOrTriggerDevice = trigger.split("\\.")[0];
+                    else attritbueOrTriggerDevice = trigger.split(relation)[0];
+                    String triggerAndDeviceName = attritbueOrTriggerDevice + "//" + action.split("\\.")[0];
                     String temp = action.split("\\.")[1];
                     String state = eo.getEvents().contains(temp) ? eo.getEventMappingToState().get(temp) : temp;
-                    if(!deviceMappingToStates.containsKey(deviceName)) deviceMappingToStates.put(deviceName, new ArrayList<>());
-                    if(!deviceMappingToStates.get(deviceName).contains(state)) deviceMappingToStates.get(deviceName).add(state);
+                    if(!deviceMappingToStates.containsKey(triggerAndDeviceName)) deviceMappingToStates.put(triggerAndDeviceName, new ArrayList<>());
+                    if(!deviceMappingToStates.get(triggerAndDeviceName).contains(state)) deviceMappingToStates.get(triggerAndDeviceName).add(state);
                 }
             }
         }
         List<String> devicesShouldBeRefined = new ArrayList<>();
         Iterator it = deviceMappingToStates.keySet().iterator();
         while (it.hasNext()){
-            String deviceName = (String) it.next();
-            if(!deviceMappingToStates.get(deviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(deviceName);
+            String triggerAndDeviceName = (String) it.next();
+            String deviceName = triggerAndDeviceName.split("//")[1];
+            if(!deviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(deviceName);
         }
         for(String deviceName : devicesShouldBeRefined){
             Map<String, List<String>> attributeMappingToValue = new HashMap<>();//[air.temperature->(>30,<10)]

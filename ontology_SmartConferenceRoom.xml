@@ -11,40 +11,8 @@
 		<attribute name="Indoor.is_raining"/>
 		<attribute name="Indoor.is_on_fire"/>
 		<attribute name="is_touched"/>
-		<attribute name="CO.ppm"/>
+		<attribute name="CO2.ppm"/>
 	</environment>
-	<sensors>
-		<sensor name="temperature_sensor">
-			<attribute name="Air.temperature"/>
-		</sensor>
-		<sensor name="humidity_sensor">
-			<attribute name="Air.humidity"/>
-		</sensor>
-		<sensor name="brightness_sensor">
-			<attribute name="Light.brightness"/>
-		</sensor>
-		<sensor name="rain_sensor">
-			<attribute name="Is_raining"/>
-		</sensor>
-		<sensor name="fire_sensor">
-			<attribute name="Is_on_fire"/>
-		</sensor>
-		<sensor name="smoke_sensor">
-			<attribute name="Air.smoke"/>
-		</sensor>
-		<sensor name="touch_sensor">
-			<attribute name="Is_touched"/>
-		</sensor>
-		<sensor name="sound_sensor">
-			<attribute name="Sound.loudness"/>
-		</sensor>
-		<sensor name="ultrasonic_sensor">
-			<attribute name="Sound.ultrasonic"/>
-		</sensor>
-		<sensor name="co_sensor">
-			<attribute name="CO.ppm"/>
-		</sensor>
-	</sensors>
 	<devices>
 		<device name="Bulb">
 			<states>
@@ -66,7 +34,7 @@
 		<device name="Af">
 			<states>
 				<state name="afon" init="false">
-					<adjust_entity name="CO.ppm" rate="-10" method="/second"/>
+					<adjust_entity name="CO2.ppm" rate="-10" method="/second"/>
 				</state>
 			</states>
 		</device>
