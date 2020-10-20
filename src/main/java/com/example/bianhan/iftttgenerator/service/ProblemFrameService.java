@@ -241,9 +241,15 @@ public class ProblemFrameService {
         List<Requirement> requirements = initRequirements(Arrays.asList(requirementTexts.split("//")));
 
         for(Requirement requirement : requirements){
-            
+            if(requirement instanceof AlwaysNeverRequirement){
+                AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
+                if(alwaysNeverRequirement.getAttribute() == null) uncoveredRequirement.add(requirement.getRequirement());
+            }
+            else if(requirement instanceof OccurenceRequirement){
+                uncoveredRequirement.add(requirement.getRequirement());
+            }
         }
-
+        result.put("uncoveredRequirement",uncoveredRequirement);
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
         Map<String, List<IfThenRequirement>> intendMappingToIfThenRequirements = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
