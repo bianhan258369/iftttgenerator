@@ -12,6 +12,7 @@ public class IfThenRequirement{
     private List<String> actionList;
     private String time;
     private String intend;
+    private String originalRequirement;
 
 //    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time) {
 //        this.triggerList = triggerList;
@@ -19,11 +20,20 @@ public class IfThenRequirement{
 //        this.time = time;
 //    }
 
-    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String intend) {
+//    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String intend) {
+//        this.triggerList = triggerList;
+//        this.actionList = actionList;
+//        this.time = time;
+//        this.intend = intend;
+//    }
+
+
+    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String intend, String originalRequirement) {
         this.triggerList = triggerList;
         this.actionList = actionList;
         this.time = time;
         this.intend = intend;
+        this.originalRequirement = originalRequirement;
     }
 
     @Override

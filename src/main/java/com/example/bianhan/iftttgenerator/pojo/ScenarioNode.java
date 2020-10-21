@@ -10,7 +10,7 @@ public class ScenarioNode {
     private String content;
     private String relavantPD;
     private int layer;
-    private int type; //0:behaviour-trigger 1:remote domain 2:behaviour-action 3:expect-trigger 4:expect-state 5:intend
+    private int type; //0:behaviour-trigger 1:remote domain 2:behaviour-action 3:expect-trigger 4:expect-state 5:intend -1:requirement content
     private int chainIndex;
     private int ifThenIndex;
     private List<Integer> ifThenIndexes;

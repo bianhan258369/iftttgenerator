@@ -206,13 +206,13 @@ public class ComputeUtil {
                                         || monitoredEntity.getAdjustRate() > 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("BELOW")){
                                             triggers.add(attribute + "<" + value);
                                             actions.add(device.getDeviceName() + "." + state);
-                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement, originalRequirement));
                                         }
                                         else if(monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS") && alwaysNeverRequirement.getRelation().equals("BELOW")
                                         || monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("ABOVE")){
                                             triggers.add(attribute + ">" + value);
                                             actions.add(device.getDeviceName() + "." + state);
-                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement, originalRequirement));
                                         }
                                     }
                                 }
@@ -241,14 +241,14 @@ public class ComputeUtil {
                                         List<String> actions = new ArrayList<>();
                                         triggers.add(attribute + "<" + value);
                                         actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement, originalRequirement));
                                     }
                                     else if(monitoredEntity.getAdjustRate() < 0){
                                         List<String> triggers = new ArrayList<>();
                                         List<String> actions = new ArrayList<>();
                                         triggers.add(attribute + ">=" + value);
                                         actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement, originalRequirement));
                                     }
                                 }
                             }
@@ -273,7 +273,7 @@ public class ComputeUtil {
                     triggers = Arrays.asList(trigger.split(" AND "));
                     if (action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time, intend));
+                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time, intend, originalRequirement));
                 } else if (trigger.contains(" OR ")) {
                     for (int i = 0; i < trigger.split(" OR ").length; i++) {
                         List<String> triggers = new ArrayList<>();
@@ -281,7 +281,7 @@ public class ComputeUtil {
                         triggers.add(trigger.split(" OR ")[i]);
                         if (action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,intend));
+                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,intend, originalRequirement));
                     }
                 } else {
                     List<String> triggers = new ArrayList<>();
@@ -289,7 +289,7 @@ public class ComputeUtil {
                     triggers.add(trigger);
                     if (action.contains(",")) actions = Arrays.asList(action.split(","));
                     else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,intend));
+                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,intend, originalRequirement));
                 }
             }
         }

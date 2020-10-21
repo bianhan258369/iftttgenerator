@@ -38,7 +38,10 @@ public class ScenarioDiagram {
             else positionX.put(node.getLayer(), positionX.get(node.getLayer()) + 200);
             int y = (maxLayer - node.getLayer() + 1) * 150;
             String pos = "\"" + positionX.get(node.getLayer()) + "," + y + "\"";
-            if(isBehaviour(node)){
+            if(isTitle(node)){
+                strs.add("title" + "[shape = Mrecord,pos=\"500,0\"" + ",label = \"" + modifyDot(node.getContent())  + "\",shape=plaintext, fontsize=16]");
+            }
+            else if(isBehaviour(node)){
                 strs.add("N" + i + "[shape = Mrecord,pos=" + pos + ",color=skyblue,label = \"" + node.getRelavantPD() + ":\\n" + modifyDot(node.getContent())  + "\",style=filled]");
 
             }
@@ -142,5 +145,9 @@ public class ScenarioDiagram {
 
     private boolean isIntend(ScenarioNode node){
         return node.getType() == 5;
+    }
+
+    private boolean isTitle(ScenarioNode node){
+        return node.getType() == -1;
     }
 }

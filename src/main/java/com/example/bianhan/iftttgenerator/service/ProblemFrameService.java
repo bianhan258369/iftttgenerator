@@ -267,6 +267,7 @@ public class ProblemFrameService {
         List<ScenarioNode> totalScenarioNodes = new ArrayList<>();
         Iterator it = intendMappingToIfThenRequirements.keySet().iterator();
         while (it.hasNext()){
+            String originalRequirement = "";
             String intend = (String) it.next();
             List<IfThenRequirement> ifThenRequirementList = intendMappingToIfThenRequirements.get(intend);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
@@ -274,6 +275,7 @@ public class ProblemFrameService {
             int intendLayer = 0;
             List<Integer> ifThenIndexes = new ArrayList<>();
             for(IfThenRequirement requirement : ifThenRequirementList){
+                originalRequirement = requirement.getOriginalRequirement();
                 for(String trigger : requirement.getTriggerList()){
                     String entityName = trigger.split("\\.")[0];
                     String attributeValue = trigger.split("\\.")[1];
@@ -311,6 +313,7 @@ public class ProblemFrameService {
                 ifThenIndexes.add(ifThenIndex);
                 ifThenIndex++;
             }
+            scenarioNodes.add(new ScenarioNode(originalRequirement, -1, -1, "",-1, -1, null));
             scenarioNodes.add(new ScenarioNode(intend, intendLayer, 5, "User",-1, -1, ifThenIndexes));
             ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
             String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
@@ -361,6 +364,7 @@ public class ProblemFrameService {
                     scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + j,4,deviceName,-1,ifThenIndex));
                 }
                 ifThenIndex++;
+                scenarioNodes.add(new ScenarioNode(requirement.getOriginalRequirement(), -1, -1, "",-1, -1, null));
                 ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
                 String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
                 scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
@@ -372,6 +376,7 @@ public class ProblemFrameService {
                 totalScenarioNodes.addAll(scenarioNodes);
             }
         }
+        totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
         String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
         scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
