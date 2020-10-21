@@ -165,10 +165,10 @@ public class ProblemFrameService {
                     if(rect.getText().equals(entity)){
                         Rect sensorRect = new Rect(0,0);
                         sensorRect.setState(1);
-                        if(positionY == rect.getY1() + rect.getY2()/2) positionY += 100;
+
+                        if(positionY >= rect.getY1() + rect.getY2()/2) positionY += 100;
                         else positionY = rect.getY1() + rect.getY2()/2;
                         sensorRect.changeSize(400, positionY);
-                        positionY = rect.getY1() + rect.getY2()/2;
                         sensorRect.setText(sensorName);
                         sensorRect.setShortName(sensorName);
                         if(!sensorRects.contains(sensorRect)) sensorRects.add(sensorRect);
@@ -264,6 +264,7 @@ public class ProblemFrameService {
         }
         int pngIndex = 0;
         int ifThenIndex = 1;
+        List<ScenarioNode> totalScenarioNodes = new ArrayList<>();
         Iterator it = intendMappingToIfThenRequirements.keySet().iterator();
         while (it.hasNext()){
             String intend = (String) it.next();
@@ -271,6 +272,7 @@ public class ProblemFrameService {
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
             int chainIndex = 1;
             int intendLayer = 0;
+            List<Integer> ifThenIndexes = new ArrayList<>();
             for(IfThenRequirement requirement : ifThenRequirementList){
                 for(String trigger : requirement.getTriggerList()){
                     String entityName = trigger.split("\\.")[0];
@@ -306,17 +308,10 @@ public class ProblemFrameService {
                     scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex));
                     intendLayer = 4 + i ;
                 }
-//                for(String action : requirement.getActionList()){
-//                    String deviceName = action.split("\\.")[0];
-//                    String deviceEventOrState = action.split("\\.")[1];
-//                    String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
-//                    String pulse = eo.getStateMappingToAction().get(state);
-//                    scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1,ifThenIndex));
-//                    scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1,ifThenIndex));
-//                }
+                ifThenIndexes.add(ifThenIndex);
                 ifThenIndex++;
             }
-            scenarioNodes.add(new ScenarioNode(intend, intendLayer, 5, "User",-1, -1));
+            scenarioNodes.add(new ScenarioNode(intend, intendLayer, 5, "User",-1, -1, ifThenIndexes));
             ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
             String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
             scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
@@ -325,6 +320,7 @@ public class ProblemFrameService {
             p.waitFor();
             p.destroy();
             paths.add(scFilePath + ".png");
+            totalScenarioNodes.addAll(scenarioNodes);
         }
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
@@ -364,14 +360,6 @@ public class ProblemFrameService {
                     scenarioNodes.add(new ScenarioNode(pulse,3 + j,2,"Machine",-1,ifThenIndex));
                     scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + j,4,deviceName,-1,ifThenIndex));
                 }
-//                for(String action : requirement.getActionList()){
-//                    String deviceName = action.split("\\.")[0];
-//                    String deviceEventOrState = action.split("\\.")[1];
-//                    String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
-//                    String pulse = eo.getStateMappingToAction().get(state);
-//                    scenarioNodes.add(new ScenarioNode(pulse,3,0,"Machine",-1,ifThenIndex));
-//                    scenarioNodes.add(new ScenarioNode(deviceEventOrState,3,2,deviceName,-1,ifThenIndex));
-//                }
                 ifThenIndex++;
                 ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
                 String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
@@ -381,8 +369,17 @@ public class ProblemFrameService {
                 p.waitFor();
                 p.destroy();
                 paths.add(scFilePath + ".png");
+                totalScenarioNodes.addAll(scenarioNodes);
             }
         }
+        ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
+        String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
+        scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
+        String cmd = "neato -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
+        Process p = Runtime.getRuntime().exec(cmd);
+        p.waitFor();
+        p.destroy();
+        paths.add(scFilePath + ".png");
         result.put("paths", paths);
         return result;
     }

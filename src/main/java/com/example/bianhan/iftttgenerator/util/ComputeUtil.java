@@ -325,10 +325,11 @@ public class ComputeUtil {
         Iterator it = deviceMappingToStates.keySet().iterator();
         while (it.hasNext()){
             String triggerAndDeviceName = (String) it.next();
-            String deviceName = triggerAndDeviceName.split("//")[1];
-            if(!deviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(deviceName);
+            if(!deviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(triggerAndDeviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
         }
-        for(String deviceName : devicesShouldBeRefined){
+        for(String triggerAndDeviceName : devicesShouldBeRefined){
+            String triggerAttrubute = triggerAndDeviceName.split("//")[0];
+            String deviceName = triggerAndDeviceName.split("//")[1];
             Map<String, List<String>> attributeMappingToValue = new HashMap<>();//[air.temperature->(>30,<10)]
             for(IfThenRequirement requirement : ifThenRequirements){
                 if(requirement.getTime() == null){
@@ -337,11 +338,15 @@ public class ComputeUtil {
                         if(action.split("\\.")[0].equals(deviceName) && requirement.getTriggerList().size() == 1){
                             String trigger = requirement.getTriggerList().get(0);
                             String relation = computeRelation(trigger);
-                            String attribute = trigger.split(relation)[0];
-                            String value = relation + trigger.split(relation)[1];
-                            if(!attributeMappingToValue.containsKey(attribute)) attributeMappingToValue.put(attribute, new ArrayList<>());
-                            if(!attributeMappingToValue.get(attribute).contains(value)) attributeMappingToValue.get(attribute).add(value);
-                            break;
+                            String attribute = "";
+                            if(relation.equals("")) break;
+                            else attribute = trigger.split(relation)[0];
+                            if(attribute.equals(triggerAttrubute)){
+                                String value = relation + trigger.split(relation)[1];
+                                if(!attributeMappingToValue.containsKey(attribute)) attributeMappingToValue.put(attribute, new ArrayList<>());
+                                if(!attributeMappingToValue.get(attribute).contains(value)) attributeMappingToValue.get(attribute).add(value);
+                                break;
+                            }
                         }
                     }
                 }
