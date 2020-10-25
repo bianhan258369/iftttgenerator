@@ -295,6 +295,8 @@ public class ProblemFrameService {
                         }
                     }
                     else {
+                        ScenarioNode deviceNode = new ScenarioNode(entityName,-1,6,"",-1,-1);
+                        if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
                         scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex,ifThenIndex));
                         scenarioNodes.add(new ScenarioNode(attributeValue,2,3,entityName,chainIndex,ifThenIndex));
                     }
@@ -306,6 +308,8 @@ public class ProblemFrameService {
                     String deviceEventOrState = action.split("\\.")[1];
                     String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
                     String pulse = eo.getStateMappingToAction().get(state);
+                    ScenarioNode deviceNode =new ScenarioNode(deviceName,-1,6,"",-1,-1);
+                    if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
                     scenarioNodes.add(new ScenarioNode(pulse,3 + i,2,"Machine",-1,ifThenIndex));
                     scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex));
                     intendLayer = 4 + i ;
@@ -313,8 +317,9 @@ public class ProblemFrameService {
                 ifThenIndexes.add(ifThenIndex);
                 ifThenIndex++;
             }
-            scenarioNodes.add(new ScenarioNode(originalRequirement, -1, -1, "",-1, -1, null));
             scenarioNodes.add(new ScenarioNode(intend, intendLayer, 5, "User",-1, -1, ifThenIndexes));
+            totalScenarioNodes.addAll(scenarioNodes);
+            scenarioNodes.add(new ScenarioNode(originalRequirement, -1, -1, "",-1, -1, null));
             ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
             String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
             scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
@@ -323,7 +328,6 @@ public class ProblemFrameService {
             p.waitFor();
             p.destroy();
             paths.add(scFilePath + ".png");
-            totalScenarioNodes.addAll(scenarioNodes);
         }
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
@@ -349,6 +353,8 @@ public class ProblemFrameService {
                         }
                     }
                     else {
+                        ScenarioNode deviceNode = new ScenarioNode(entityName,-1,6,"",-1,-1);
+                        if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
                         scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex,ifThenIndex));
                         scenarioNodes.add(new ScenarioNode(attributeValue,2,3,entityName,chainIndex,ifThenIndex));
                     }
@@ -360,10 +366,13 @@ public class ProblemFrameService {
                     String deviceEventOrState = action.split("\\.")[1];
                     String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
                     String pulse = eo.getStateMappingToAction().get(state);
+                    ScenarioNode deviceNode =new ScenarioNode(deviceName,-1,6,"",-1,-1);
+                    if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
                     scenarioNodes.add(new ScenarioNode(pulse,3 + j,2,"Machine",-1,ifThenIndex));
                     scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + j,4,deviceName,-1,ifThenIndex));
                 }
                 ifThenIndex++;
+                totalScenarioNodes.addAll(scenarioNodes);
                 scenarioNodes.add(new ScenarioNode(requirement.getOriginalRequirement(), -1, -1, "",-1, -1, null));
                 ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
                 String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
@@ -373,14 +382,13 @@ public class ProblemFrameService {
                 p.waitFor();
                 p.destroy();
                 paths.add(scFilePath + ".png");
-                totalScenarioNodes.addAll(scenarioNodes);
             }
         }
         totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
-        String scFilePath = scFolderPath + "ScenarioDiagram" + (pngIndex++);
+        String scFilePath = scFolderPath + "Overview";
         scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
-        String cmd = "neato -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
+        String cmd = "dot -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
         Process p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
         p.destroy();

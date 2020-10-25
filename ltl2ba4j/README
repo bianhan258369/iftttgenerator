@@ -1,0 +1,15 @@
+LTL2BA4J
+
+LICENSE: The License is GPL, since ltl2ba is GPL as well.
+
+LTL2BA4J is a Java 5 interface for the LTL to Büchi automaton conversion tool ltl2ba.
+
+Usage:
+Use the static methods provided in rwth.i2.ltl2ba4j.LTL2BA4J in order to perform the conversion.
+You can either enter formulas as String or as objects (see package "formula").
+The returned state machine can be customized by setting another graph factory (see package "model").
+The classes concerning the Java Native Interface are all situated in the package "internal".
+You should normally not be required to do any changes here.
+
+LTL2BA4J comes with precompiled instances of ltl2ba for Windows and Linux.
+To make it work on another OS, compile everything in c-src (you may use the Makefile) and make the library available to the JRE setting java.library.path.

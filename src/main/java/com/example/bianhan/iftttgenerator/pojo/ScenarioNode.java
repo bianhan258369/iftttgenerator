@@ -10,7 +10,7 @@ public class ScenarioNode {
     private String content;
     private String relavantPD;
     private int layer;
-    private int type; //0:behaviour-trigger 1:remote domain 2:behaviour-action 3:expect-trigger 4:expect-state 5:intend -1:requirement content
+    private int type; //0:behaviour-trigger 1:remote domain 2:behaviour-action 3:expect-trigger 4:expect-state 5:intend -1:requirement content 6:controlled entity
     private int chainIndex;
     private int ifThenIndex;
     private List<Integer> ifThenIndexes;
@@ -40,14 +40,22 @@ public class ScenarioNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ScenarioNode that = (ScenarioNode) o;
-        return layer == that.layer &&
-                type == that.type &&
-                Objects.equals(content, that.content) &&
+        return Objects.equals(content, that.content) &&
                 Objects.equals(relavantPD, that.relavantPD);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(content, relavantPD, layer, type);
+        return Objects.hash(content, relavantPD);
+    }
+
+    @Override
+    public String toString() {
+        return "ScenarioNode{" +
+                "content='" + content + '\'' +
+                ", relavantPD='" + relavantPD + '\'' +
+                ", layer=" + layer +
+                ", type=" + type +
+                '}';
     }
 }

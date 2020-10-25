@@ -6,7 +6,8 @@ CO2.ppm->co2_concentration//env
 Person.distanceFromMc->distanceFromMc//env
 Person.distanceFromPro->distanceFromPro//env
 Air.rain=0->Sensors(rain==false)
-Air.rain=1->Sensors(rain==true)
+Air.rain!=0->Sensors(rain==true)
+Projector.pon->$projector.getState()==1
 M.bonPulse->$bulb.openDevice()//update($bulb)->Light.brightness should increase
 M.boffPulse->$bulb.closeDevice()//update($bulb)
 M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should decrease

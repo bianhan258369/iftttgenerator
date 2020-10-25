@@ -4,9 +4,12 @@ import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import com.example.bianhan.iftttgenerator.pojo.*;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
+import rwth.i2.ltl2ba4j.DottyWriter;
+import rwth.i2.ltl2ba4j.LTL2BA4J;
 import rwth.i2.ltl2ba4j.formula.IFormula;
 import rwth.i2.ltl2ba4j.formula.IFormulaFactory;
 import rwth.i2.ltl2ba4j.formula.impl.FormulaFactory;
+import rwth.i2.ltl2ba4j.model.ITransition;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +61,8 @@ public class FormalismService {
                         tempFormula = factory.And(tempFormula, factory.Proposition(state));
                     }
                 }
-                formula = factory.Not(tempFormula);
+                formula = factory.F(tempFormula);
+                formula = factory.Not(formula);
                 formulas.add(formula);
             }
         }
@@ -85,7 +89,7 @@ public class FormalismService {
                 actionFormula = factory.And(factory.Proposition(actions.get(0)), factory.Proposition(actions.get(1)));
                 for(int i = 2;i < actions.size();i++) actionFormula = factory.And(actionFormula, factory.Proposition(actions.get(i)));
             }
-            formula = factory.Impl(triggerFormula, factory.X(actionFormula));
+            formula = factory.G(factory.Impl(triggerFormula, factory.X(actionFormula)));
             formulas.add(formula);
         }
         if(formulas.size() == 1) return formulas.get(0);
@@ -100,9 +104,10 @@ public class FormalismService {
     public static void main(String[] args) throws IOException, DocumentException {
         FormalismService formalismService = new FormalismService();
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
-        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        String re = "IF Person.distanceFromPro<2 THEN Blind.bclosed,Projector.pon//IF Air.humidity>30 THEN allow ventilating the room";
-        System.out.println(formalismService.toLtl(re, ontologyPath ,0));
+        String re = "IF Person.distanceFromPro<2 THEN Projector.pon";
+        IFormula formula = formalismService.toLtl(re, ontologyPath ,0);
+        System.out.println(formula);
+        System.out.println(DottyWriter.automatonToDot(LTL2BA4J.formulaToBA(formula)));
     }
 }
 

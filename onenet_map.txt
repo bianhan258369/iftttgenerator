@@ -5,7 +5,9 @@ Air.humidity->humidityVal//env
 CO2.ppm->co2ConcentrateVal//env
 Person.distanceFromMc->microDistVal//env
 Person.distanceFromPro->proDistVal//env
-Indoor.is_raining->dropletSenVal==1
+Air.rain=0->dropletSenVal==0
+Air.rain!=0->dropletSenVal==1
+Projector.pon->proBtnVal=1
 M.bonPulse->bulbBtnVal=1->Light.brightness should increase
 M.boffPulse->bulbBtnVal=0
 M.coldPulse->cBtnVal=1//hBtnVal=0->Air.temperature should decrease
