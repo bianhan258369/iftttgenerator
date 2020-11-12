@@ -21,7 +21,7 @@
 				</state>
 			</states>
 		</device>
-		<device name="Ac">
+		<device name="AC">
 			<states>
 				<state name="coldOn" init="false">
 					<adjust_entity name="Air.temperature" rate="-0.2" method="/second"/>
@@ -127,7 +127,7 @@
 		  <transition from="wclosed" event="wopen" action="wopenPulse" to="wopen"/>
 		</transitions>
 	  </device>
-	  <device name="Ac">
+	  <device name="AC">
 		<events>
 			<event>turnoncold</event>
 			<event>turnonhot</event>

@@ -303,7 +303,7 @@ public class ComputeUtil {
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
         List<String> complementedRequirements = new ArrayList<>();
-        Map<String, List<String>> deviceMappingToStates = new HashMap<>();
+        Map<String, List<String>> triggerAndDeviceMappingToStates = new HashMap<>();
         for(IfThenRequirement requirement : ifThenRequirements){
             if(requirement.getTime() == null && requirement.getTriggerList().size() == 1){
                 List<String> actions = requirement.getActionList();
@@ -316,16 +316,17 @@ public class ComputeUtil {
                     String triggerAndDeviceName = attritbueOrTriggerDevice + "//" + action.split("\\.")[0];
                     String temp = action.split("\\.")[1];
                     String state = eo.getEvents().contains(temp) ? eo.getEventMappingToState().get(temp) : temp;
-                    if(!deviceMappingToStates.containsKey(triggerAndDeviceName)) deviceMappingToStates.put(triggerAndDeviceName, new ArrayList<>());
-                    if(!deviceMappingToStates.get(triggerAndDeviceName).contains(state)) deviceMappingToStates.get(triggerAndDeviceName).add(state);
+                    if(!triggerAndDeviceMappingToStates.containsKey(triggerAndDeviceName)) triggerAndDeviceMappingToStates.put(triggerAndDeviceName, new ArrayList<>());
+                    if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(state)) triggerAndDeviceMappingToStates.get(triggerAndDeviceName).add(state);
                 }
             }
         }
         List<String> devicesShouldBeRefined = new ArrayList<>();
-        Iterator it = deviceMappingToStates.keySet().iterator();
+        Iterator it = triggerAndDeviceMappingToStates.keySet().iterator();
         while (it.hasNext()){
             String triggerAndDeviceName = (String) it.next();
-            if(!deviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(triggerAndDeviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
+            System.out.println(triggerAndDeviceName);
+            if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(triggerAndDeviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
         }
         for(String triggerAndDeviceName : devicesShouldBeRefined){
             String triggerAttrubute = triggerAndDeviceName.split("//")[0];

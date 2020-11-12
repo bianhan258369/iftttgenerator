@@ -130,7 +130,7 @@ public class ScenarioDiagram {
                         else {
                             String eventOrState = node2.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
-                            if(eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node1.getContent())){
+                            if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node1.getContent())){
                                 strs.add("N" + i + "->" + "N" + j + "[color=red]");
 
                             }
@@ -143,7 +143,7 @@ public class ScenarioDiagram {
                         else {
                             String eventOrState = node1.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
-                            if(eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node2.getContent())){
+                            if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node2.getContent())){
                                 strs.add("N" + j + "->" + "N" + i + "[color=red]");
                             }
                         }

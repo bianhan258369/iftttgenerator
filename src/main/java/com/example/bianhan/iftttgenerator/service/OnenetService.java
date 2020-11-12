@@ -162,8 +162,8 @@ public class OnenetService {
         }
         bw.close();
         String cmd1 = System.getProperty("os.name").toLowerCase().startsWith("win") ?
-                "Javac -encoding utf-8 -cp .;* com\\test\\SmartConferRoom.java" :
-                "Javac -encoding utf-8 -cp .:* com/test/SmartConferRoom.java";
+                "javac -encoding utf-8 -cp .;* com\\test\\SmartConferRoom.java" :
+                "javac -encoding utf-8 -cp .:* com/test/SmartConferRoom.java";
         String cmd2 = System.getProperty("os.name").toLowerCase().startsWith("win") ?
                 "java -cp .;* com\\test\\SmartConferRoom" :
                 "java -cp .:* com/test/SmartConferRoom";

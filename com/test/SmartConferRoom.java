@@ -149,16 +149,16 @@ if (proDistVal<=2){
 proBtnVal=1;
 }
 
-if (humidityVal<30){
-windowBtnVal=1;
-blindBtnVal=1;
+if (proBtnVal=1){
+blindBtnVal=0;
+windowBtnVal=0;
 }
 
-if (coConcentrateVal>5.0){
+if (co2ConcentrateVal>800.0){
 airFreshBtnVal=1;
 }
 
-if (humidityVal<5.5){
+if (humidityVal<60.0){
 airHumBtnVal=1;
 }
 
@@ -166,27 +166,19 @@ if (proDistVal>2){
 proBtnVal=0;
 }
 
-if (humidityVal>=30){
-windowBtnVal=0;
-}
-
-if (humidityVal>=30){
-blindBtnVal=0;
-}
-
-if (coConcentrateVal<=5.0){
-airFreshBtnVal=0;
+if (microDistVal>2){
+microBtnVal=0;
 }
 
 if (brightnessVal>=35){
 bulbBtnVal=0;
 }
 
-if (microDistVal>2){
-microBtnVal=0;
+if (co2ConcentrateVal<=800.0){
+airFreshBtnVal=0;
 }
 
-if (humidityVal>=5.5){
+if (humidityVal>=60.0){
 airHumBtnVal=0;
 }
 				//此处增加if...then...value的变化
