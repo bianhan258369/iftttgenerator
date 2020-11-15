@@ -10,15 +10,116 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.*;
 
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPath;
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("checkService")
 public class CheckService {
     public List<String> consistencyCheck(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, String> effectMap = computeEffectMap();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
+        List<String> errors = new ArrayList<>();
+        for(int i = 0;i < ifThenRequirements.size() - 1;i++){
+            for(int j = i + 1; j < ifThenRequirements.size();j++){
+                List<String> triggerList1 = ifThenRequirements.get(i).getTriggerList();
+                List<String> triggerList2 = ifThenRequirements.get(j).getTriggerList();
+                String action1 = ifThenRequirements.get(i).getActionList().get(0);
+                String action2 = ifThenRequirements.get(j).getActionList().get(0);
+                if(action1.split("\\.")[0].equals(action2.split("\\.")[0]) && !action1.split("\\.")[1].equals(action2.split("\\.")[1])){
+                    if(!hasConflict(triggerList1, triggerList2)) errors.add("<" + ifThenRequirements.get(i).toString() + "> and <" + ifThenRequirements.get(j).toString() + "> has conflicts!");
+                }
+            }
+        }
+        return errors;
+    }
+
+    private boolean hasConflict(List<String> triggerList1, List<String> triggerList2) throws IOException {
+        Set<String> formulas = new HashSet<>();
+        Map<String, Integer> deviceStateMappingToInterger = new HashMap<>();
+        deviceStateMappingToInterger.put("MAX",-1);
+        List<String> triggerList = new ArrayList<>();
+        triggerList.addAll(triggerList1);
+        triggerList.addAll(triggerList2);
+        for(String trigger : triggerList){
+            String relation = computeRelation(trigger);
+            if(!relation.equals("")){
+                String attribute = trigger.split(relation)[0];
+                String value = trigger.split(relation)[1];
+                //(declare-const a Int)
+                String declare = "(declare-const " + attribute + " Real)";
+                //(assert (> a 10))
+                String expression = "(assert (" + relation + " " + attribute + " " + value + "))";
+                formulas.add(declare);
+                formulas.add(expression);
+            }
+            else {
+                boolean notFlag = false;
+                if(trigger.startsWith("!")){
+                    notFlag = true;
+                    trigger = trigger.substring(1);
+                }
+                //ac.coldOn,!ac.coldOn
+                String device = trigger.split("\\.")[0];
+                String state = trigger.split("\\.")[1];
+                String declare = "(declare-const " + device + " Int)";
+                int stateValue = deviceStateMappingToInterger.containsKey(trigger) ? deviceStateMappingToInterger.get(trigger) : deviceStateMappingToInterger.get("MAX") + 1;
+                String expression = "";
+                if(notFlag) expression = "(assert (not(= " + device + " " + stateValue + ")))";
+                else expression = "(assert (= " + device + " " + stateValue + "))";
+                formulas.add(declare);
+                formulas.add(expression);
+            }
+        }
+        System.out.println("-------");
+        System.out.println(formulas);
+        String smtFilePath = SMTPath + UUID.randomUUID().toString() + ".smt2";
+        System.out.println(smtFilePath);
+        System.out.println("-------");
+        BufferedWriter bw = new BufferedWriter(new FileWriter(smtFilePath));
+        for(String formula : formulas){
+            bw.write(formula);
+            bw.newLine();
+            bw.flush();
+        }
+        bw.write("(check-sat)");
+        bw.flush();
+        bw.close();
+        String command = "z3 " + smtFilePath;
+        String temp = "";
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedInputStream bis = new BufferedInputStream(
+                    process.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+            String line;
+            while ((line = br.readLine()) != null) {
+                temp = temp + line + " ";
+            }
+            process.waitFor();
+            if (process.exitValue() != 0) {
+                return true;
+            }
+            process.destroy();
+            bis.close();
+            br.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        if(temp.contains("unsat")) return true;
+        else return false;
+    }
+
+    public List<String> consistencyCheck2(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, String> effectMap = computeEffectMap();
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
         List<String> errors = new ArrayList<>();
         Map<String, List<List<String>>> entityMappingToTriggers = new HashMap<>();
         for(int i = 0;i < ifThenRequirements.size();i++){
@@ -26,7 +127,6 @@ public class CheckService {
             List<String> actions = requirement.getActionList();
             for(int j = 0;j < actions.size();j++){
                 String action = actions.get(j);
-                System.out.println(action);
                 String left = action.split("\\.")[0];
                 String right = action.split("\\.")[1];
                 if(eo.getEvents().contains(right)) actions.set(j, left + "." + eo.getEventMappingToState().get(right));
@@ -44,7 +144,6 @@ public class CheckService {
                 entityMappingToTriggers.put(entity, triggerLists);
             }
         }
-        System.out.println(entityMappingToTriggers);
 
         Iterator it = entityMappingToTriggers.keySet().iterator();
         while (it.hasNext()){
@@ -80,7 +179,6 @@ public class CheckService {
         bw.flush();
         bw.close();
         String command = "z3 " + smtFilePath;
-        System.out.println(command);
         try {
             Process process = Runtime.getRuntime().exec(command);
             BufferedInputStream bis = new BufferedInputStream(
@@ -93,7 +191,6 @@ public class CheckService {
             process.waitFor();
             if (process.exitValue() != 0) {
                 result.put("result","failure");
-                System.out.println("error!");
             }
             process.destroy();
             bis.close();
@@ -108,7 +205,6 @@ public class CheckService {
         result.put("result","success");
         if(temp.contains("unsat")) result.put("sat", "unsat");
         else result.put("sat", "sat");
-        System.out.println(result);
         return result;
     }
 
@@ -156,7 +252,7 @@ public class CheckService {
     private List<String> getZ3Fomulas(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         List<String> result = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, String> effectMap = computeEffectMap();
 
         List<Requirement> requirements = initRequirements(Arrays.asList(requirementTexts.split("//")));
 
@@ -194,7 +290,7 @@ public class CheckService {
             }
         }
 
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(requirements, effectMap, ontologyPath).get(index);
         for(IfThenRequirement ifThenRequirement : ifThenRequirements){
             if(ifThenRequirement.getTime() == null){
                 for(String action : ifThenRequirement.getActionList()){
@@ -271,7 +367,7 @@ public class CheckService {
         CheckService checkService = new CheckService();
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-        Map<String, String> intendMap = computeMap("onenet_map.txt", "intendMap", eo);
+        Map<String, String> effectMap = computeEffectMap();
         String re = "IF Air.humidity<30 AND Light.brightness<30 THEN Window.wclosed//IF Air.temperature>30 THEN Window.wopen//IF Projector.pon THEN Window.wclosed";
         System.out.println(checkService.getZ3Fomulas(re, ontologyPath, 0));
     }

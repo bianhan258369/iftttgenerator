@@ -123,7 +123,7 @@ public class ScenarioDiagram {
                         }
                     }
                     else if((isBehaviour(node1) || isSensor(node1)) && isExpect(node2)){
-                        if(node1.getContent().equals(node2.getContent())){
+                        if(node1.getContent().equals(node2.getContent()) && node1.getRelavantPD().equals(node2.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
                             strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green3]");
 
                         }
@@ -137,7 +137,7 @@ public class ScenarioDiagram {
                         }
                     }
                     else if((isBehaviour(node2) || isSensor(node2)) && isExpect(node1)){
-                        if(node2.getContent().equals(node1.getContent())){
+                        if(node2.getContent().equals(node1.getContent()) && node2.getRelavantPD().equals(node1.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
                             strs.add("N" + j + "->" + "N" + i + "[dir=none,color=green3]");
                         }
                         else {

@@ -1,30 +1,35 @@
-Light.brightness->outerLightRay//env
-Person.number->peopleNum//env
-Air.temperature->innerTemperature//env
-Air.humidity->innerHumidity//env
-CO2.ppm->co2_concentration//env
-Person.distanceFromMc->distanceFromMc//env
-Person.distanceFromPro->distanceFromPro//env
-Air.rain=0->Sensors(rain==false)
-Air.rain!=0->Sensors(rain==true)
-Projector.pon->$projector.getState()==1
-M.bonPulse->$bulb.openDevice()//update($bulb)->Light.brightness should increase
-M.boffPulse->$bulb.closeDevice()//update($bulb)
-M.coldPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should decrease
-M.hotPulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->Air.temperature should increase
-M.aoffPulse->$airConditionor.closeDevice()//update($airConditionor)
-M.monPulse->$microPhone.openDevice()//update($microPhone)->allow using microphone
-M.moffPulse->$microPhone.closeDevice()//update($microPhone)->forbid using microphone
-M.ponPulse->$projector.openDevice()//update($projector)->allow using projector
-M.poffPulse->$projector.closeDevice()//update($projector)->forbid using projector
-M.wopenPulse->$window.openDevice()//update($window)->allow ventilating the room
-M.wclosePulse->$window.closeDevice()//update($window)->forbid ventilating the room
-M.bopenPulse->$blind.openDevice()//update($blind)->allow ventilating the room
-M.bclosePulse->$blind.closeDevice()//update($blind)->forbid ventilating the room
-M.afonPulse->$airFreshener.openDevice()//update($airFreshener)->allow freshing the room
-M.afoffPulse->$airFreshener.closeDevice()//update($airFreshener)->forbid freshing the room
-M.ahonPulse->$airHumidifier.openDevice()//update($airHumidifier)->allow humidifying the room
-M.ahoffPulse->$airHumidifier.closeDevice()//update($airHumidifier)->forbid humidifying the room
+light.brightness->outerLightRay//env
+person.number->peopleNum//env
+air.temperature->innerTemperature//env
+air.humidity->innerHumidity//env
+co2.ppm->co2_concentration//env
+person.distancefrommc->distanceFromMc//env
+person.distancefrompro->distanceFromPro//env
+weather.raining=0->Sensors(rain==false)
+weather.raining=1->Sensors(rain==true)
+projector.pon->$projector.getState()==1
+ac.coldon->$airConditioner.getState()==1
+ac.hoton->$airConditioner.getState()==2
+window.wopen->$window.getState()==1
+window.wclosed->$window.getState()==0
+!ac.aoff->$airConditioner.getState()!=0
+M.bonpulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
+M.boffpulse->$bulb.closeDevice()//update($bulb)
+M.coldpulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should decrease
+M.hotpulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should increase
+M.aoffpulse->$airConditionor.closeDevice()//update($airConditionor)
+M.monpulse->$microPhone.openDevice()//update($microPhone)->allow using microphone
+M.moffpulse->$microPhone.closeDevice()//update($microPhone)->forbid using microphone
+M.ponpulse->$projector.openDevice()//update($projector)->allow using projector
+M.poffpulse->$projector.closeDevice()//update($projector)->forbid using projector
+M.wopenpulse->$window.openDevice()//update($window)->allow ventilating the room
+M.wclosepulse->$window.closeDevice()//update($window)->forbid ventilating the room
+M.bopenpulse->$blind.openDevice()//update($blind)->allow ventilating the room
+M.bclosepulse->$blind.closeDevice()//update($blind)->forbid ventilating the room
+M.afonpulse->$airFreshener.openDevice()//update($airFreshener)->allow freshing the room
+M.afoffpulse->$airFreshener.closeDevice()//update($airFreshener)->forbid freshing the room
+M.ahonpulse->$airHumidifier.openDevice()//update($airHumidifier)->allow humidifying the room
+M.ahoffpulse->$airHumidifier.closeDevice()//update($airHumidifier)->forbid humidifying the room
 $airConditionor->AirConditioner()
 $airFreshener->AirFreshener()
 $airHumidifier->AirHumidifier()
@@ -33,11 +38,3 @@ $projector->Projector()
 $bulb->Light()
 $blind->Blind()
 $window->Window()
-s:TemperatureSensor->Air.temperature
-s:HumiditySensor->Air.humidity
-s:LightSensor->Light.brightness
-s:InfraredSensor->Person.number
-s:InfraredSensor->Person.distanceFromMc
-s:InfraredSensor->Person.distanceFromPro
-s:CO2Sensor->CO2.ppm
-s:RainSensor->Air.rain

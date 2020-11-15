@@ -1,35 +1,32 @@
-Light.brightness->brightnessVal//env
-Person.number->peopleNum//env
-Air.temperature->tempeVal//env
-Air.humidity->humidityVal//env
-CO2.ppm->co2ConcentrateVal//env
-Person.distanceFromMc->microDistVal//env
-Person.distanceFromPro->proDistVal//env
-Air.rain=0->dropletSenVal==0
-Air.rain!=0->dropletSenVal==1
-Projector.pon->proBtnVal=1
-M.bonPulse->bulbBtnVal=1->Light.brightness should increase
-M.boffPulse->bulbBtnVal=0
-M.coldPulse->cBtnVal=1//hBtnVal=0->Air.temperature should decrease
-M.hotPulse->hBtnVal=1//cBtnVal=0->Air.temperature should increase
-M.aoffPulse->cBtnVal=0//hBtnVal=0
-M.monPulse->microBtnVal=1->allow using microphone
-M.moffPulse->microBtnVal=0->forbid using microphone
-M.ponPulse->proBtnVal=1->allow using projector
-M.poffPulse->proBtnVal=0->forbid using projector
-M.wopenPulse->windowBtnVal=1->allow ventilating the room
-M.wclosePulse->windowBtnVal=0->forbid ventilating the room
-M.bopenPulse->blindBtnVal=1->allow ventilating the room
-M.bclosePulse->blindBtnVal=0->forbid ventilating the room
-M.afonPulse->airFreshBtnVal=1->allow freshing the room
-M.afoffPulse->airFreshBtnVal=0->forbid freshing the room
-M.ahonPulse->airHumBtnVal=1->allow humidifying the room
-M.ahoffPulse->airHumBtnVal=0->forbid humidifying the room
-s:TemperatureSensor->Air.temperature
-s:HumiditySensor->Air.humidity
-s:LightSensor->Light.brightness
-s:InfraredSensor->Person.number
-s:InfraredSensor->Person.distanceFromMc
-s:InfraredSensor->Person.distanceFromPro
-s:CO2Sensor->CO2.ppm
-s:RainSensor->Air.rain
+light.brightness->brightnessVal//env
+person.number->peopleNum//env
+air.temperature->tempeVal//env
+air.humidity->humidityVal//env
+co2.ppm->co2ConcentrateVal//env
+person.distancefrommc->microDistVal//env
+person.distancefrompro->proDistVal//env
+weather.raining=0->dropletSenVal==0
+weather.raining!=0->dropletSenVal==1
+projector.pon->proBtnVal==1
+ac.coldon->hBtnVal==0//cBtnVal==1
+ac.hoton->hBtnVal==1//cBtnVal==0
+window.wopen->windowBtnVal==1
+window.wclosed->windowBtnVal==0
+!ac.aoff->hBtnVal==1||cBtnVal==1
+M.bonpulse->bulbBtnVal=1
+M.boffpulse->bulbBtnVal=0
+M.coldpulse->cBtnVal=1//hBtnVal=0
+M.hotpulse->hBtnVal=1//cBtnVal=0
+M.aoffpulse->cBtnVal=0//hBtnVal=0
+M.monpulse->microBtnVal=1
+M.moffpulse->microBtnVal=0
+M.ponpulse->proBtnVal=1
+M.poffpulse->proBtnVal=0
+M.wopenpulse->windowBtnVal=1
+M.wclosepulse->windowBtnVal=0
+M.bopenpulse->blindBtnVal=1
+M.bclosepulse->blindBtnVal=0
+M.afonpulse->airFreshBtnVal=1
+M.afoffpulse->airFreshBtnVal=0
+M.ahonpulse->airHumBtnVal=1
+M.ahoffpulse->airHumBtnVal=0

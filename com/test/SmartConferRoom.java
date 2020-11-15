@@ -127,12 +127,28 @@ public class SmartConferRoom {
 				}
 				
 				//-----------
-if (tempeVal>=20.0){
+if ((hBtnVal==0 && cBtnVal==1) && (windowBtnVal==1)){
+windowBtnVal=0;
+}
+
+if ((hBtnVal==1 && cBtnVal==0) && (windowBtnVal==1)){
+windowBtnVal=0;
+}
+
+if ((windowBtnVal==1) && (hBtnVal==1||cBtnVal==1)){
+windowBtnVal=0;
+}
+
+if ((proBtnVal==1)){
+windowBtnVal=0;
+}
+
+if (tempeVal>20 && (windowBtnVal==0)){
 cBtnVal=1;
 hBtnVal=0;
 }
 
-if (tempeVal<20.0){
+if (tempeVal<20 && (windowBtnVal==0)){
 hBtnVal=1;
 cBtnVal=0;
 }
@@ -141,45 +157,44 @@ if (brightnessVal<35){
 bulbBtnVal=1;
 }
 
-if (microDistVal<=2){
+if (microDistVal<2){
 microBtnVal=1;
 }
 
-if (proDistVal<=2){
+if (proDistVal<2){
 proBtnVal=1;
 }
 
-if (proBtnVal=1){
+if ((proBtnVal==1)){
 blindBtnVal=0;
-windowBtnVal=0;
 }
 
-if (co2ConcentrateVal>800.0){
+if (co2ConcentrateVal>800){
 airFreshBtnVal=1;
 }
 
-if (humidityVal<60.0){
+if (humidityVal<70){
 airHumBtnVal=1;
 }
 
-if (proDistVal>2){
-proBtnVal=0;
+if (co2ConcentrateVal<800){
+airFreshBtnVal=0;
+}
+
+if (humidityVal>70){
+airHumBtnVal=0;
 }
 
 if (microDistVal>2){
 microBtnVal=0;
 }
 
-if (brightnessVal>=35){
+if (proDistVal>2){
+proBtnVal=0;
+}
+
+if (brightnessVal>35){
 bulbBtnVal=0;
-}
-
-if (co2ConcentrateVal<=800.0){
-airFreshBtnVal=0;
-}
-
-if (humidityVal>=60.0){
-airHumBtnVal=0;
 }
 				//此处增加if...then...value的变化
 				//-----------

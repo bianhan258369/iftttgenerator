@@ -1,0 +1,17 @@
+ac.coldon->ac.mode=cold
+ac.hoton->ac.mode=hot
+ac.aoff->ac.mode=off
+window.wopen->window.on=true
+window.wclosed->window.on=false
+blind.bopen->blind.on=true
+blind.bclosed->blind.on=false
+projector.pon->projector.on=true
+projector.poff->projector.on=false
+mc.mon->microphone.on=true
+mc.moff->microphone.on=false
+ah.ahon->ah.on=true
+ah.ahoff->ah.on=false
+af.afon->af.on=true
+af.afoff->af.on=false
+bulb.bon->bulb.on=true
+bulb.boff->bulb.on=false

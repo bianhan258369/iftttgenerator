@@ -19,13 +19,11 @@ public class IFTTTService {
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = computeMap(PathConfiguration.IFTTTMAPPATH, "intendMap", eo);
-        Map<String, List<String>> triggerMap = computeMap(PathConfiguration.IFTTTMAPPATH, "triggerMap", eo);
+        Map<String, String> effectMap = computeEffectMap();
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.IFTTTMAPPATH, "actionMap", eo);
-        Map<String, String> paraTypeMap = computeMap(PathConfiguration.IFTTTMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         for (IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {

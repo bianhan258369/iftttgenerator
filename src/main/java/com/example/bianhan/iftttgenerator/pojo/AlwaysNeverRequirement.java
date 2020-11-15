@@ -8,9 +8,9 @@ public class AlwaysNeverRequirement extends Requirement {
     private String deviceEventOrState;
     private String attribute;
     private String relation;//"BELOW" or "ABOVE"
-    private double value;
+    private int value;
 
-    public AlwaysNeverRequirement(String requirement, String alwaysNever, String attribute, String relation, double value) {
+    public AlwaysNeverRequirement(String requirement, String alwaysNever, String attribute, String relation, int value) {
         super(requirement);
         this.alwaysNever = alwaysNever;
         this.deviceEventOrState = null;

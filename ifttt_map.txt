@@ -1,13 +1,17 @@
-M.bonPulse->turn on the blind
-M.boffPulse->turn off the blind
-M.coldPulse->turn on the airconditioner cold
-M.hotPulse->turn on the airconditioner hot
-M.aoffPulse->turn off the airconditioner
-M.monPulse->turn on the microphone
-M.moffPulse->turn off the microphone
-M.ponPulse->turn on the projector
-M.poffPulse->turn off the projector
-M.wopenPulse->open the window
-M.wclosePulse->close the window
-M.bopenPulse->open the blind
-M.bclosePulse->close the blind
+M.bonpulse->turn on the bulb
+M.boffpulse->turn off the bulb
+M.coldpulse->turn on the airconditioner cold
+M.hotpulse->turn on the airconditioner hot
+M.aoffpulse->turn off the airconditioner
+M.monpulse->turn on the microphone
+M.moffpulse->turn off the microphone
+M.ponpulse->turn on the projector
+M.poffpulse->turn off the projector
+M.wopenpulse->open the window
+M.wclosepulse->close the window
+M.bopenpulse->open the blind
+M.bclosepulse->close the blind
+M.afonpulse->turn on the air freshener
+M.afoffpulse->turn off the air freshener
+M.ahonpulse->turn on the air humidifier
+M.ahoffpulse->turn off the air humidifier

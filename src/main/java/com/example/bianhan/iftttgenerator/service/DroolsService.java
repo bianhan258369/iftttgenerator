@@ -21,13 +21,13 @@ public class DroolsService {
         int clockIndex = 1;
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = computeMap(PathConfiguration.DROOLSMAPPATH, "intendMap", eo);
+        Map<String, String> effectMap = computeEffectMap();
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.DROOLSMAPPATH, "triggerMap", eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.DROOLSMAPPATH, "actionMap", eo);
         Map<String, String> paraTypeMap = computeMap(PathConfiguration.DROOLSMAPPATH, "paraTypeMap", eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements){
             if(requirement.getTime()==null){
@@ -62,7 +62,6 @@ public class DroolsService {
                                 when.add("Environ(" + trigger.replaceAll(entity, envVar) + ")");
                             }
                             else {
-                                System.out.println(trigger);
                                 for(int i = 0;i < triggerMap.get(trigger).size();i++){
                                     when.add(triggerMap.get(trigger).get(i));
                                 }

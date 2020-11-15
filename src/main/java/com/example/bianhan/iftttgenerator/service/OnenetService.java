@@ -19,12 +19,12 @@ public class OnenetService {
         StringBuilder sb = new StringBuilder("");
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 
-        Map<String, String> intendMap = computeMap(PathConfiguration.ONENETMAPPATH, "intendMap",eo);
+        Map<String, String> effectMap = computeEffectMap();
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.ONENETMAPPATH, "triggerMap",eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.ONENETMAPPATH, "actionMap",eo);
 
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
-        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), intendMap, ontologyPath).get(index);
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements) {
             if (requirement.getTime() == null) {
@@ -38,10 +38,12 @@ public class OnenetService {
                             sb.append(trigger.replaceAll(attribute, envVar));
                             if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                         } else {
+                            sb.append("(");
                             for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
                                 sb.append(triggerMap.get(trigger).get(i));
                                 if(i != triggerMap.get(trigger).size() - 1) sb.append(" && ");
                             }
+                            sb.append(")");
                             if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                         }
                     } else {
@@ -49,10 +51,12 @@ public class OnenetService {
                         String right = trigger.split("\\.")[1];
                         if (eo.getEvents().contains(right)) right = eo.getEventMappingToState().get(right);
                         trigger = left + "." + right;
+                        sb.append("(");
                         for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
                             sb.append(triggerMap.get(trigger).get(i));
                             if(i != triggerMap.get(trigger).size() - 1) sb.append(" && ");
                         }
+                        sb.append(")");
                         if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                     }
                 }
@@ -80,66 +84,6 @@ public class OnenetService {
         }
         return sb.toString();
     }
-
-    private String transformAlwaysRequirements(String requirement, EnvironmentOntology eo, Map<String, List<String>> actionMap){
-        StringBuilder sb  =  new StringBuilder();
-        String state = requirement.split(" ")[0].split("\\.")[1];
-        String action = "M." + eo.getStateMappingToAction().get(state);
-        sb.append("if (true){");
-        sb.append("\r\n");
-        sb.append("Test.addDatapoints(map, type, proDistSensorId, proDistSenApi_key, proDistVal, proDistDatastrId);");
-        sb.append("\r\n");
-        List<String> actions = actionMap.get(action);
-        for(int i = 0;i < actions.size();i++){
-            sb.append(actions.get(i) + ";");
-            sb.append("\r\n");
-        }
-        sb.append("}");
-        sb.append("\r\n");
-        sb.append("\r\n");
-        return sb.toString();
-    }
-
-    private String transformNeverRequirements(String requirement, EnvironmentOntology eo, Map<String, List<String>> actionMap){
-        StringBuilder sb = new StringBuilder();
-        if(requirement.contains("HAPPEN")){
-            String device = requirement.split(" ")[0].split("\\.")[0];
-            String event = requirement.split(" ")[0].split("\\.")[1];
-            String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device,eo.getEventMappingToState().get(event)));
-            sb.append("if (true){");
-            sb.append("\r\n");
-            sb.append("Test.addDatapoints(map, type, proDistSensorId, proDistSenApi_key, proDistVal, proDistDatastrId);");
-            sb.append("\r\n");
-            List<String> actions = actionMap.get(action);
-            for(int i = 0;i < actions.size();i++){
-                sb.append(actions.get(i) + ";");
-                sb.append("\r\n");
-            }
-            sb.append("}");
-            sb.append("\r\n");
-            sb.append("\r\n");
-        }
-        else if(requirement.contains("ACTIVE")){
-            String device = requirement.split(" ")[0].split("\\.")[0];
-            String state = requirement.split(" ")[0].split("\\.")[1];
-            String action = "M." + eo.getStateMappingToAction().get(eo.getReverseState(device, state));
-            sb.append("if (true){");
-            sb.append("\r\n");
-            sb.append("Test.addDatapoints(map, type, proDistSensorId, proDistSenApi_key, proDistVal, proDistDatastrId);");
-            sb.append("\r\n");
-            List<String> actions = actionMap.get(action);
-            for(int i = 0;i < actions.size();i++){
-                sb.append(actions.get(i) + ";");
-                sb.append("\r\n");
-            }
-            sb.append("}");
-            sb.append("\r\n");
-            sb.append("\r\n");
-            return sb.toString();
-        }
-        return sb.toString();
-    }
-
 
     public void runSimulation(String onenetRules) throws IOException, InterruptedException {
         BufferedReader br = new BufferedReader(new FileReader("com/test/temp.java"));
@@ -170,7 +114,6 @@ public class OnenetService {
         Process p1 = Runtime.getRuntime().exec(cmd1);
         p1.waitFor();
         p1.destroy();
-        System.out.println(cmd1);
         Process p2 = Runtime.getRuntime().exec(cmd2);
         // Any error message?
         Thread errorGobbler

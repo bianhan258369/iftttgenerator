@@ -1,9 +1,7 @@
 package com.example.bianhan.iftttgenerator.controller;
 
-import com.example.bianhan.iftttgenerator.service.CheckService;
-import com.example.bianhan.iftttgenerator.service.DroolsService;
-import com.example.bianhan.iftttgenerator.service.OnenetService;
-import com.example.bianhan.iftttgenerator.service.ProblemFrameService;
+import com.example.bianhan.iftttgenerator.pojo.IfThenRequirement;
+import com.example.bianhan.iftttgenerator.service.*;
 import com.example.bianhan.iftttgenerator.util.FileUtil;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
@@ -16,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -23,8 +22,7 @@ import java.util.UUID;
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPath;
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.ontologyRootPath;
-import static com.example.bianhan.iftttgenerator.util.ComputeUtil.computeComplementedRequirements;
-import static com.example.bianhan.iftttgenerator.util.ComputeUtil.toSystemBehaviours;
+import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @RestController
 @CrossOrigin
@@ -38,6 +36,8 @@ public class GenerateController {
     private CheckService checkService;
     @Autowired
     private OnenetService onenetService;
+    @Autowired
+    private IFTTTService iftttService;
 
     @CrossOrigin
     @RequestMapping("/upload")
@@ -51,6 +51,14 @@ public class GenerateController {
         file.transferTo(new File(ontologyRootPath,newName));
         result.put("filePath", (ontologyRootPath + newName));
         result.put("result", "success");
+        return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/transform2FunctionalRequirements")
+    @ResponseBody
+    public JSONObject transformToFunctionalRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = toFunctionalRequirements(requirementTexts, ontologyPath, index);
         return result;
     }
 
@@ -79,9 +87,18 @@ public class GenerateController {
     }
 
     @CrossOrigin
+    @RequestMapping("/transform2IFTTT")
+    @ResponseBody
+    public List<String> transformToIFTTT(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+        List<String> ifttt = Arrays.asList(iftttService.toIFTTT(requirementTexts, ontologyPath, index).split("\n"));
+        return ifttt;
+    }
+
+
+    @CrossOrigin
     @RequestMapping("/complement")
     @ResponseBody
-    public JSONObject complementRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+    public JSONObject complementRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
         List<String> complementedRequirements = (List<String>) computeComplementedRequirements(requirementTexts, ontologyPath, index);
@@ -107,12 +124,26 @@ public class GenerateController {
     @CrossOrigin
     @RequestMapping("/getSCD")
     @ResponseBody
-    public JSONObject getSCD(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
-        JSONObject result = new JSONObject();
+    public JSONObject getSCD(@RequestBody JSONObject json) throws IOException, DocumentException, InterruptedException {
+        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
+        List<List<String>> triggerLists = (List<List<String>>) json.get("triggerLists");
+        List<List<String>> actionLists = (List<List<String>>) json.get("actionLists");
+        List<String> times = (List<String>) json.get("times");
+        List<String> expectations = (List<String>) json.get("expectations");
+        String ontologyPath = (String) json.get("ontologyPath");
+        int index = (int) json.get("index");
+        for(int i = 0;i < triggerLists.size();i++){
+            List<String> triggerList = triggerLists.get(i);
+            List<String> actionList = actionLists.get(i);
+            String time = times.get(i);
+            String expectation = expectations.get(i);
+            ifThenRequirements.add(new IfThenRequirement(triggerList, actionList, time, expectation));
+        }
+        System.out.println(ifThenRequirements);
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        result = pfService.getSdPng(requirementTexts, ontologyPath, folderPath, index);
+        JSONObject result = pfService.getSdPng(ifThenRequirements, ontologyPath, folderPath, index);
         return result;
     }
 

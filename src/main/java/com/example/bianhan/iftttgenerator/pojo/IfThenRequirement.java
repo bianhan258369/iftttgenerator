@@ -11,33 +11,29 @@ public class IfThenRequirement{
     private List<String> triggerList;
     private List<String> actionList;
     private String time;
-    private String intend;
-    private String originalRequirement;
-
-//    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time) {
-//        this.triggerList = triggerList;
-//        this.actionList = actionList;
-//        this.time = time;
-//    }
-
-//    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String intend) {
-//        this.triggerList = triggerList;
-//        this.actionList = actionList;
-//        this.time = time;
-//        this.intend = intend;
-//    }
+    private String expectation;
 
 
-    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String intend, String originalRequirement) {
+    public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String expectation) {
         this.triggerList = triggerList;
         this.actionList = actionList;
         this.time = time;
-        this.intend = intend;
-        this.originalRequirement = originalRequirement;
+        this.expectation = expectation;
     }
 
     @Override
-    public String toString() {
-        return intend + " : IF " + triggerList + " FOR " + time + " THEN " + actionList;
+    public String toString(){
+        String trigger = "";
+        String action = "";
+        for(int i = 0;i < triggerList.size();i++){
+            trigger = trigger + triggerList.get(i);
+            if(i != triggerList.size() - 1) trigger = trigger + " AND ";
+        }
+        for(int i = 0;i < actionList.size();i++){
+            action = action + actionList.get(i);
+            if(i != actionList.size() - 1) action = action + ",";
+        }
+        return "IF " + trigger + " THEN " + action;
+//        else return expectation + " : IF " + trigger + " FOR " + time + " THEN " + action;
     }
 }
