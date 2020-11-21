@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
@@ -239,23 +240,28 @@ public class ProblemFrameService {
         for(int i = 0;i < ifThenRequirements.size();i++){
             IfThenRequirement requirement = ifThenRequirements.get(i);
             String expectation = requirement.getExpectation();
-            if(expectation != null){
-                List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.containsKey(expectation) ?
-                        expectationMappingToIfThenRequirements.get(expectation) : new ArrayList<>();
-                ifThenRequirementList.add(requirement);
-                expectationMappingToIfThenRequirements.put(expectation, ifThenRequirementList);
-            }
+            List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.containsKey(expectation) ?
+                    expectationMappingToIfThenRequirements.get(expectation) : new ArrayList<>();
+            ifThenRequirementList.add(requirement);
+            expectationMappingToIfThenRequirements.put(expectation, ifThenRequirementList);
         }
         int ifThenIndex = 1;
         List<ScenarioNode> totalScenarioNodes = new ArrayList<>();
+        Set<String> expectationNodes = new HashSet<>();
         Iterator it = expectationMappingToIfThenRequirements.keySet().iterator();
         while (it.hasNext()){
-            String intend = (String) it.next();
-            List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.get(intend);
+            String expectation = (String) it.next();
+            List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.get(expectation);
             List<ScenarioNode> scenarioNodes = new ArrayList<>();
             int chainIndex = 1;
-            int intendLayer = 0;
             List<Integer> ifThenIndexes = new ArrayList<>();
+            List<String> targetExpectationNodes = new ArrayList<>();
+            if(expectation.contains("//")){
+                String[] temp = expectation.split("//");
+                targetExpectationNodes = Arrays.asList(temp);
+            }
+            else targetExpectationNodes.add(expectation);
+            expectationNodes.addAll(targetExpectationNodes);
             for(IfThenRequirement requirement : ifThenRequirementList){
                 for(String trigger : requirement.getTriggerList()){
                     String entityName = trigger.split("\\.")[0];
@@ -292,16 +298,18 @@ public class ProblemFrameService {
                     ScenarioNode deviceNode =new ScenarioNode(deviceName,-1,6,"",-1,-1);
                     if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
                     scenarioNodes.add(new ScenarioNode(pulse,3 + i,2,"Machine",-1,ifThenIndex));
-                    scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex));
-                    intendLayer = 4 + i ;
+                    if(i != requirement.getActionList().size() - 1) scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex));
+                    else scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex,null,targetExpectationNodes));
                 }
                 ifThenIndexes.add(ifThenIndex);
                 ifThenIndex++;
             }
-            scenarioNodes.add(new ScenarioNode(intend, intendLayer, 5, "User",-1, -1, ifThenIndexes));
             totalScenarioNodes.addAll(scenarioNodes);
         }
-        totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
+        for(String expectation : expectationNodes){
+            totalScenarioNodes.add(new ScenarioNode(expectation, -1, 5, "User",-1, -1, null));
+        }
+//        totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
         String scFilePath = scFolderPath + "Overview";
         scenarioDiagram.toDotFile(eo, scFilePath + ".dot");

@@ -9,6 +9,9 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.PYTHONCMDPATH;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.TEMPLATEPATH;
+
 public class ComputeUtil {
     /**
      *
@@ -517,8 +520,8 @@ public class ComputeUtil {
             add = add + "}";
             adds.add(add);
         }
-        BufferedReader br = new BufferedReader(new FileReader("/Users/bianhan/Desktop/project/autotap/iot-autotap/autotapmc/channels/template/evaluation_copy.txt"));
-        BufferedWriter bw = new BufferedWriter(new FileWriter("/Users/bianhan/Desktop/project/autotap/iot-autotap/autotapmc/channels/template/Evaluation.py"));
+        BufferedReader br = new BufferedReader(new FileReader(TEMPLATEPATH + "evaluation_copy.txt"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(TEMPLATEPATH + "Evaluation.py"));
         String line = null;
         while ((line = br.readLine()) != null){
             bw.write(line);
@@ -596,7 +599,7 @@ public class ComputeUtil {
         bw.close();
 
         if(flag){
-            String cmd = "python3 /Users/bianhan/Desktop/project/autotap/iot-autotap/autotapmc/cmd/cmd.py autotapInput.txt";
+            String cmd = "python3 " + PYTHONCMDPATH + " autotapInput.txt";
             try {
                 Runtime rt = Runtime.getRuntime();
                 Process proc = rt.exec(cmd);
@@ -682,7 +685,6 @@ public class ComputeUtil {
                             break;
                         }
                     }
-
                     for(Requirement requirement : requirements){
                         boolean flag1 = false;
                         boolean flag2 = false;
@@ -701,6 +703,7 @@ public class ComputeUtil {
                                 if(functionalTriggersAndActions.contains(deviceState)){
                                     flag1 = true;
                                     temp = deviceState;
+                                    break;
                                 }
                             }
                             for(String deviceState : deviceStates){
@@ -709,13 +712,22 @@ public class ComputeUtil {
                                         String tempDevice = temp.split("\\.")[0];
                                         String functionalDevice = functionalTriggerAndAction.contains(".") ? functionalTriggerAndAction.split("\\.")[0] : "";
                                         String device = deviceState.split("\\.")[0];
-                                        if(device.equals(functionalDevice) && !device.equals(tempDevice)) flag2 = true;
+                                        if(device.equals(functionalDevice) && !device.equals(tempDevice)){
+                                            flag2 = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         }
                         if(flag1 & flag2){
-                            ifThenRequirementList.add(new IfThenRequirement(functionalTriggers, functionalActions ,null ,requirement.getRequirement()));
+                            IfThenRequirement temp = new IfThenRequirement(functionalTriggers, functionalActions ,null ,requirement.getRequirement());
+//                            ifThenRequirementList.add(temp);
+                            if(!ifThenRequirementList.contains(temp))ifThenRequirementList.add(temp);
+                            else{
+                                int tempIndex = ifThenRequirementList.indexOf(temp);
+                                ifThenRequirementList.get(tempIndex).addExpectation(temp.getExpectation());
+                            }
                         }
                     }
                 }
@@ -734,6 +746,8 @@ public class ComputeUtil {
                 functionalRequirements.add(ifThenRequirement.toString());
             }
         }
+        System.out.println(ifThenRequirementList);
+        System.out.println(ifThenRequirementList.size());
         jsonObject.put("functionalRequirements",functionalRequirements);
         jsonObject.put("ifThenRequirements", ifThenRequirementList);
         return jsonObject;
@@ -782,6 +796,17 @@ public class ComputeUtil {
         dot = dot.replaceAll("\\>","\\\\>");
         dot = dot.replaceAll("\\<","\\\\<");
         return dot;
+    }
+
+    public static boolean strListEquals(List<String> list1, List<String> list2){
+        if(list1.size() != list2.size()) return false;
+        for(String temp : list1){
+            if (!list2.contains(temp)) return false;
+        }
+        for(String temp : list2){
+            if (!list1.contains(temp)) return false;
+        }
+        return true;
     }
 
     public static void main(String[] args) throws IOException {

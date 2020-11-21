@@ -104,10 +104,10 @@ public class ScenarioDiagram {
 
                         }
                     }
-                    else if(node1.getType() == 4 && node2.getType() == 5 && node2.getIfThenIndexes().contains(node1.getIfThenIndex())){
+                    else if(node1.getType() == 4 && node2.getType() == 5 && node1.getTargetExpectationNode().contains(node2.getContent())){
                         strs.add("N" + i + "->" + "N" + j + "[color=pink]");
                     }
-                    else if(node1.getType() == 5 && node2.getType() == 4 && node1.getIfThenIndexes().contains(node2.getIfThenIndex())){
+                    else if(node1.getType() == 5 && node2.getType() == 4 && node2.getTargetExpectationNode().contains(node1.getContent())){
                         strs.add("N" + j + "->" + "N" + i + "[color=pink]");
                     }
                     else if(!isExpect(node1) && !isIntend(node1) && !isExpect(node2) && !isIntend(node2) && Math.abs(node1.getLayer() - node2.getLayer()) == 1

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.*;
 
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPath;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPATH;
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @Service("checkService")
@@ -72,11 +72,7 @@ public class CheckService {
                 formulas.add(expression);
             }
         }
-        System.out.println("-------");
-        System.out.println(formulas);
-        String smtFilePath = SMTPath + UUID.randomUUID().toString() + ".smt2";
-        System.out.println(smtFilePath);
-        System.out.println("-------");
+        String smtFilePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
         BufferedWriter bw = new BufferedWriter(new FileWriter(smtFilePath));
         for(String formula : formulas){
             bw.write(formula);

@@ -19,9 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMTPath;
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.ontologyRootPath;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.*;
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 @RestController
@@ -44,12 +42,25 @@ public class GenerateController {
     @ResponseBody
     public JSONObject uploadOntology(@RequestParam("uploadedFile") MultipartFile file) throws IOException {
         JSONObject result = new JSONObject();
-        File folder = new File(ontologyRootPath);
+        File folder = new File(ONTOLOGYROOTPATH);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
         String oldName = file.getOriginalFilename();
         String newName = UUID.randomUUID().toString() + oldName.substring(oldName.lastIndexOf(".")).replaceAll("-","_");
-        file.transferTo(new File(ontologyRootPath,newName));
-        result.put("filePath", (ontologyRootPath + newName));
+        file.transferTo(new File(ONTOLOGYROOTPATH,newName));
+        result.put("filePath", (ONTOLOGYROOTPATH + newName));
+        result.put("result", "success");
+        return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/chooseScenario")
+    @ResponseBody
+    public JSONObject chooseScenario(@RequestParam String scenario) throws IOException {
+        JSONObject result = new JSONObject();
+        String path = "";
+        if(scenario.equals("SmartHome")) path = SMARTHOMEONTOLOGYPATH;
+        else if(scenario.equals("SmartConferenceRoom")) path = SMARTCONFERENCEROOMONTOLOGYPATH;
+        result.put("path",path);
         result.put("result", "success");
         return result;
     }
@@ -139,7 +150,6 @@ public class GenerateController {
             String expectation = expectations.get(i);
             ifThenRequirements.add(new IfThenRequirement(triggerList, actionList, time, expectation));
         }
-        System.out.println(ifThenRequirements);
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
@@ -168,9 +178,9 @@ public class GenerateController {
     @RequestMapping("/z3Check")
     @ResponseBody
     public JSONObject z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
-        File folder = new File(SMTPath);
+        File folder = new File(SMTPATH);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        String filePath = SMTPath + UUID.randomUUID().toString() + ".smt2";
+        String filePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
         return checkService.z3Check(filePath, requirementTexts, ontologyPath, index);
 
     }

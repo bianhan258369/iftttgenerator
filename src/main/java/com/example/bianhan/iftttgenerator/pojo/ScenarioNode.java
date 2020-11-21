@@ -14,8 +14,20 @@ public class ScenarioNode {
     private int chainIndex;
     private int ifThenIndex;
     private List<Integer> ifThenIndexes;
+    private List<String> targetExpectationNode;
 
-    public ScenarioNode(String content, int layer, int type, String relavantPD, int chainIndex, int ifThenIndexIndex, List<Integer> ifThenIndexes) {
+    public ScenarioNode(String content, int layer, int type, String relavantPD, int chainIndex, int ifThenIndex, List<Integer> ifThenIndexes, List<String> targetExpectationNode) {
+        this.content = content;
+        this.relavantPD = relavantPD;
+        this.layer = layer;
+        this.type = type;
+        this.chainIndex = chainIndex;
+        this.ifThenIndex = ifThenIndex;
+        this.ifThenIndexes = ifThenIndexes;
+        this.targetExpectationNode = targetExpectationNode;
+    }
+
+    public ScenarioNode(String content, int layer, int type, String relavantPD, int chainIndex, int ifThenIndex, List<Integer> ifThenIndexes) {
         this.content = content;
         this.relavantPD = relavantPD;
         this.layer = layer;
@@ -25,13 +37,13 @@ public class ScenarioNode {
         this.ifThenIndexes = ifThenIndexes;
     }
 
-    public ScenarioNode(String content, int layer, int type, String relavantPD, int chainIndex, int ifThenIndexIndex) {
+    public ScenarioNode(String content, int layer, int type, String relavantPD, int chainIndex, int ifThenIndex) {
         this.content = content;
         this.layer = layer;
         this.type = type;
         this.relavantPD = relavantPD;
         this.chainIndex = chainIndex;
-        this.ifThenIndex = ifThenIndexIndex;
+        this.ifThenIndex = ifThenIndex;
         this.ifThenIndexes = null;
     }
 
@@ -57,5 +69,10 @@ public class ScenarioNode {
                 ", layer=" + layer +
                 ", type=" + type +
                 '}';
+    }
+
+    public static void main(String[] args) {
+        ScenarioNode scenarioNode = new ScenarioNode("aaa",1,1,"bbb",2,3);
+        System.out.println(scenarioNode.getIfThenIndexes());
     }
 }
