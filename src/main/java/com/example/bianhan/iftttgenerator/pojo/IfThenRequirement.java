@@ -66,4 +66,19 @@ public class IfThenRequirement{
         return expectations + " : IF " + trigger + " THEN " + action;
 //        else return expectation + " : IF " + trigger + " FOR " + time + " THEN " + action;
     }
+
+    public String getIfThenClause(){
+        String trigger = "";
+        String action = "";
+        for(int i = 0;i < triggerList.size();i++){
+            trigger = trigger + triggerList.get(i);
+            if(i != triggerList.size() - 1) trigger = trigger + " AND ";
+        }
+        for(int i = 0;i < actionList.size();i++){
+            action = action + actionList.get(i);
+            if(i != actionList.size() - 1) action = action + ",";
+        }
+        return "IF " + trigger + " THEN " + action;
+//        else return expectation + " : IF " + trigger + " FOR " + time + " THEN " + action;
+    }
 }

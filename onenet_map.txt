@@ -30,3 +30,13 @@ M.afonpulse->airFreshBtnVal=1
 M.afoffpulse->airFreshBtnVal=0
 M.ahonpulse->airHumBtnVal=1
 M.ahoffpulse->airHumBtnVal=0
+bulbBtnVal->bulb
+data:hBtnVal->airConditioner.gethButtonData()!=hBtnVal->airConditioner.addhButtonData(hBtnVal);
+data:cBtnVal->airConditioner.getcButtonData()!=cBtnVal->airConditioner.addcButtonData(cBtnVal);
+data:bulbBtnVal->bulb.getBulbButtonData()!=bulbBtnVal->bulb.addBulbButtonData(bulbBtnVal);
+data:microBtnVal->microphone.getMicroButtonData()!=microBtnVal->microphone.addMicroButtonData(microBtnVal);
+data:proBtnVal->projector.getProjButtonData()!=proBtnVal->projector.addProjButtonData(proBtnVal);
+data:windowBtnVal->window.getWindowButtonData()!=windowBtnVal->window.addWindowButtonData(windowBtnVal);
+data:blindBtnVal->blind.getBlindButtonData()!=blindBtnVal->blind.addBlindButtonData(blindBtnVal);
+data:airFreshBtnVal->airFreshener.getAirFreshButtonData()!=airFreshBtnVal->airFreshener.addAirFreshButtonData(airFreshBtnVal);
+data:airHumBtnVal->airHumidifier.getAirHumButtonData()!=airHumBtnVal->airHumidifier.addAirHumButtonData(airHumBtnVal);

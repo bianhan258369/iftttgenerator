@@ -10,6 +10,7 @@ public class BrightnessSensor extends Device {
 	private String brightDatastrId="brightness";
 	
 	public void addBrightnessData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.brightDatastrId);
 	}
 	

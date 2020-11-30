@@ -10,6 +10,7 @@ public class PerNumSensor extends Device {
 	public String perNumDatastrId="personNumber";
 	
 	public void addPerNumData(Integer value) {
+		
 		addData(value,this.perNumDatastrId);
 	}
 	

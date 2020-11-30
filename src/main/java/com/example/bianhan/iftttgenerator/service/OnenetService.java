@@ -22,7 +22,7 @@ public class OnenetService {
         Map<String, String> effectMap = computeEffectMap();
         Map<String, List<String>> triggerMap = computeMap(PathConfiguration.ONENETMAPPATH, "triggerMap",eo);
         Map<String, List<String>> actionMap = computeMap(PathConfiguration.ONENETMAPPATH, "actionMap",eo);
-
+        Map<String, String> updateDataMap = getUpdateDataMap(PathConfiguration.ONENETMAPPATH);
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
@@ -62,6 +62,7 @@ public class OnenetService {
                 }
                 sb.append("){");
                 sb.append("\r\n");
+                List<String> dataNeedUpdating = new ArrayList<>();
                 for (String action : requirement.getActionList()) {
                     if(!action.startsWith("M.")){
                         String left = action.split("\\.")[0];
@@ -73,11 +74,27 @@ public class OnenetService {
                     }
                     List<String> actions = actionMap.get(action);
                     for(int i = 0;i < actions.size();i++){
+                        dataNeedUpdating.add(actions.get(i));
                         sb.append(actions.get(i) + ";");
                         sb.append("\r\n");
                     }
                 }
                 sb.append("}");
+                sb.append("\r\n");
+
+                for(String action : dataNeedUpdating){
+                    if(action.contains("=")){
+                        String data = action.split("=")[0];
+                        String value = action.split("=")[1];
+                        String[] temp = updateDataMap.get(data).split("//");
+                        sb.append("if(" + temp[0] + "){");
+                        sb.append("\r\n");
+                        sb.append(temp[1]);
+                        sb.append("\r\n");
+                        sb.append("}");
+                        sb.append("\r\n");
+                    }
+                }
                 sb.append("\r\n");
                 sb.append("\r\n");
             }
@@ -150,6 +167,21 @@ public class OnenetService {
                 // Handle error
             }
         }
+    }
+
+    private Map<String, String> getUpdateDataMap(String onenetPath) throws IOException {
+        Map<String, String> updateDataMap = new HashMap<>();
+        BufferedReader br = new BufferedReader(new FileReader(onenetPath));
+        String line = "";
+        while ((line = br.readLine()) != null){
+            if (line.startsWith("data:")){
+                String key = line.split("->")[0].substring(5);
+                String condition = line.split("->")[1];
+                String updateData = line.split("->")[2];
+                updateDataMap.put(key, condition + "//" + updateData);
+            }
+        }
+        return updateDataMap;
     }
 
     public static void main(String[] args) throws IOException, DocumentException, InterruptedException {

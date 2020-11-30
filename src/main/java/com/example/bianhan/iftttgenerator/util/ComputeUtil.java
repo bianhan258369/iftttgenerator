@@ -453,7 +453,7 @@ public class ComputeUtil {
             returnInit.append(deviceName + "." + initState);
             if(it.hasNext()) returnInit.append(",");
         }
-        complementedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());String temp = "";
+//        complementedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
         return complementedRequirements;
     }
 
@@ -743,7 +743,7 @@ public class ComputeUtil {
         else {
             for(IfThenRequirement ifThenRequirement : ifThenRequirements){
                 ifThenRequirementList.add(ifThenRequirement);
-                functionalRequirements.add(ifThenRequirement.toString());
+                functionalRequirements.add(ifThenRequirement.getIfThenClause());
             }
         }
         System.out.println(ifThenRequirementList);

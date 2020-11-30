@@ -15,6 +15,7 @@ public class ProDistSensor extends Device {
 	private String proDistDatastrId="proDistance";
 	
 	public void addProDistData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.proDistDatastrId);
 	}
 	

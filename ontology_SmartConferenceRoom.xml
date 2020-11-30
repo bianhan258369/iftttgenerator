@@ -8,9 +8,6 @@
 		<attribute name="light.brightness"/>
 		<attribute name="sound.loudness"/>
 		<attribute name="sound.ultrasonic"/>
-		<attribute name="indoor.is_raining"/>
-		<attribute name="indoor.is_on_fire"/>
-		<attribute name="is_touched"/>
 		<attribute name="co2.ppm"/>
 	</environment>
 	<devices>

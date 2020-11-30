@@ -14,6 +14,7 @@ public class MicroDistSensor extends Device {
 	private String microDistDatastrId="microDistance";
 	
 	public void addMicroDistData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.microDistDatastrId);
 	}
 	

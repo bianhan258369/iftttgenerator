@@ -13,6 +13,7 @@ public class HumiditySensor extends Device {
 	private String humidityDatastrId="humidity";
 	
 	public void addHumidityData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.humidityDatastrId);
 	}
 	

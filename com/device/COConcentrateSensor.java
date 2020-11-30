@@ -10,6 +10,7 @@ public class COConcentrateSensor extends Device {
 	private String COConcentrateDatastrId="COConcentrate";
 	
 	public void addCOConcentrateData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.COConcentrateDatastrId);
 	}
 	

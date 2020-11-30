@@ -9,6 +9,7 @@ import com.device.AirConditioner;
 import com.device.AirFreshener;
 import com.device.AirHumidifier;
 import com.device.Bulb;
+import com.device.CO2ConcentrateSensor;
 import com.device.COConcentrateSensor;
 import com.device.Blind;
 import com.device.BrightnessSensor;
@@ -28,6 +29,7 @@ public class SmartConferRoom {
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
 		Scanner s = new Scanner(System.in);
+		Random random=new Random();
 		PerNumSensor perNumSensor = new PerNumSensor("633465298","perNumSensor","LE8PNLJjcSs2upg43C36qw94K6Y=");
 		AirConditioner airConditioner=new AirConditioner("629656342","airConditioner","=eJLxHzgGHAPCtMSJmYtIctKkIA=");
 		TemperatureSensor temperatureSensor=new TemperatureSensor("629656613", "temperatureSensor", "5Q0OU=n8awltnweqe96erYSQ=bs=");
@@ -44,25 +46,26 @@ public class SmartConferRoom {
 		AirFreshener airFreshener = new AirFreshener("634733220", "airFreshener", "HYkLbxMahuRstMzvbka4N8hJ=2I=");
 		AirHumidifier airHumidifier = new AirHumidifier("634733103","airHumidifier","9XwR=auYtfMwaIDXcHZbOl4aPbk=");
 		COConcentrateSensor coConcentrateSensor = new COConcentrateSensor("634732894", "COConcentrateSensor", "5Z6yX8s3BfQVraseu=XhJiUK1pQ=");
+		CO2ConcentrateSensor co2ConcentrateSensor=new CO2ConcentrateSensor("642064527","CO2ConcentrateSensor","nomwB=7HJCuGGERbLAlnBIy6Erw=");
 		
 		
-		Double tempeVal=10.0;
+		Double tempeVal=random.nextDouble()*10+21;
 		Integer hBtnVal=0;
 		Integer cBtnVal=0;
 		Integer windowBtnVal=0;
 		Integer bulbBtnVal=0;
-		Double brightnessVal=50.0;
+		Double brightnessVal=random.nextDouble()*20+10;
 		Integer perNumVal=0;
 		Integer microBtnVal=0;
-		Double microDistVal=null;
+		Double microDistVal=10.0;
 		int microphoneCount=0;
 		int microDistCount=0;
 		Integer proBtnVal=0;
-		Double proDistVal=null;
-		Double humidityVal=20.0;
+		Double proDistVal=10.0;
+		Double humidityVal=random.nextDouble()*20+10;
 		int projectorCount=0;
 		int proDistCount=0;
-		Integer blindBtnVal=1;
+		Integer blindBtnVal=0;
 		Integer raindropVal=0;
 		int tempeCount=0;
 		int brightCount=0;
@@ -71,22 +74,26 @@ public class SmartConferRoom {
 		Integer airFreshBtnVal=0;
 		Integer airHumBtnVal=0;
 		Double coConcentrateVal=10.0;
+		Double co2ConcentrateVal=random.nextDouble()*100+801;
 		int coConcentrateCount=0;
+		int co2ConcentrateCount=0;
 		int personCount=0;
 		int perNumCount=0;
 		
-		Random random=new Random();
 		
+		double rain=random.nextDouble();
+		
+		int count=0;  //总的计时
 		while(true) {
-			while(perNumVal==0) {
-				System.out.println("多少人在会议室：");
-				perNumSensor.addPerNumData(perNumVal);
-				perNumVal=random.nextInt(5);
-				Thread.sleep(3000);
-			}
-			
-			proDistVal=0.5;
-			microDistVal=0.4;
+//			while(perNumVal==0) {
+//				System.out.println("多少人在会议室：");
+//				perNumSensor.addPerNumData(perNumVal);
+//				perNumVal=random.nextInt(5);
+//				Thread.sleep(3000);
+//			}
+//			
+//			proDistVal=0.5;
+//			microDistVal=0.4;
 			
 			perNumSensor.addPerNumData(perNumVal);
 			temperatureSensor.addTempeData(tempeVal);
@@ -104,18 +111,24 @@ public class SmartConferRoom {
 			brightnessSensor.addBrightnessData(brightnessVal);
 			airFreshener.addAirFreshButtonData(airFreshBtnVal);
 			airHumidifier.addAirHumButtonData(airHumBtnVal);
-			coConcentrateSensor.addCOConcentrateData(coConcentrateVal);
+			//coConcentrateSensor.addCOConcentrateData(coConcentrateVal);
+			co2ConcentrateSensor.addCO2ConcentrateData(co2ConcentrateVal);
 			Thread.sleep(3000);
 			
 			
-			while(personCount<30) {
+			
+			perNumVal=SmartConferRoom.getPerNum(count);
+			perNumSensor.addPerNumData(perNumVal);
+			while(perNumVal>0&&personCount<30) {
 				//会议室没人超过30则退出该循环
 				
-				if(perNumCount==10) {
-					//每10秒检测人数
-					perNumVal=random.nextInt(perNumVal*2+1);
-					perNumSensor.addPerNumData(perNumVal);
-				}
+//				if(perNumCount==10) {
+//					//每10秒检测人数
+//					perNumVal=random.nextInt(perNumVal*2+1);
+//					perNumSensor.addPerNumData(perNumVal);
+//				}
+				perNumVal=SmartConferRoom.getPerNum(count);
+				perNumSensor.addPerNumData(perNumVal);
 				if(perNumVal==perNumSensor.getPerNumData()&&perNumVal==0) {
 					personCount++;
 //					if(personCount>=30) {
@@ -126,212 +139,300 @@ public class SmartConferRoom {
 					personCount=0;
 				}
 				
+				
+				
+				
 				//-----------
 if ((hBtnVal==0 && cBtnVal==1) && (windowBtnVal==1)){
-windowBtnVal=0;
+cBtnVal=0;
+hBtnVal=0;
 }
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+
 
 if ((hBtnVal==1 && cBtnVal==0) && (windowBtnVal==1)){
-windowBtnVal=0;
+cBtnVal=0;
+hBtnVal=0;
+}
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
 }
 
+
 if ((windowBtnVal==1) && (hBtnVal==1||cBtnVal==1)){
-windowBtnVal=0;
+cBtnVal=0;
+hBtnVal=0;
 }
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+
 
 if ((proBtnVal==1)){
 windowBtnVal=0;
 }
+if(window.getWindowButtonData()!=windowBtnVal){
+window.addWindowButtonData(windowBtnVal);
+}
+
 
 if (tempeVal>20 && (windowBtnVal==0)){
 cBtnVal=1;
 hBtnVal=0;
 }
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+
 
 if (tempeVal<20 && (windowBtnVal==0)){
 hBtnVal=1;
 cBtnVal=0;
 }
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+
 
 if (brightnessVal<35){
 bulbBtnVal=1;
 }
+if(bulb.getBulbButtonData()!=bulbBtnVal){
+bulb.addBulbButtonData(bulbBtnVal);
+}
+
 
 if (microDistVal<2){
 microBtnVal=1;
 }
+if(microphone.getMicroButtonData()!=microBtnVal){
+microphone.addMicroButtonData(microBtnVal);
+}
+
 
 if (proDistVal<2){
 proBtnVal=1;
 }
+if(projector.getProjButtonData()!=proBtnVal){
+projector.addProjButtonData(proBtnVal);
+}
+
 
 if ((proBtnVal==1)){
 blindBtnVal=0;
 }
+if(blind.getBlindButtonData()!=blindBtnVal){
+blind.addBlindButtonData(blindBtnVal);
+}
+
 
 if (co2ConcentrateVal>800){
 airFreshBtnVal=1;
 }
+if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal){
+airFreshener.addAirFreshButtonData(airFreshBtnVal);
+}
+
 
 if (humidityVal<70){
 airHumBtnVal=1;
 }
+if(airHumidifier.getAirHumButtonData()!=airHumBtnVal){
+airHumidifier.addAirHumButtonData(airHumBtnVal);
+}
+
 
 if (co2ConcentrateVal<800){
 airFreshBtnVal=0;
 }
+if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal){
+airFreshener.addAirFreshButtonData(airFreshBtnVal);
+}
+
 
 if (humidityVal>70){
 airHumBtnVal=0;
 }
+if(airHumidifier.getAirHumButtonData()!=airHumBtnVal){
+airHumidifier.addAirHumButtonData(airHumBtnVal);
+}
+
 
 if (microDistVal>2){
 microBtnVal=0;
 }
+if(microphone.getMicroButtonData()!=microBtnVal){
+microphone.addMicroButtonData(microBtnVal);
+}
+
 
 if (proDistVal>2){
 proBtnVal=0;
 }
+if(projector.getProjButtonData()!=proBtnVal){
+projector.addProjButtonData(proBtnVal);
+}
+
 
 if (brightnessVal>35){
 bulbBtnVal=0;
 }
+if(bulb.getBulbButtonData()!=bulbBtnVal){
+bulb.addBulbButtonData(bulbBtnVal);
+}
+				
 				//此处增加if...then...value的变化
 				//-----------
 				
-				
 				//button数据传输
-				if(airConditioner.gethButtonData()!=hBtnVal) {
-					airConditioner.addhButtonData(hBtnVal);
-				}
-				if(airConditioner.getcButtonData()!=cBtnVal) {
-					airConditioner.addcButtonData(cBtnVal);
-				}
+    
+     if(airConditioner.gethButtonData()!=hBtnVal) {
+      airConditioner.addhButtonData(hBtnVal);
+     }
+     if(airConditioner.getcButtonData()!=cBtnVal) {
+      airConditioner.addcButtonData(cBtnVal);
+     }
+     
+     if(bulb.getBulbButtonData()!=bulbBtnVal) {
+      bulb.addBulbButtonData(bulbBtnVal);
+     }
+     
+     if(microphone.getMicroButtonData()!=microBtnVal) {
+      microphone.addMicroButtonData(microBtnVal);
+     }
+     
+     if(projector.getProjButtonData()!=proBtnVal) {
+      projector.addProjButtonData(proBtnVal);
+     }
+     
+     if(window.getWindowButtonData()!=windowBtnVal) {
+      window.addWindowButtonData(windowBtnVal);
+     }
+     
+     if(blind.getBlindButtonData()!=blindBtnVal) {
+      blind.addBlindButtonData(blindBtnVal);
+     }
+     
+     if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal) {
+      airFreshener.addAirFreshButtonData(airFreshBtnVal);
+     }
+     
+     if(airHumidifier.getAirHumButtonData()!=airHumBtnVal) {
+      airHumidifier.addAirHumButtonData(airHumBtnVal);
+     }
 				
-				if(bulb.getBulbButtonData()!=bulbBtnVal) {
-					bulb.addBulbButtonData(bulbBtnVal);
-				}
 				
-				if(microphone.getMicroButtonData()!=microBtnVal) {
-					microphone.addMicroButtonData(microBtnVal);
-				}
-				
-				if(projector.getProjButtonData()!=proBtnVal) {
-					projector.addProjButtonData(proBtnVal);
-				}
-				
-				if(window.getWindowButtonData()!=windowBtnVal) {
-					window.addWindowButtonData(windowBtnVal);
-				}
-				
-				if(blind.getBlindButtonData()!=blindBtnVal) {
-					blind.addBlindButtonData(blindBtnVal);
-				}
-				
-				if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal) {
-					airFreshener.addAirFreshButtonData(airFreshBtnVal);
-				}
-				
-				if(airHumidifier.getAirHumButtonData()!=airHumBtnVal) {
-					airHumidifier.addAirHumButtonData(airHumBtnVal);
-				}
+			
 				
 				
-				
-				if(coConcentrateCount==1) {
-					//每1秒发送一次co浓度
-					if(airConditioner.gethButtonData()==1||airConditioner.getcButtonData()==1) {
-						//开空调会导致co浓度上升
-						coConcentrateVal=coConcentrateVal+1;
+					if(co2ConcentrateCount==1) {
+						if(airFreshener.getAirFreshButtonData()==1) {
+							co2ConcentrateVal=co2ConcentrateVal-30.0;
+						}
+						co2ConcentrateCount=0;
 					}
-					if(airFreshener.getAirFreshButtonData()==1&coConcentrateVal>100) {
-						//开空气净化器的co浓度变化
-						coConcentrateVal=coConcentrateVal-2;
-					}
-					coConcentrateSensor.addCOConcentrateData(coConcentrateVal);
-					coConcentrateCount=0;
-				}
+					co2ConcentrateSensor.addCO2ConcentrateData(co2ConcentrateVal);
+					
 				
 				if(tempeCount==1) {
 					//每1秒钟发送一次温度数据
-					if(airConditioner.gethButtonData()==1&&tempeVal<26) {
+					if(airConditioner.gethButtonData()==1) {
 						//加热的温度变化
 						tempeVal=tempeVal+0.5;
-						temperatureSensor.addTempeData(tempeVal);
-					}else if(airConditioner.getcButtonData()==1&&tempeVal>26){
+						
+					}else if(airConditioner.getcButtonData()==1){
 						//制冷的温度变化
 						tempeVal=tempeVal-0.5;
-						temperatureSensor.addTempeData(tempeVal);	
-					}else {
-						//否则维持温度
-						temperatureSensor.addTempeData(tempeVal);
 					}
+					
 					//重新置零
 					tempeCount=0;
 				}
+				temperatureSensor.addTempeData(tempeVal);
 				
 				if(brightCount==1) {
 					//每1秒发送一次光亮数据
 					if(bulb.getBulbButtonData()==1) {
 						//如果灯开了，光度为200
-						brightnessVal=200.0;
+						brightnessVal=500.0;
 					}
-					brightnessSensor.addBrightnessData(brightnessVal);
+					
 					brightCount=0;
 				}
+				brightnessSensor.addBrightnessData(brightnessVal);
 				
 				if(humidityCount==1) {
 					//每1秒发送一次湿度数据
-					if(airHumidifier.getAirHumButtonData()==1&humidityVal<40) {
-						humidityVal=humidityVal+2;
-					}
-					if(airConditioner.getcButtonData()==1) {
-						humidityVal=humidityVal-0.5;
-					}
-					if(airConditioner.gethButtonData()==1) {
+					if(airHumidifier.getAirHumButtonData()==1) {
 						humidityVal=humidityVal+0.5;
 					}
-					humiditySensor.addHumidityData(humidityVal);
+					
 					humidityCount=0;
 				}
+				humiditySensor.addHumidityData(humidityVal);
 				
-				if(raindropCount==3) {
+				if(raindropCount==1) {
 					//每3秒发送一次雨滴传感器数据
-					raindropSensor.addRaindropData(raindropVal);
+					raindropVal=SmartConferRoom.isRain(raindropVal);
+					
 					raindropCount=0;
 				}
+				raindropSensor.addRaindropData(raindropVal);
 				
 				//麦克风距离数据
 				
 				if(microDistCount==1) {
 					//随机micro距离
-					microDistVal=random.nextDouble()*3;
-					if(microDistSensor.getMicroDistData()>0.5&&microDistVal<=0.5) {
-						microphoneCount=0;
-					}
-					if(microDistSensor.getMicroDistData()<=0.5&&microDistVal<=0.5) {
-						microphoneCount++;
-					}
-					microDistSensor.addMicroDistData(microDistVal);
+//					microDistVal=random.nextDouble()*3;
+//					if(microDistSensor.getMicroDistData()>0.5&&microDistVal<=0.5) {
+//						microphoneCount=0;
+//					}
+//					if(microDistSensor.getMicroDistData()<=0.5&&microDistVal<=0.5) {
+//						microphoneCount++;
+//					}
+					microDistVal=SmartConferRoom.getDistMc(count);
+					
 					microDistCount=0;
 				}
+				microDistSensor.addMicroDistData(microDistVal);
+				
 				
 				if(proDistCount==1) {
 					//随机pro距离
-					proDistVal=random.nextDouble()*5;
-					if(proDistSensor.getProDistData()>1.0&&proDistVal<=1.0) {
-						projectorCount=0;
-					}
-					if(proDistSensor.getProDistData()<=1.0&&proDistVal<=1.0) {
-						projectorCount++;
-					}
-					proDistSensor.addProDistData(proDistVal);
+//					proDistVal=random.nextDouble()*5;
+//					if(proDistSensor.getProDistData()>1.0&&proDistVal<=1.0) {
+//						projectorCount=0;
+//					}
+//					if(proDistSensor.getProDistData()<=1.0&&proDistVal<=1.0) {
+//						projectorCount++;
+//					}
+					proDistVal=SmartConferRoom.getDistPro(count);
+					
 					proDistCount=0;
 				}
+				proDistSensor.addProDistData(proDistVal);
 				
 				
 				
 				Thread.sleep(1000);
+				count++;
 				microDistCount++;
 				proDistCount++;
 				tempeCount++;
@@ -340,10 +441,11 @@ bulbBtnVal=0;
 				raindropCount++;
 				coConcentrateCount++;
 				perNumCount++;
+				co2ConcentrateCount++;
 			}
 			s.close();
 			
-			while(perNumVal==0) {
+			while(perNumVal==0 && personCount>0) {
 				//恢复到默认设置
 				if(airConditioner.getcButtonData()==1) {
 					cBtnVal=0;
@@ -389,15 +491,106 @@ bulbBtnVal=0;
 					airHumidifier.addAirHumButtonData(airHumBtnVal);
 				}
 				
+				if(bulb.getBulbButtonData()==0) {
+					brightnessVal=30.0;
+					brightnessSensor.addBrightnessData(brightnessVal);
+				}
 				
-				perNumVal=random.nextInt(5);
-				perNumSensor.addPerNumData(perNumVal);
+				
+				personCount=0;
+				
 			}
+			count++;
 		}
 		
 		
 		
 
+	}
+	//下雨随机事件
+	public static Integer isRain(Integer isRain) {
+		Random random=new Random();
+		double rain=random.nextDouble();
+		if(isRain==1) {
+			if(rain>0.1) {
+				isRain=1;
+			}
+			if(rain<=0.1) {
+				isRain=0;
+			}
+		}
+		if(isRain==0) {
+			if(rain>0.9) {
+				isRain=1;
+			}
+			if(rain<=0.9) {
+				isRain=0;
+			}
+		}
+		
+		return isRain;
+		
+	}
+	
+	public static Integer getPerNum(Integer count) {
+		//function
+		Integer perNum=0;
+		if(count>=0&&count<=10) {
+			perNum=Integer.valueOf(((int)(0.15*count*count)));
+		}
+		if(count>10&&count<=40) {
+			perNum=15;
+		}
+		if(count>40&&count<=50) {
+			perNum=Integer.valueOf((int)(0.15*(count-50)*(count-50)));
+		}
+		if(count>50 ) {
+			perNum=0;
+		}
+		return perNum;
+	}
+	
+	public static Double getDistMc(Integer count) {
+		//function
+		Double dist=10.0;
+		if(count>=0&&count<3) {
+			dist=10.0;
+		}
+		if(count>=3&&count<=10) {
+			dist=Double.valueOf((count-3)*(count-3)*0.13-9/4*(count-3)+10);
+		}
+		if(count>10&&count<=43) {
+			dist=0.6;
+		}
+		if(count>43&&count<=50) {
+			dist=Double.valueOf(count*count*0.13-43/4*count+445/2);
+		}
+		if(count>50) {
+			dist=10.0;
+		}
+		return dist;
+	}
+	
+	public static Double getDistPro(Integer count) {
+		//function
+		
+		Double dist=10.0;
+		if(count>=0&&count<3) {
+			dist=10.0;
+		}
+		if(count>=3&&count<=10) {
+			dist=Double.valueOf((count-3)*(count-3)*0.13-9/4*(count-3)+10);
+		}
+		if(count>10&&count<=43) {
+			dist=0.6;
+		}
+		if(count>43&&count<=50) {
+			dist=Double.valueOf(count*count*0.13-43/4*count+445/2);
+		}
+		if(count>50) {
+			dist=10.0;
+		}
+		return dist;
 	}
 
 }

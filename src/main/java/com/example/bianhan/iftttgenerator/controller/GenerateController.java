@@ -133,9 +133,20 @@ public class GenerateController {
     }
 
     @CrossOrigin
-    @RequestMapping("/getSCD")
+    @RequestMapping("/getSrSCD")
     @ResponseBody
-    public JSONObject getSCD(@RequestBody JSONObject json) throws IOException, DocumentException, InterruptedException {
+    public JSONObject getSrAndSbSCD(@RequestParam String requirementTexts, @RequestParam String ontologyPath) throws IOException, DocumentException, InterruptedException {
+        String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
+        File folder = new File(folderPath);
+        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+        JSONObject result = pfService.getSrPng(folderPath, requirementTexts, ontologyPath);
+        return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/getDrSCD")
+    @ResponseBody
+    public JSONObject getDrSCD(@RequestBody JSONObject json) throws IOException, DocumentException, InterruptedException {
         List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
         List<List<String>> triggerLists = (List<List<String>>) json.get("triggerLists");
         List<List<String>> actionLists = (List<List<String>>) json.get("actionLists");
@@ -153,7 +164,33 @@ public class GenerateController {
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        JSONObject result = pfService.getSdPng(ifThenRequirements, ontologyPath, folderPath, index);
+        JSONObject result = pfService.getDrPng(ifThenRequirements, ontologyPath, folderPath, index);
+        return result;
+    }
+
+
+    @CrossOrigin
+    @RequestMapping("/getSbSCD")
+    @ResponseBody
+    public JSONObject getSbSCD(@RequestBody JSONObject json) throws IOException, DocumentException, InterruptedException {
+        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
+        List<List<String>> triggerLists = (List<List<String>>) json.get("triggerLists");
+        List<List<String>> actionLists = (List<List<String>>) json.get("actionLists");
+        List<String> times = (List<String>) json.get("times");
+        List<String> expectations = (List<String>) json.get("expectations");
+        String ontologyPath = (String) json.get("ontologyPath");
+        int index = (int) json.get("index");
+        for(int i = 0;i < triggerLists.size();i++){
+            List<String> triggerList = triggerLists.get(i);
+            List<String> actionList = actionLists.get(i);
+            String time = times.get(i);
+            String expectation = expectations.get(i);
+            ifThenRequirements.add(new IfThenRequirement(triggerList, actionList, time, expectation));
+        }
+        String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
+        File folder = new File(folderPath);
+        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+        JSONObject result = pfService.getSbPng(ifThenRequirements, ontologyPath, folderPath, index);
         return result;
     }
 
@@ -174,16 +211,16 @@ public class GenerateController {
         return errors;
     }
 
-    @CrossOrigin
-    @RequestMapping("/z3Check")
-    @ResponseBody
-    public JSONObject z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
-        File folder = new File(SMTPATH);
-        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        String filePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
-        return checkService.z3Check(filePath, requirementTexts, ontologyPath, index);
-
-    }
+//    @CrossOrigin
+//    @RequestMapping("/z3Check")
+//    @ResponseBody
+//    public JSONObject z3Check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+//        File folder = new File(SMTPATH);
+//        if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
+//        String filePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
+//        return checkService.z3Check(filePath, requirementTexts, ontologyPath, index);
+//
+//    }
 
     @CrossOrigin
     @RequestMapping("/onenetSimulation")

@@ -166,7 +166,6 @@ public class ProblemFrameService {
                     if(rect.getText().equals(entity)){
                         Rect sensorRect = new Rect(0,0);
                         sensorRect.setState(1);
-
                         if(positionY >= rect.getY1() + rect.getY2()/2) positionY += 100;
                         else positionY = rect.getY1() + rect.getY2()/2;
                         sensorRect.changeSize(400, positionY);
@@ -193,7 +192,6 @@ public class ProblemFrameService {
                                 }
                             }
                         }
-                        break;
                     }
                 }
             }
@@ -232,7 +230,26 @@ public class ProblemFrameService {
         return result;
     }
 
-    public JSONObject getSdPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException {
+    public JSONObject getSrPng(String scFolderPath,String requirementTexts, String ontologyPath) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = new JSONObject();
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        List<ScenarioNode> scenarioNodes = new ArrayList<>();
+        for(String requirement : requirements){
+            scenarioNodes.add(new ScenarioNode(requirement, -1, 5, "User",-1, -1, null));
+        }
+        ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
+        String sbFilePath = scFolderPath + "ServiceRequirement";
+        scenarioDiagram.toDotFile_ServiceRequirement(eo, sbFilePath + ".dot");
+        String cmd1 = "dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
+        Process p1 = Runtime.getRuntime().exec(cmd1);
+        p1.waitFor();
+        p1.destroy();
+        result.put("srPath", sbFilePath + ".png");
+        return result;
+    }
+
+    public JSONObject getDrPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException{
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, List<String>> sensorMap = computeSensorMap();
@@ -311,13 +328,102 @@ public class ProblemFrameService {
         }
 //        totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
-        String scFilePath = scFolderPath + "Overview";
-        scenarioDiagram.toDotFile(eo, scFilePath + ".dot");
-        String cmd = "dot -Gdpi=300 " + scFilePath + ".dot -n -Tpng -o " + scFilePath + ".png";
-        Process p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-        p.destroy();
-        result.put("path", scFilePath + ".png");
+        String drFilePath = scFolderPath + "DeviceRequirement";
+        scenarioDiagram.toDotFile_DeviceRequirement(eo, drFilePath + ".dot");
+        String cmd1 = "dot -Gdpi=300 " + drFilePath + ".dot -n -Tpng -o " + drFilePath + ".png";
+        Process p1 = Runtime.getRuntime().exec(cmd1);
+        p1.waitFor();
+        p1.destroy();
+        result.put("drPath", drFilePath + ".png");
+        return result;
+    }
+
+    public JSONObject getSbPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = new JSONObject();
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        Map<String, List<String>> sensorMap = computeSensorMap();
+        Map<String, List<IfThenRequirement>> expectationMappingToIfThenRequirements = new HashMap<>();
+        for(int i = 0;i < ifThenRequirements.size();i++){
+            IfThenRequirement requirement = ifThenRequirements.get(i);
+            String expectation = requirement.getExpectation();
+            List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.containsKey(expectation) ?
+                    expectationMappingToIfThenRequirements.get(expectation) : new ArrayList<>();
+            ifThenRequirementList.add(requirement);
+            expectationMappingToIfThenRequirements.put(expectation, ifThenRequirementList);
+        }
+        int ifThenIndex = 1;
+        List<ScenarioNode> totalScenarioNodes = new ArrayList<>();
+        Set<String> expectationNodes = new HashSet<>();
+        Iterator it = expectationMappingToIfThenRequirements.keySet().iterator();
+        while (it.hasNext()){
+            String expectation = (String) it.next();
+            List<IfThenRequirement> ifThenRequirementList = expectationMappingToIfThenRequirements.get(expectation);
+            List<ScenarioNode> scenarioNodes = new ArrayList<>();
+            int chainIndex = 1;
+            List<Integer> ifThenIndexes = new ArrayList<>();
+            List<String> targetExpectationNodes = new ArrayList<>();
+            if(expectation.contains("//")){
+                String[] temp = expectation.split("//");
+                targetExpectationNodes = Arrays.asList(temp);
+            }
+            else targetExpectationNodes.add(expectation);
+            expectationNodes.addAll(targetExpectationNodes);
+            for(IfThenRequirement requirement : ifThenRequirementList){
+                for(String trigger : requirement.getTriggerList()){
+                    String entityName = trigger.split("\\.")[0];
+                    String attributeValue = trigger.split("\\.")[1];
+                    String relation = computeRelation(attributeValue);
+                    if(!relation.equals("")){
+                        String attribute = entityName + "." + attributeValue.split(relation)[0];
+                        Iterator iit = sensorMap.keySet().iterator();
+                        while (iit.hasNext()){
+                            String sensorName = (String) iit.next();
+                            if(sensorMap.get(sensorName).contains(attribute)){
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,0,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,1,entityName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode("S:" + attributeValue,1,3,sensorName,chainIndex,ifThenIndex));
+                                scenarioNodes.add(new ScenarioNode(attributeValue,2,3,entityName,chainIndex,ifThenIndex));
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        ScenarioNode deviceNode = new ScenarioNode(entityName,-1,6,"",-1,-1);
+                        if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,0,entityName,chainIndex,ifThenIndex));
+                        scenarioNodes.add(new ScenarioNode(attributeValue,2,3,entityName,chainIndex,ifThenIndex));
+                    }
+                    chainIndex++;
+                }
+                for(int i = 0;i < requirement.getActionList().size();i++){
+                    String action = requirement.getActionList().get(i);
+                    String deviceName = action.split("\\.")[0];
+                    String deviceEventOrState = action.split("\\.")[1];
+                    String state = eo.getEvents().contains(deviceEventOrState) ? eo.getEventMappingToState().get(deviceEventOrState) : deviceEventOrState;
+                    String pulse = eo.getStateMappingToAction().get(state);
+                    ScenarioNode deviceNode =new ScenarioNode(deviceName,-1,6,"",-1,-1);
+                    if(!scenarioNodes.contains(deviceNode)) scenarioNodes.add(deviceNode);
+                    scenarioNodes.add(new ScenarioNode(pulse,3 + i,2,"Machine",-1,ifThenIndex));
+                    if(i != requirement.getActionList().size() - 1) scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex));
+                    else scenarioNodes.add(new ScenarioNode(deviceEventOrState,3 + i,4,deviceName,-1,ifThenIndex,null,targetExpectationNodes));
+                }
+                ifThenIndexes.add(ifThenIndex);
+                ifThenIndex++;
+            }
+            totalScenarioNodes.addAll(scenarioNodes);
+        }
+        for(String expectation : expectationNodes){
+            totalScenarioNodes.add(new ScenarioNode(expectation, -1, 5, "User",-1, -1, null));
+        }
+//        totalScenarioNodes.add(new ScenarioNode("Overview", -1, -1, "",-1, -1, null));
+        ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
+        String sbFilePath = scFolderPath + "SystemBehaviour";
+        scenarioDiagram.toDotFile_SystemBehaviour(eo, sbFilePath + ".dot");
+        String cmd1 = "dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
+        Process p1 = Runtime.getRuntime().exec(cmd1);
+        p1.waitFor();
+        p1.destroy();
+        result.put("sbPath", sbFilePath + ".png");
         return result;
     }
 
@@ -358,6 +464,7 @@ public class ProblemFrameService {
 //        String ontologyPath = "ontology_SmartConferenceRoom.xml";
 //        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
 //        String re = "IF Person.distanceFromPro<2 THEN Blind.bclosed,Projector.pon//IF Air.humidity>30 THEN allow ventilating the room";
-//        System.out.println(problemFrameService.getSdPng(re, ontologyPath, SCDPATH,0));
+//        System.out.println(problemFrameService.getDrPng(re, ontologyPath, SCDPATH,0));
+//        System.out.println(problemFrameService.getSbPng(re, ontologyPath, SCDPATH,0));
     }
 }

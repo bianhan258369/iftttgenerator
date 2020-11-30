@@ -13,6 +13,7 @@ public class TemperatureSensor extends Device {
 	private String tempeDatastrId="temperature";
 	
 	public void addTempeData(Double value) {
+		value=Double.valueOf(String.format("%.1f", value));
 		addData(value,this.tempeDatastrId);
 	}
 	
