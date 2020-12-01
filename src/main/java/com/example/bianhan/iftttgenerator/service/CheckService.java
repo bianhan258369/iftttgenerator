@@ -16,12 +16,21 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 @Service("checkService")
 public class CheckService {
 
-    public List<String> consistencyCheck(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+    public List<String> check(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> effectMap = computeEffectMap();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
         List<String> errors = new ArrayList<>();
+
+        //trigger conflict
+        //if t>10 AND t<10 then a
+        for(IfThenRequirement ifThenRequirement : ifThenRequirements){
+            List<String> triggerList = ifThenRequirement.getTriggerList();
+            if(selfConflict(triggerList)) errors.add("<" + ifThenRequirement.getIfThenClause() + "> has self conflict in triggers!");
+        }
+
+        //if t>10 THEN a, if t<15 THEN !a
         for(int i = 0;i < ifThenRequirements.size() - 1;i++){
             for(int j = i + 1; j < ifThenRequirements.size();j++){
                 List<String> triggerList1 = ifThenRequirements.get(i).getTriggerList();
@@ -29,11 +38,99 @@ public class CheckService {
                 String action1 = ifThenRequirements.get(i).getActionList().get(0);
                 String action2 = ifThenRequirements.get(j).getActionList().get(0);
                 if(action1.split("\\.")[0].equals(action2.split("\\.")[0]) && !action1.split("\\.")[1].equals(action2.split("\\.")[1])){
-                    if(!hasConflict(triggerList1, triggerList2)) errors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts!");
+                    if(!hasConflict(triggerList1, triggerList2)){
+                        if(triggerList1.size() == 1 && triggerList2.size() == 1){
+                            String trigger1 = triggerList1.get(0);
+                            String trigger2 = triggerList2.get(0);
+                            String relation1 = computeRelation(trigger1);
+                            String relation2 = computeRelation(trigger2);
+                            if(!relation1.equals("") && !relation2.equals("") && trigger1.split(relation1)[0].equals(trigger2.split(relation2)[0])){
+                                errors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts and can be solved!");
+                            }
+                            else errors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts and cannot be solved!");
+                        }
+                        else errors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts and cannot be solved!");
+                    }
                 }
             }
         }
+
+        //if a then b, if b then !a, if c then a
+        for(int i = 0;i < ifThenRequirements.size() - 1;i++){
+            for(int j = i + 1; j < ifThenRequirements.size();j++){
+                boolean flag1 = false;//a and !a
+                boolean flag2 = true;//b and b
+                boolean flag3 = false;//exist if c then a
+                List<String> triggerList1 = ifThenRequirements.get(i).getTriggerList();
+                List<String> triggerList2 = ifThenRequirements.get(j).getTriggerList();
+                List<String> actionList1 = ifThenRequirements.get(i).getActionList();
+                List<String> actionList2 = ifThenRequirements.get(j).getActionList();
+                String trigger1 = triggerList1.get(0);
+                //judge whether the first trigger and the second action has conflict
+                if(actionList2.size() == 1 && triggerList1.size() == 1 && computeRelation(trigger1).equals("")){
+                    String action2 = actionList2.get(0);
+                    if(!trigger1.contains("!") && action2.split("\\.")[0].equals(trigger1.split("\\.")[0])
+                    && !action2.split("\\.")[1].equals(trigger1.split("\\.")[1])) flag1 = true;
+                    if(trigger1.startsWith("!") && trigger1.equals(action2)) flag1 = true;
+
+                    for(String trigger2 : actionList1){
+                        if(!triggerList2.contains(trigger2)) flag2 = false;
+                    }
+                }
+                for(IfThenRequirement ifThenRequirement : ifThenRequirements){
+                    List<String> actionList = ifThenRequirement.getActionList();
+                    if(actionList.contains(trigger1)){
+                        flag3 = true;
+                        break;
+                    }
+                }
+                if(flag1 & flag2 & flag3){
+                    errors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has chain errors!");
+                }
+            }
+        }
+
         return errors;
+    }
+
+    private boolean selfConflict(List<String> triggerList) throws IOException {
+        Set<String> declares = new HashSet<>();
+        Set<String> expressions = new HashSet<>();
+        Map<String, Integer> deviceStateMappingToInterger = new HashMap<>();
+        deviceStateMappingToInterger.put("MAX",-1);
+        for(String trigger : triggerList){
+            String relation = computeRelation(trigger);
+            if(!relation.equals("")){
+                String attribute = trigger.split(relation)[0];
+                String value = trigger.split(relation)[1];
+                //(declare-const a Int)
+                String declare = "(declare-const " + attribute + " Real)";
+                //(assert (> a 10))
+                String expression = "(assert (" + relation + " " + attribute + " " + value + "))";
+                declares.add(declare);
+                expressions.add(expression);
+            }
+            else {
+                boolean notFlag = false;
+                if(trigger.startsWith("!")){
+                    notFlag = true;
+                    trigger = trigger.substring(1);
+                }
+                //ac.coldOn,!ac.coldOn
+                String device = trigger.split("\\.")[0];
+                String state = trigger.split("\\.")[1];
+                String declare = "(declare-const " + device + " Int)";
+                int stateValue = deviceStateMappingToInterger.containsKey(trigger) ? deviceStateMappingToInterger.get(trigger) : deviceStateMappingToInterger.get("MAX") + 1;
+                String expression = "";
+                if(notFlag) expression = "(assert (not(= " + device + " " + stateValue + ")))";
+                else expression = "(assert (= " + device + " " + stateValue + "))";
+                declares.add(declare);
+                expressions.add(expression);
+            }
+        }
+        String smtFilePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
+        createSmtFile(declares,expressions,smtFilePath);
+        return !z3Sat(smtFilePath);
     }
 
     private boolean hasConflict(List<String> triggerList1, List<String> triggerList2) throws IOException {
@@ -75,6 +172,11 @@ public class CheckService {
             }
         }
         String smtFilePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
+        createSmtFile(declares,expressions,smtFilePath);
+        return !z3Sat(smtFilePath);
+    }
+
+    private void createSmtFile(Set<String> declares, Set<String> expressions, String smtFilePath) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(smtFilePath));
         for(String declare : declares){
             bw.write(declare);
@@ -89,6 +191,9 @@ public class CheckService {
         bw.write("(check-sat)");
         bw.flush();
         bw.close();
+    }
+
+    private boolean z3Sat(String smtFilePath) throws IOException {
         String command = "z3 " + smtFilePath;
         String temp = "";
         try {
@@ -114,8 +219,8 @@ public class CheckService {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        if(temp.contains("unsat")) return true;
-        else return false;
+        if(temp.contains("unsat")) return false;
+        else return true;
     }
 
 //    public List<String> consistencyCheck2(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
@@ -371,8 +476,9 @@ public class CheckService {
         String ontologyPath = "ontology_SmartConferenceRoom.xml";
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> effectMap = computeEffectMap();
-        String re = "IF person.distancefrommc<=2 THEN mc.mon//IF window.wclosed THEN mc.moff//IF person.distancefrommc>2 THEN mc.moff";
-        System.out.println(checkService.consistencyCheck(re, ontologyPath, 0));
+//        String re = "IF window.wopen THEN projector.pon//IF projector.pon THEN window.wclosed//IF ac.aoff THEN window.wopen";
+        String re = "IF light.brightness<35 THEN bulb.bon//IF light.brightness>30 THEN bulb.boff";
+        System.out.println(checkService.check(re, ontologyPath, 0));
     }
 
 }

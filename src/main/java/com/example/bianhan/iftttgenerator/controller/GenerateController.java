@@ -206,7 +206,7 @@ public class GenerateController {
     @ResponseBody
     public List<String> check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
         JSONObject result = new JSONObject();
-        List<String> errors = checkService.consistencyCheck(requirementTexts, ontologyPath, index);
+        List<String> errors = checkService.check(requirementTexts, ontologyPath, index);
         if(errors.size() == 0) errors.add("No Rule Errors!");
         return errors;
     }

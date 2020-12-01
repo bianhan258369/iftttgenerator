@@ -540,7 +540,30 @@ public class ComputeUtil {
         List<String> functionalAndNonfunctionalRequirements = new ArrayList<>();
         boolean flag = false;
         for(Requirement requirement : requirements){
-            if(requirement instanceof OccurenceRequirement){
+            if(requirement instanceof AlwaysNeverRequirement){
+                flag = true;
+                String req = "";
+                AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
+                if(alwaysNeverRequirement.getAttribute() == null){
+                    String deviceEventOrState = alwaysNeverRequirement.getDeviceEventOrState();
+                    String device = deviceEventOrState.split("\\.")[0];
+                    String eventOrState = deviceEventOrState.split("\\.")[1];
+                    if (eo.getEvents().contains(eventOrState)) {
+                        eventOrState = eo.getEventMappingToState().get(eventOrState);
+                    }
+                    String deviceState = device + "." + eventOrState;
+                    req = req + getPythonFromJava(deviceState.trim().toLowerCase());
+                    if(alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS")){
+                        req = req + " SHOULD ALWAYS BE ACTIVE";
+                        functionalAndNonfunctionalRequirements.add(req);
+                    }
+                    else {
+                        req = req + " SHOULD NEVER HAPPEN";
+                        functionalAndNonfunctionalRequirements.add(req);
+                    }
+                }
+            }
+            else if(requirement instanceof OccurenceRequirement){
                 flag = true;
                 String req = "";
                 OccurenceRequirement occurenceRequirement = (OccurenceRequirement) requirement;
