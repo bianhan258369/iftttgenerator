@@ -263,7 +263,9 @@ public class ComputeUtil {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<Device> devices = eo.getDevicesAffectingEnvironment();
         List<List<IfThenRequirement>> results = new ArrayList<>();
-        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
+        List<IfThenRequirement> random = new ArrayList<>();
+        List<IfThenRequirement> saveEnergy = new ArrayList<>();
+        List<IfThenRequirement> bestPerformance = new ArrayList<>();
         for (Requirement requirement : requirements) {
             String originalRequirement = requirement.getRequirement();
             //AlwaysNeverRequirement
@@ -272,6 +274,11 @@ public class ComputeUtil {
                 if(alwaysNeverRequirement.getAttribute() != null){
                     String attribute = alwaysNeverRequirement.getAttribute();
                     int value = alwaysNeverRequirement.getValue();
+                    Double minEnergy = Double.MAX_VALUE;
+                    Double maxRate = Double.MIN_VALUE;
+                    IfThenRequirement minEnergyReq = null;
+                    IfThenRequirement maxRateReq = null;
+                    boolean randomAddFlag = true;
                     for(int j = 0;j < devices.size();j++){
                         Device device = devices.get(j);
                         Map map = device.getStateMappingToAffectedEntities();
@@ -288,19 +295,43 @@ public class ComputeUtil {
                                         || monitoredEntity.getAdjustRate() > 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("BELOW")){
                                             triggers.add(attribute + "<" + value);
                                             actions.add(device.getDeviceName() + "." + state);
-                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                            if(randomAddFlag){
+                                                random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                                randomAddFlag = false;
+                                            }
+                                            if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
+                                                maxRate = Math.abs(monitoredEntity.getAdjustRate());
+                                                maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                            }
+                                            if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
+                                                minEnergy = Math.abs(monitoredEntity.getEnergy());
+                                                minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                            }
                                         }
                                         else if(monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS") && alwaysNeverRequirement.getRelation().equals("BELOW")
                                         || monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("NEVER") && alwaysNeverRequirement.getRelation().equals("ABOVE")){
                                             triggers.add(attribute + ">" + value);
                                             actions.add(device.getDeviceName() + "." + state);
-                                            ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                            if(randomAddFlag){
+                                                random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                                randomAddFlag = false;
+                                            }
+                                            if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
+                                                maxRate = Math.abs(monitoredEntity.getAdjustRate());
+                                                maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                            }
+                                            if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
+                                                minEnergy = Math.abs(monitoredEntity.getEnergy());
+                                                minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    bestPerformance.add(maxRateReq);
+                    saveEnergy.add(minEnergyReq);
                 }
             }
             //PreferredRequirement
@@ -308,6 +339,11 @@ public class ComputeUtil {
                 PreferredRequirement preferredRequirement = (PreferredRequirement) requirement;
                 String attribute = preferredRequirement.getAttribute();
                 int value = preferredRequirement.getValue();
+                Double minEnergy = Double.MAX_VALUE;
+                Double maxRate = Double.MIN_VALUE;
+                IfThenRequirement minEnergyReq = null;
+                IfThenRequirement maxRateReq = null;
+                boolean randomAddFlag = true;
                 for(int j = 0;j < devices.size();j++){
                     Device device = devices.get(j);
                     Map map = device.getStateMappingToAffectedEntities();
@@ -317,26 +353,69 @@ public class ComputeUtil {
                             List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
                             for(int m = 0;m < monitoredEntities.size();m++){
                                 AffectedAttribute monitoredEntity = monitoredEntities.get(m);
-                                if(monitoredEntity.getAttributeName().equals(attribute)){
-                                    if(monitoredEntity.getAdjustRate() > 0){
-                                        List<String> triggers = new ArrayList<>();
-                                        List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + "<" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                if(monitoredEntity.getAttributeName().equals(attribute) && monitoredEntity.getAdjustRate() > 0){
+                                    List<String> triggers = new ArrayList<>();
+                                    List<String> actions = new ArrayList<>();
+                                    triggers.add(attribute + "<" + value);
+                                    actions.add(device.getDeviceName() + "." + state);
+                                    if(randomAddFlag){
+                                        random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        randomAddFlag = false;
                                     }
-                                    else if(monitoredEntity.getAdjustRate() < 0){
-                                        List<String> triggers = new ArrayList<>();
-                                        List<String> actions = new ArrayList<>();
-                                        triggers.add(attribute + ">=" + value);
-                                        actions.add(device.getDeviceName() + "." + state);
-                                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                    if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
+                                        maxRate = Math.abs(monitoredEntity.getAdjustRate());
+                                        maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                    }
+                                    if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
+                                        minEnergy = Math.abs(monitoredEntity.getEnergy());
+                                        minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
                                     }
                                 }
                             }
                         }
                     }
                 }
+                bestPerformance.add(maxRateReq);
+                saveEnergy.add(minEnergyReq);
+
+                minEnergy = Double.MAX_VALUE;
+                maxRate = Double.MIN_VALUE;
+                minEnergyReq = null;
+                maxRateReq = null;
+                randomAddFlag = true;
+                for(int j = 0;j < devices.size();j++){
+                    Device device = devices.get(j);
+                    Map map = device.getStateMappingToAffectedEntities();
+                    if(device.getAffectedAttributeNames().contains(attribute)){
+                        for(int k = 0;k < device.getStates().size();k++){
+                            String state = device.getStates().get(k);
+                            List<AffectedAttribute> monitoredEntities = (List<AffectedAttribute>) map.get(state);
+                            for(int m = 0;m < monitoredEntities.size();m++){
+                                AffectedAttribute monitoredEntity = monitoredEntities.get(m);
+                                if(monitoredEntity.getAttributeName().equals(attribute) && monitoredEntity.getAdjustRate() < 0){
+                                    List<String> triggers = new ArrayList<>();
+                                    List<String> actions = new ArrayList<>();
+                                    triggers.add(attribute + ">=" + value);
+                                    actions.add(device.getDeviceName() + "." + state);
+                                    if(randomAddFlag){
+                                        random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        randomAddFlag = false;
+                                    }
+                                    if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
+                                        maxRate = Math.abs(monitoredEntity.getAdjustRate());
+                                        maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                    }
+                                    if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
+                                        minEnergy = Math.abs(monitoredEntity.getEnergy());
+                                        minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                bestPerformance.add(maxRateReq);
+                saveEnergy.add(minEnergyReq);
             }
             //TriggerActionRequirement
             else if(requirement instanceof TriggerActionRequirement){
@@ -344,43 +423,170 @@ public class ComputeUtil {
                 String trigger = triggerActionRequirement.getTrigger();
                 String action = triggerActionRequirement.getAction();
                 String time = triggerActionRequirement.getTime();
-                if (effectMap.containsKey(action)) action = effectMap.get(action);
-                if (trigger.contains(" AND ")) {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers = Arrays.asList(trigger.split(" AND "));
-                    if (action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
-                } else if (trigger.contains(" OR ")) {
-                    for (int i = 0; i < trigger.split(" OR ").length; i++) {
+                Double minEnergy = Double.MAX_VALUE;
+                Double maxEnergy = Double.MIN_VALUE;
+                String saveEnergyAction = null;
+                String bestPerformanceAction = null;
+                String randomAction = null;
+                boolean randomAddFlag = true;
+                boolean effectFlag = false;
+                if (effectMap.containsKey(action)){
+                    if(!effectMap.get(action).contains("//")) action = effectMap.get(action);
+                    else {
+                        effectFlag = true;
+                        String[] actions = effectMap.get(action).split("//");
+                        for(String tempAction : actions){
+                            if(randomAddFlag){
+                                randomAction = tempAction;
+                                randomAddFlag = false;
+                            }
+                            if(tempAction.contains(",")){
+                                Double totalEnergy = 0.0;
+                                for(String temp : tempAction.split(",")){
+                                    String deviceName = temp.split("\\.")[0];
+                                    String state = temp.split("\\.")[1];
+                                    Device device = null;
+                                    for(Device tempDevice : devices){
+                                        if(tempDevice.getDeviceName().equals(deviceName)){
+                                            device = tempDevice;
+                                            break;
+                                        }
+                                    }
+                                    Map map = device.getStateMappingToAffectedEntities();
+                                    AffectedAttribute monitoredEntitity = ((List<AffectedAttribute>) map.get(state)).get(0);
+                                    Double energy = monitoredEntitity.getEnergy();
+                                    totalEnergy += Math.abs(energy);
+                                }
+                                if(totalEnergy > maxEnergy){
+                                    maxEnergy = totalEnergy;
+                                    bestPerformanceAction = tempAction;
+                                }
+                                if(totalEnergy < minEnergy){
+                                    minEnergy = totalEnergy;
+                                    saveEnergyAction = tempAction;
+                                }
+                            }
+                            else {
+                                String deviceName = tempAction.split("\\.")[0];
+                                String state = tempAction.split("\\.")[1];
+                                Device device = null;
+                                for(Device tempDevice : devices){
+                                    if(tempDevice.getDeviceName().equals(deviceName)){
+                                        device = tempDevice;
+                                        break;
+                                    }
+                                }
+                                Map map = device.getStateMappingToAffectedEntities();
+                                AffectedAttribute monitoredEntitity = ((List<AffectedAttribute>) map.get(state)).get(0);
+                                Double energy = monitoredEntitity.getEnergy();
+                                if(Math.abs(energy) > maxEnergy){
+                                    maxEnergy = Math.abs(energy);
+                                    bestPerformanceAction = tempAction;
+                                }
+                                if(Math.abs(energy) < minEnergy){
+                                    minEnergy = Math.abs(energy);
+                                    saveEnergyAction = tempAction;
+                                }
+                            }
+                        }
+                    }
+                }
+                if(!effectFlag){
+                    if (trigger.contains(" AND ")) {
                         List<String> triggers = new ArrayList<>();
                         List<String> actions = new ArrayList<>();
-                        triggers.add(trigger.split(" OR ")[i]);
+                        triggers = Arrays.asList(trigger.split(" AND "));
                         if (action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
-                        ifThenRequirements.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
+                        random.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                    } else if (trigger.contains(" OR ")) {
+                        for (int i = 0; i < trigger.split(" OR ").length; i++) {
+                            List<String> triggers = new ArrayList<>();
+                            List<String> actions = new ArrayList<>();
+                            triggers.add(trigger.split(" OR ")[i]);
+                            if (action.contains(",")) actions = Arrays.asList(action.split(","));
+                            else actions.add(action);
+                            random.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
+                            saveEnergy.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
+                            bestPerformance.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
+                        }
+                    } else {
+                        List<String> triggers = new ArrayList<>();
+                        List<String> actions = new ArrayList<>();
+                        triggers.add(trigger);
+                        if (action.contains(",")) actions = Arrays.asList(action.split(","));
+                        else actions.add(action);
+                        random.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
                     }
-                } else {
-                    List<String> triggers = new ArrayList<>();
-                    List<String> actions = new ArrayList<>();
-                    triggers.add(trigger);
-                    if (action.contains(",")) actions = Arrays.asList(action.split(","));
-                    else actions.add(action);
-                    ifThenRequirements.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                }
+                else {
+                    if (trigger.contains(" AND ")) {
+                        List<String> triggers = new ArrayList<>();
+                        triggers = Arrays.asList(trigger.split(" AND "));
+                        List<String> randomActions = new ArrayList<>();
+                        List<String> saveEnergyActions = new ArrayList<>();
+                        List<String> bestPerformanceActions = new ArrayList<>();
+                        if (randomAction.contains(",")) randomActions = Arrays.asList(randomAction.split(","));
+                        else randomActions.add(randomAction);
+                        if (saveEnergyAction.contains(",")) saveEnergyActions = Arrays.asList(saveEnergyAction.split(","));
+                        else saveEnergyActions.add(saveEnergyAction);
+                        if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
+                        else bestPerformanceActions.add(bestPerformanceAction);
+                        random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                    } else if (trigger.contains(" OR ")) {
+                        for (int i = 0; i < trigger.split(" OR ").length; i++) {
+                            List<String> triggers = new ArrayList<>();
+                            triggers.add(trigger.split(" OR ")[i]);
+                            List<String> randomActions = new ArrayList<>();
+                            List<String> saveEnergyActions = new ArrayList<>();
+                            List<String> bestPerformanceActions = new ArrayList<>();
+                            if (randomAction.contains(",")) randomActions = Arrays.asList(randomAction.split(","));
+                            else randomActions.add(randomAction);
+                            if (saveEnergyAction.contains(",")) saveEnergyActions = Arrays.asList(saveEnergyAction.split(","));
+                            else saveEnergyActions.add(saveEnergyAction);
+                            if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
+                            else bestPerformanceActions.add(bestPerformanceAction);
+                            random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
+                            saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
+                            bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                        }
+                    } else {
+                        List<String> triggers = new ArrayList<>();
+                        triggers.add(trigger);
+                        List<String> randomActions = new ArrayList<>();
+                        List<String> saveEnergyActions = new ArrayList<>();
+                        List<String> bestPerformanceActions = new ArrayList<>();
+                        if (randomAction.contains(",")) randomActions = Arrays.asList(randomAction.split(","));
+                        else randomActions.add(randomAction);
+                        if (saveEnergyAction.contains(",")) saveEnergyActions = Arrays.asList(saveEnergyAction.split(","));
+                        else saveEnergyActions.add(saveEnergyAction);
+                        if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
+                        else bestPerformanceActions.add(bestPerformanceAction);
+                        random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                    }
                 }
             }
         }
-        results.add(ifThenRequirements);
+        results.add(random);
+        results.add(saveEnergy);
+        results.add(bestPerformance);
         return results;
     }
 
-    public static List<String> computeComplementedRequirements(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException, InterruptedException {
+    public static List<String> computeReverseRequirements(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException, InterruptedException {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> effectMap = computeEffectMap();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
-        List<String> complementedRequirements = new ArrayList<>();
+        List<String> reverseRequirements = new ArrayList<>();
         Map<String, List<String>> triggerAndDeviceMappingToStates = new HashMap<>();
         for(IfThenRequirement requirement : ifThenRequirements){
             if(requirement.getTime() == null && requirement.getTriggerList().size() == 1){
@@ -403,7 +609,8 @@ public class ComputeUtil {
         Iterator it = triggerAndDeviceMappingToStates.keySet().iterator();
         while (it.hasNext()){
             String triggerAndDeviceName = (String) it.next();
-            if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(triggerAndDeviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
+            String deviceName = triggerAndDeviceName.split("//")[1];
+            if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
         }
         for(String triggerAndDeviceName : devicesShouldBeRefined){
             String triggerAttrubute = triggerAndDeviceName.split("//")[0];
@@ -440,24 +647,27 @@ public class ComputeUtil {
             List<String> triggers = computeReverseRange(values);
             if(triggers.size() > 0 && attribute != null && !attribute.trim().equals("")){
                 for(String trigger : triggers){
-                    complementedRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
+                    reverseRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
                 }
             }
         }
 
-        StringBuilder returnInit = new StringBuilder("");
-        it = eo.getDeviceMappingToInitState().keySet().iterator();
+        return reverseRequirements;
+    }
+
+    public static List<String> computeComplementedRequirements(String ontologyPath) throws IOException, DocumentException, InterruptedException {
+        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
+        List<String> complementedRequirements = new ArrayList<>();
+        Iterator it = eo.getDeviceMappingToInitState().keySet().iterator();
         while (it.hasNext()){
             String deviceName = (String) it.next();
             String initState = eo.getDeviceMappingToInitState().get(deviceName);
-            returnInit.append(deviceName + "." + initState);
-            if(it.hasNext()) returnInit.append(",");
+            complementedRequirements.add("IF person.number=0 FOR 30m THEN " + deviceName + "." + initState);
         }
-//        complementedRequirements.add("IF person.number=0 FOR 30m THEN " + returnInit.toString());
         return complementedRequirements;
     }
 
-    public static JSONObject toFunctionalRequirements(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException, InterruptedException {
+        public static JSONObject toFunctionalRequirements(String requirementTexts, String ontologyPath, int index, String complementedRequirements) throws IOException, DocumentException, InterruptedException {
         JSONObject jsonObject = new JSONObject();
         List<IfThenRequirement> ifThenRequirementList = new ArrayList<>();
         List<String> functionalRequirements = new ArrayList<>();
@@ -541,10 +751,10 @@ public class ComputeUtil {
         boolean flag = false;
         for(Requirement requirement : requirements){
             if(requirement instanceof AlwaysNeverRequirement){
-                flag = true;
                 String req = "";
                 AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
                 if(alwaysNeverRequirement.getAttribute() == null){
+                    flag = true;
                     String deviceEventOrState = alwaysNeverRequirement.getDeviceEventOrState();
                     String device = deviceEventOrState.split("\\.")[0];
                     String eventOrState = deviceEventOrState.split("\\.")[1];
@@ -579,7 +789,7 @@ public class ComputeUtil {
 
         for(IfThenRequirement requirement : ifThenRequirements){
             String time = requirement.getTime();
-            if(time == null){
+            if(true){
                 for(int i = 0;i < requirement.getActionList().size();i++){
                     String deviceAndState = "";
                     String action = requirement.getActionList().get(i);
@@ -608,6 +818,7 @@ public class ComputeUtil {
             }
             else {
                 /*
+                time != null
                 TODO
                  */
             }
@@ -745,7 +956,6 @@ public class ComputeUtil {
                         }
                         if(flag1 & flag2){
                             IfThenRequirement temp = new IfThenRequirement(functionalTriggers, functionalActions ,null ,requirement.getRequirement());
-//                            ifThenRequirementList.add(temp);
                             if(!ifThenRequirementList.contains(temp))ifThenRequirementList.add(temp);
                             else{
                                 int tempIndex = ifThenRequirementList.indexOf(temp);
@@ -769,8 +979,9 @@ public class ComputeUtil {
                 functionalRequirements.add(ifThenRequirement.getIfThenClause());
             }
         }
-        System.out.println(ifThenRequirementList);
-        System.out.println(ifThenRequirementList.size());
+        List<Requirement> tempRequirements = initRequirements(Arrays.asList(complementedRequirements.split("//")));
+        List<IfThenRequirement> tempIfThenRequirements = computeIfThenRequirements(tempRequirements, effectMap, ontologyPath).get(index);
+        ifThenRequirementList.addAll(tempIfThenRequirements);
         jsonObject.put("functionalRequirements",functionalRequirements);
         jsonObject.put("ifThenRequirements", ifThenRequirementList);
         return jsonObject;

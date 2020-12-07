@@ -249,7 +249,7 @@ public class ProblemFrameService {
         return result;
     }
 
-    public JSONObject getDrPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException{
+    public JSONObject getDrPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath) throws IOException, DocumentException, InterruptedException{
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, List<String>> sensorMap = computeSensorMap();
@@ -338,7 +338,7 @@ public class ProblemFrameService {
         return result;
     }
 
-    public JSONObject getSbPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath, int index) throws IOException, DocumentException, InterruptedException {
+    public JSONObject getSbPng(List<IfThenRequirement> ifThenRequirements, String ontologyPath, String scFolderPath) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, List<String>> sensorMap = computeSensorMap();

@@ -27,30 +27,16 @@ public class OnenetService {
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         for(IfThenRequirement requirement : ifThenRequirements) {
-            if (requirement.getTime() == null) {
-                sb.append("if (");
-                for (String trigger : requirement.getTriggerList()){
-                    String relation = computeRelation(trigger);
-                    if (!relation.equals("")) {
-                        String attribute = trigger.split(relation)[0];
-                        if (triggerMap.containsKey(attribute) && triggerMap.get(attribute).contains("env")) {
-                            String envVar = triggerMap.get(attribute).get(0);
-                            sb.append(trigger.replaceAll(attribute, envVar));
-                            if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
-                        } else {
-                            sb.append("(");
-                            for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
-                                sb.append(triggerMap.get(trigger).get(i));
-                                if(i != triggerMap.get(trigger).size() - 1) sb.append(" && ");
-                            }
-                            sb.append(")");
-                            if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
-                        }
+            sb.append("if (");
+            for (String trigger : requirement.getTriggerList()){
+                String relation = computeRelation(trigger);
+                if (!relation.equals("")) {
+                    String attribute = trigger.split(relation)[0];
+                    if (triggerMap.containsKey(attribute) && triggerMap.get(attribute).contains("env")) {
+                        String envVar = triggerMap.get(attribute).get(0);
+                        sb.append(trigger.replaceAll(attribute, envVar));
+                        if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                     } else {
-                        String left = trigger.split("\\.")[0];
-                        String right = trigger.split("\\.")[1];
-                        if (eo.getEvents().contains(right)) right = eo.getEventMappingToState().get(right);
-                        trigger = left + "." + right;
                         sb.append("(");
                         for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
                             sb.append(triggerMap.get(trigger).get(i));
@@ -59,45 +45,57 @@ public class OnenetService {
                         sb.append(")");
                         if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                     }
-                }
-                sb.append("){");
-                sb.append("\r\n");
-                List<String> dataNeedUpdating = new ArrayList<>();
-                for (String action : requirement.getActionList()) {
-                    if(!action.startsWith("M.")){
-                        String left = action.split("\\.")[0];
-                        String right = action.split("\\.")[1];
-                        if (eo.getEvents().contains(right)) {
-                            right = eo.getEventMappingToState().get(right);
-                        }
-                        action =  "M." + eo.getStateMappingToAction().get(right);
+                } else {
+                    String left = trigger.split("\\.")[0];
+                    String right = trigger.split("\\.")[1];
+                    if (eo.getEvents().contains(right)) right = eo.getEventMappingToState().get(right);
+                    trigger = left + "." + right;
+                    sb.append("(");
+                    for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
+                        sb.append(triggerMap.get(trigger).get(i));
+                        if(i != triggerMap.get(trigger).size() - 1) sb.append(" && ");
                     }
-                    List<String> actions = actionMap.get(action);
-                    for(int i = 0;i < actions.size();i++){
-                        dataNeedUpdating.add(actions.get(i));
-                        sb.append(actions.get(i) + ";");
-                        sb.append("\r\n");
-                    }
+                    sb.append(")");
+                    if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                 }
-                sb.append("}");
-                sb.append("\r\n");
-
-                for(String action : dataNeedUpdating){
-                    if(action.contains("=")){
-                        String data = action.split("=")[0];
-                        String value = action.split("=")[1];
-                        String[] temp = updateDataMap.get(data).split("//");
-                        sb.append("if(" + temp[0] + "){");
-                        sb.append("\r\n");
-                        sb.append(temp[1]);
-                        sb.append("\r\n");
-                        sb.append("}");
-                        sb.append("\r\n");
-                    }
-                }
-                sb.append("\r\n");
-                sb.append("\r\n");
             }
+            sb.append("){");
+            sb.append("\r\n");
+            List<String> dataNeedUpdating = new ArrayList<>();
+            for (String action : requirement.getActionList()) {
+                if(!action.startsWith("M.")){
+                    String left = action.split("\\.")[0];
+                    String right = action.split("\\.")[1];
+                    if (eo.getEvents().contains(right)) {
+                        right = eo.getEventMappingToState().get(right);
+                    }
+                    action =  "M." + eo.getStateMappingToAction().get(right);
+                }
+                List<String> actions = actionMap.get(action);
+                for(int i = 0;i < actions.size();i++){
+                    dataNeedUpdating.add(actions.get(i));
+                    sb.append(actions.get(i) + ";");
+                    sb.append("\r\n");
+                }
+            }
+            sb.append("}");
+            sb.append("\r\n");
+
+            for(String action : dataNeedUpdating){
+                if(action.contains("=")){
+                    String data = action.split("=")[0];
+                    String value = action.split("=")[1];
+                    String[] temp = updateDataMap.get(data).split("//");
+                    sb.append("if(" + temp[0] + "){");
+                    sb.append("\r\n");
+                    sb.append(temp[1]);
+                    sb.append("\r\n");
+                    sb.append("}");
+                    sb.append("\r\n");
+                }
+            }
+            sb.append("\r\n");
+            sb.append("\r\n");
         }
         return sb.toString();
     }

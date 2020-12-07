@@ -26,13 +26,12 @@ public class IFTTTService {
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         for (IfThenRequirement requirement : ifThenRequirements) {
-            if (requirement.getTime() == null) {
-                String triggers = "";
-                for (int i = 0;i < requirement.getTriggerList().size();i++) {
-                    triggers = triggers + requirement.getTriggerList().get(i);
-                    if(i != requirement.getTriggerList().size() - 1) triggers = triggers + "&&";
-                }
-                String action = requirement.getActionList().get(0);
+            String triggers = "";
+            for (int i = 0;i < requirement.getTriggerList().size();i++) {
+                triggers = triggers + requirement.getTriggerList().get(i);
+                if(i != requirement.getTriggerList().size() - 1) triggers = triggers + "&&";
+            }
+            for(String action : requirement.getActionList()){
                 String left = action.split("\\.")[0];
                 String right = action.split("\\.")[1];
                 if (eo.getEvents().contains(right)) {

@@ -68,8 +68,8 @@ public class GenerateController {
     @CrossOrigin
     @RequestMapping("/transform2FunctionalRequirements")
     @ResponseBody
-    public JSONObject transformToFunctionalRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
-        JSONObject result = toFunctionalRequirements(requirementTexts, ontologyPath, index);
+    public JSONObject transformToFunctionalRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index, @RequestParam String complementedRequirements) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = toFunctionalRequirements(requirementTexts, ontologyPath, index, complementedRequirements);
         return result;
     }
 
@@ -107,12 +107,12 @@ public class GenerateController {
 
 
     @CrossOrigin
-    @RequestMapping("/complement")
+    @RequestMapping("/getComplement")
     @ResponseBody
-    public JSONObject complementRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
+    public JSONObject getComplementedRequirements(@RequestParam String ontologyPath) throws IOException, DocumentException, InterruptedException {
         JSONObject result = new JSONObject();
         StringBuilder sb = new StringBuilder("");
-        List<String> complementedRequirements = (List<String>) computeComplementedRequirements(requirementTexts, ontologyPath, index);
+        List<String> complementedRequirements = computeComplementedRequirements(ontologyPath);
         for(int i = 0;i < complementedRequirements.size();i++){
             String requirement = complementedRequirements.get(i);
             sb.append(requirement);
@@ -120,6 +120,23 @@ public class GenerateController {
         }
         result.put("result", "success");
         result.put("complementedRequirements", sb.toString());
+        return result;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/gerReverse")
+    @ResponseBody
+    public JSONObject gerReverseRequirements(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
+        JSONObject result = new JSONObject();
+        StringBuilder sb = new StringBuilder("");
+        List<String> reverseRequirements = computeReverseRequirements(requirementTexts, ontologyPath, index);
+        for(int i = 0;i < reverseRequirements.size();i++){
+            String requirement = reverseRequirements.get(i);
+            sb.append(requirement);
+            if(i != reverseRequirements.size() - 1) sb.append("\n");
+        }
+        result.put("result", "success");
+        result.put("reverseRequirements", sb.toString());
         return result;
     }
 
@@ -153,7 +170,6 @@ public class GenerateController {
         List<String> times = (List<String>) json.get("times");
         List<String> expectations = (List<String>) json.get("expectations");
         String ontologyPath = (String) json.get("ontologyPath");
-        int index = (int) json.get("index");
         for(int i = 0;i < triggerLists.size();i++){
             List<String> triggerList = triggerLists.get(i);
             List<String> actionList = actionLists.get(i);
@@ -164,7 +180,7 @@ public class GenerateController {
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        JSONObject result = pfService.getDrPng(ifThenRequirements, ontologyPath, folderPath, index);
+        JSONObject result = pfService.getDrPng(ifThenRequirements, ontologyPath, folderPath);
         return result;
     }
 
@@ -179,7 +195,6 @@ public class GenerateController {
         List<String> times = (List<String>) json.get("times");
         List<String> expectations = (List<String>) json.get("expectations");
         String ontologyPath = (String) json.get("ontologyPath");
-        int index = (int) json.get("index");
         for(int i = 0;i < triggerLists.size();i++){
             List<String> triggerList = triggerLists.get(i);
             List<String> actionList = actionLists.get(i);
@@ -190,7 +205,7 @@ public class GenerateController {
         String folderPath = SCDPATH + UUID.randomUUID().toString() + "/";
         File folder = new File(folderPath);
         if(!folder.exists() || !folder.isDirectory()) folder.mkdirs();
-        JSONObject result = pfService.getSbPng(ifThenRequirements, ontologyPath, folderPath, index);
+        JSONObject result = pfService.getSbPng(ifThenRequirements, ontologyPath, folderPath);
         return result;
     }
 
@@ -204,11 +219,29 @@ public class GenerateController {
     @CrossOrigin
     @RequestMapping("/check")
     @ResponseBody
-    public List<String> check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
-        JSONObject result = new JSONObject();
-        List<String> errors = checkService.check(requirementTexts, ontologyPath, index);
-        if(errors.size() == 0) errors.add("No Rule Errors!");
+    public JSONObject check(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+        JSONObject errors = checkService.check(requirementTexts, ontologyPath, index);
         return errors;
+    }
+
+    @CrossOrigin
+    @RequestMapping("/solve")
+    @ResponseBody
+    public JSONObject solve(@RequestBody JSONObject json) throws IOException, DocumentException {
+        List<IfThenRequirement> ifThenRequirements = new ArrayList<>();
+        List<List<String>> triggerLists = (List<List<String>>) json.get("triggerLists");
+        List<List<String>> actionLists = (List<List<String>>) json.get("actionLists");
+        List<String> times = (List<String>) json.get("times");
+        List<String> expectations = (List<String>) json.get("expectations");
+        for(int i = 0;i < triggerLists.size();i++){
+            List<String> triggerList = triggerLists.get(i);
+            List<String> actionList = actionLists.get(i);
+            String time = times.get(i);
+            if(time.equals("")) time = null;//time will be "" if NULL is passed from frontend
+            String expectation = expectations.get(i);
+            ifThenRequirements.add(new IfThenRequirement(triggerList, actionList, time, expectation));
+        }
+        return checkService.solve(ifThenRequirements);
     }
 
 //    @CrossOrigin

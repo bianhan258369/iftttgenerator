@@ -12,12 +12,16 @@ ac.coldon->$airConditioner.getState()==1
 ac.hoton->$airConditioner.getState()==2
 window.wopen->$window.getState()==1
 window.wclosed->$window.getState()==0
+fan.fon->$fan.getState()==1
+fan.foff->$fan.getState()==0
 !ac.aoff->$airConditioner.getState()!=0
 M.bonpulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
 M.boffpulse->$bulb.closeDevice()//update($bulb)
 M.coldpulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should decrease
 M.hotpulse->$airConditionor.openDevice()//$airConditionor.setState(0)//update($airConditionor)->air.temperature should increase
 M.aoffpulse->$airConditionor.closeDevice()//update($airConditionor)
+M.fonpulse->$fan.openDevice()//update($fan)->air.temperature should decrease
+M.foffpulse->$fan.closeDevice()//update($fan)
 M.monpulse->$microPhone.openDevice()//update($microPhone)->allow using microphone
 M.moffpulse->$microPhone.closeDevice()//update($microPhone)->forbid using microphone
 M.ponpulse->$projector.openDevice()//update($projector)->allow using projector

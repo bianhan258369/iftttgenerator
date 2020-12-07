@@ -8,12 +8,6 @@ public class TriggerActionRequirement extends Requirement {
     String action;
     String time;
 
-    public TriggerActionRequirement(String trigger, String action, String time) {
-        this.trigger = trigger;
-        this.action = action;
-        this.time = time;
-    }
-
     public TriggerActionRequirement(String requirement, String trigger, String action, String time) {
         super(requirement);
         this.trigger = trigger;

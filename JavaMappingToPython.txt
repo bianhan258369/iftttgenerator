@@ -15,3 +15,5 @@ af.afon->af.on=true
 af.afoff->af.on=false
 bulb.bon->bulb.on=true
 bulb.boff->bulb.on=false
+fan.fon->fan.on=true
+fan.foff->fan.on=false

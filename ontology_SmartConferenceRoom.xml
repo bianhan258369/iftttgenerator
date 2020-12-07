@@ -14,31 +14,38 @@
 		<device name="bulb">
 			<states>
 				<state name="bon" init="false">
-					<adjust_entity name="light.brightness" rate="50000" method="prompt"/>
+					<adjust_entity name="light.brightness" energy="5" rate="50000" method="prompt"/>
 				</state>
 			</states>
 		</device>
 		<device name="ac">
 			<states>
 				<state name="coldon" init="false">
-					<adjust_entity name="air.temperature" rate="-0.2" method="/second"/>
+					<adjust_entity name="air.temperature" energy="700" rate="-0.2" method="/second"/>
 				</state>
 				<state name="hoton" init="false">
-					<adjust_entity name="air.temperature" rate="0.2" method="/second"/>
+					<adjust_entity name="air.temperature" energy="1500" rate="0.2" method="/second"/>
+				</state>
+			</states>
+		</device>
+		<device name="fan">
+			<states>
+				<state name="fon" init="false">
+					<adjust_entity name="air.temperature" energy="30" rate="-0.05" method="/second"/>
 				</state>
 			</states>
 		</device>
 		<device name="af">
 			<states>
 				<state name="afon" init="false">
-					<adjust_entity name="co2.ppm" rate="-10" method="/second"/>
+					<adjust_entity name="co2.ppm" energy="500" rate="-10" method="/second"/>
 				</state>
 			</states>
 		</device>
 		<device name="ah">
 			<states>
 				<state name="ahon" init="false">
-					<adjust_entity name="air.humidity" rate="0.2" method="/second"/>
+					<adjust_entity name="air.humidity" energy="500" rate="0.2" method="/second"/>
 				</state>
 			</states>
 		</device>
@@ -177,6 +184,22 @@
 		  <transition from="ahoff" event="ahturnoff" action="ahoffpulse" to="ahoff"/>
 		  <transition from="ahon" event="ahturnon" action="ahonpulse" to="ahon"/>
 		  <transition from="ahoff" event="ahturnon" action="ahonpulse" to="ahon"/>
+		</transitions>
+	  </device>
+	  <device name="fan">
+		<events>
+			<event>fturnon</event>
+			<event>fturnoff</event>
+		</events>
+		<states>
+		  <state init="false">fon</state>
+		  <state init="true">foff</state>
+		</states>
+		<transitions>
+		  <transition from="fon" event="fturnoff" action="foffpulse" to="foff"/>
+		  <transition from="foff" event="fturnoff" action="foffpulse" to="foff"/>
+		  <transition from="fon" event="fturnon" action="fonpulse" to="fon"/>
+		  <transition from="foff" event="fturnon" action="fonpulse" to="fon"/>
 		</transitions>
 	  </device>
 	</statemachines>

@@ -89,7 +89,8 @@ public class EnvironmentOntology {
                     affectedAttributeNames.add(affectedAttributeName);
                     Double rate = Double.parseDouble(adjust_entity.attributeValue("rate"));
                     String method = adjust_entity.attributeValue("method");
-                    AffectedAttribute affectedAttribute = new AffectedAttribute(affectedAttributeName, rate, method);
+                    Double energy = Double.parseDouble(adjust_entity.attributeValue("energy"));
+                    AffectedAttribute affectedAttribute = new AffectedAttribute(affectedAttributeName, rate, method, energy);
                     affectedAttributeList.add(affectedAttribute);
                 }
                 stateMappingToAffectedEntities.put(stateName, affectedAttributeList);

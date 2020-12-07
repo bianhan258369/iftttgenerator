@@ -15,3 +15,5 @@ M.afonpulse->turn on the air freshener
 M.afoffpulse->turn off the air freshener
 M.ahonpulse->turn on the air humidifier
 M.ahoffpulse->turn off the air humidifier
+M.fonpulse->turn on the fan
+M.foffpulse->turn off the fan

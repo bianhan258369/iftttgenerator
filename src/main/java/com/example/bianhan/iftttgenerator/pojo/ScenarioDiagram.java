@@ -102,69 +102,69 @@ public class ScenarioDiagram {
                 if(nodeNumbers.contains(i) && nodeNumbers.contains(j)){
                     if(node1.getType() == 6){
                         if(node2.getRelavantPD().equals(node1.getContent())){
-                            if(isExpect(node2))strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey]");
-                            else strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey,style=invis]");
+                            if(isExpect(node2))strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey,penwidth=5]");
+                            else strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey,style=invis,penwidth=5]");
                         }
                     }
                     else if(node2.getType() == 6){
                         if(node1.getRelavantPD().equals(node2.getContent())){
-                            if(isExpect(node1))strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey]");
-                            else strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey,style=invis]");
+                            if(isExpect(node1))strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey,penwidth=5]");
+                            else strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey,style=invis,penwidth=5]");
                         }
                     }
                     else if(isExpect(node1) && isExpect(node2) && Math.abs(node1.getLayer() - node2.getLayer()) == 1
                             && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
                             && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                         if(node1.getLayer() > node2.getLayer()){
-                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange]");
+                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange,penwidth=5]");
 
                         }
                         else{
-                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=orange]");
+                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=orange,penwidth=5]");
 
                         }
                     }
-                    else if(node1.getType() == 4 && node2.getType() == 5 && node1.getTargetExpectationNode().contains(node2.getContent())){
-                        strs.add("N" + i + "->" + "N" + j + "[color=pink]");
+                    else if(node1.getType() == 4 && node2.getType() == 5 && node1.getTargetExpectationNode()!=null && node1.getTargetExpectationNode().contains(node2.getContent())){
+                        strs.add("N" + i + "->" + "N" + j + "[color=pink,penwidth=3]");
                     }
-                    else if(node1.getType() == 5 && node2.getType() == 4 && node2.getTargetExpectationNode().contains(node1.getContent())){
-                        strs.add("N" + j + "->" + "N" + i + "[color=pink]");
+                    else if(node1.getType() == 5 && node2.getType() == 4 && node2.getTargetExpectationNode()!=null && node2.getTargetExpectationNode().contains(node1.getContent())){
+                        strs.add("N" + j + "->" + "N" + i + "[color=pink,penwidth=3]");
                     }
                     else if(!isExpect(node1) && !isExpectation(node1) && !isExpect(node2) && !isExpectation(node2) && Math.abs(node1.getLayer() - node2.getLayer()) == 1
                             && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
                             && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                         if(node1.getLayer() > node2.getLayer()){
-                            strs.add("N" + j + "->" + "N" + i + "[color=steelblue1,style=invis]");
+                            strs.add("N" + j + "->" + "N" + i + "[color=steelblue1,style=invis,penwidth=3]");
 
                         }
                         else{
-                            strs.add("N" + i + "->" + "N" + j + "[color=steelblue1,style=invis]");
+                            strs.add("N" + i + "->" + "N" + j + "[color=steelblue1,style=invis,penwidth=3]");
 
                         }
                     }
                     else if((isBehaviour(node1) || isSensor(node1)) && isExpect(node2)){
                         if(node1.getContent().equals(node2.getContent()) && node1.getRelavantPD().equals(node2.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
-                            strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green3,style=invis]");
+                            strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green3,style=invis,penwidth=3]");
 
                         }
                         else {
                             String eventOrState = node2.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                             if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node1.getContent())){
-                                strs.add("N" + i + "->" + "N" + j + "[color=red,style=invis]");
+                                strs.add("N" + i + "->" + "N" + j + "[color=red,style=invis,penwidth=3]");
 
                             }
                         }
                     }
                     else if((isBehaviour(node2) || isSensor(node2)) && isExpect(node1)){
                         if(node2.getContent().equals(node1.getContent()) && node2.getRelavantPD().equals(node1.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
-                            strs.add("N" + j + "->" + "N" + i + "[dir=none,color=green3,style=invis]");
+                            strs.add("N" + j + "->" + "N" + i + "[dir=none,color=green3,style=invis,penwidth=3]");
                         }
                         else {
                             String eventOrState = node1.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                             if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node2.getContent())){
-                                strs.add("N" + j + "->" + "N" + i + "[color=red,style=invis]");
+                                strs.add("N" + j + "->" + "N" + i + "[color=red,style=invis,penwidth=3]");
                             }
                         }
                     }
@@ -242,67 +242,67 @@ public class ScenarioDiagram {
                 if(nodeNumbers.contains(i) && nodeNumbers.contains(j)){
                     if(node1.getType() == 6){
                         if(node2.getRelavantPD().equals(node1.getContent())){
-                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey]");
+                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=grey,penwidth=5]");
                         }
                     }
                     else if(node2.getType() == 6){
                         if(node1.getRelavantPD().equals(node2.getContent())){
-                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey]");
+                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=grey,penwidth=5]");
                         }
                     }
                     else if(isExpect(node1) && isExpect(node2) && Math.abs(node1.getLayer() - node2.getLayer()) == 1
                             && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
                             && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                         if(node1.getLayer() > node2.getLayer()){
-                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange]");
+                            strs.add("N" + j + "->" + "N" + i + "[style = dashed,color=orange,penwidth=5]");
 
                         }
                         else{
-                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=orange]");
+                            strs.add("N" + i + "->" + "N" + j + "[style = dashed,color=orange,penwidth=5]");
 
                         }
                     }
-                    else if(node1.getType() == 4 && node2.getType() == 5 && node1.getTargetExpectationNode().contains(node2.getContent())){
-                        strs.add("N" + i + "->" + "N" + j + "[color=pink]");
+                    else if(node1.getType() == 4 && node2.getType() == 5 && node1.getTargetExpectationNode()!=null && node1.getTargetExpectationNode().contains(node2.getContent())){
+                        strs.add("N" + i + "->" + "N" + j + "[color=pink,penwidth=3]");
                     }
-                    else if(node1.getType() == 5 && node2.getType() == 4 && node2.getTargetExpectationNode().contains(node1.getContent())){
-                        strs.add("N" + j + "->" + "N" + i + "[color=pink]");
+                    else if(node1.getType() == 5 && node2.getType() == 4 && node2.getTargetExpectationNode()!=null && node2.getTargetExpectationNode().contains(node1.getContent())){
+                        strs.add("N" + j + "->" + "N" + i + "[color=pink,penwidth=3]");
                     }
                     else if(!isExpect(node1) && !isExpectation(node1) && !isExpect(node2) && !isExpectation(node2) && Math.abs(node1.getLayer() - node2.getLayer()) == 1
                             && (node1.getChainIndex() == node2.getChainIndex() || node1.getChainIndex() == -1 || node2.getChainIndex() == -1)
                             && (node1.getIfThenIndex() == node2.getIfThenIndex() || node1.getIfThenIndex() == -1 || node2.getIfThenIndex() == -1)){
                         if(node1.getLayer() > node2.getLayer()){
-                            strs.add("N" + j + "->" + "N" + i + "[color=steelblue1]");
+                            strs.add("N" + j + "->" + "N" + i + "[color=steelblue1,penwidth=3]");
 
                         }
                         else{
-                            strs.add("N" + i + "->" + "N" + j + "[color=steelblue1]");
+                            strs.add("N" + i + "->" + "N" + j + "[color=steelblue1,penwidth=3]");
 
                         }
                     }
                     else if((isBehaviour(node1) || isSensor(node1)) && isExpect(node2)){
                         if(node1.getContent().equals(node2.getContent()) && node1.getRelavantPD().equals(node2.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
-                            strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green3]");
+                            strs.add("N" + i + "->" + "N" + j + "[dir=none,color=green3,penwidth=3]");
 
                         }
                         else {
                             String eventOrState = node2.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                             if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node1.getContent())){
-                                strs.add("N" + i + "->" + "N" + j + "[color=red]");
+                                strs.add("N" + i + "->" + "N" + j + "[color=red,penwidth=3]");
 
                             }
                         }
                     }
                     else if((isBehaviour(node2) || isSensor(node2)) && isExpect(node1)){
                         if(node2.getContent().equals(node1.getContent()) && node2.getRelavantPD().equals(node1.getRelavantPD()) && node1.getIfThenIndex() == node2.getIfThenIndex()){
-                            strs.add("N" + j + "->" + "N" + i + "[dir=none,color=green3]");
+                            strs.add("N" + j + "->" + "N" + i + "[dir=none,color=green3,penwidth=3]");
                         }
                         else {
                             String eventOrState = node1.getContent();
                             String state = eo.getEvents().contains(eventOrState) ? eo.getEventMappingToState().get(eventOrState) : eventOrState;
                             if(node1.getIfThenIndex() == node2.getIfThenIndex() && eo.getStateMappingToAction().containsKey(state)&&eo.getStateMappingToAction().get(state).equals(node2.getContent())){
-                                strs.add("N" + j + "->" + "N" + i + "[color=red]");
+                                strs.add("N" + j + "->" + "N" + i + "[color=red,penwidth=3]");
                             }
                         }
                     }
