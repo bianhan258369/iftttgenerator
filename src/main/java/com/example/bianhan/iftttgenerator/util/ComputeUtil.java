@@ -945,6 +945,7 @@ public class ComputeUtil {
                                     for(String functionalTriggerAndAction : functionalTriggersAndActions){
                                         String tempDevice = temp.split("\\.")[0];
                                         String functionalDevice = functionalTriggerAndAction.contains(".") ? functionalTriggerAndAction.split("\\.")[0] : "";
+                                        if(functionalDevice.startsWith("!")) functionalDevice = functionalDevice.substring(1);
                                         String device = deviceState.split("\\.")[0];
                                         if(device.equals(functionalDevice) && !device.equals(tempDevice)){
                                             flag2 = true;

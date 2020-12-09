@@ -110,7 +110,6 @@ public class CheckService {
         JSONObject result = new JSONObject();
         List<String> solved = new ArrayList<>();
         for(IfThenRequirement ifThenRequirement : ifThenRequirements) solved.add(ifThenRequirement.getIfThenClause());
-//        for(IfThenRequirement ifThenRequirement : ifThenRequirements) System.out.println(ifThenRequirement.getIfThenClause());
         boolean flag = true;
         do {
             label:
@@ -152,7 +151,6 @@ public class CheckService {
                                                     }
                                                 }
                                             }
-                                            System.out.println(ifThenRequirements.get(j));
                                             flag = true;
                                             break label;
                                         }
