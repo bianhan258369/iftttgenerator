@@ -140,7 +140,6 @@ public class CheckService {
                                             replaceTriggerList.add(replaceAttributeRange);
                                             replaceRequirement.setTriggerList(replaceTriggerList);
                                             solved.set(j,replaceRequirement.getIfThenClause());
-                                            String tempClause = ifThenRequirements.get(j).getIfThenClause();
                                             ifThenRequirements.get(j).setTriggerList(replaceTriggerList);
                                             for(String expectation : ifThenRequirements.get(j).getExpectations()){
                                                 if(expectation.contains("IF ") && expectation.contains(" THEN ")){
