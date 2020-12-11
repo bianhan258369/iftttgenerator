@@ -11,6 +11,7 @@ import com.device.AirHumidifier;
 import com.device.Bulb;
 import com.device.CO2ConcentrateSensor;
 import com.device.COConcentrateSensor;
+import com.device.Fan;
 import com.device.Blind;
 import com.device.BrightnessSensor;
 import com.device.HumiditySensor;
@@ -47,7 +48,9 @@ public class SmartConferRoom {
 		AirHumidifier airHumidifier = new AirHumidifier("634733103","airHumidifier","9XwR=auYtfMwaIDXcHZbOl4aPbk=");
 		COConcentrateSensor coConcentrateSensor = new COConcentrateSensor("634732894", "COConcentrateSensor", "5Z6yX8s3BfQVraseu=XhJiUK1pQ=");
 		CO2ConcentrateSensor co2ConcentrateSensor=new CO2ConcentrateSensor("642064527","CO2ConcentrateSensor","nomwB=7HJCuGGERbLAlnBIy6Erw=");
-		
+		//////////////////fan//////////////////////
+		Fan fan=new Fan("657048356","fan","fW9FfVzB0LVRkm4rkZ58C1vJ=TQ=");
+		/////////////////////////////////////////////
 		
 		Double tempeVal=random.nextDouble()*10+21;
 		Integer hBtnVal=0;
@@ -79,7 +82,9 @@ public class SmartConferRoom {
 		int co2ConcentrateCount=0;
 		int personCount=0;
 		int perNumCount=0;
-		
+		/////////////////////////fan//////////////////////
+		Integer fanBtnVal=0;
+		//////////////////////////////////////////////////
 		
 		double rain=random.nextDouble();
 		
@@ -113,6 +118,9 @@ public class SmartConferRoom {
 			airHumidifier.addAirHumButtonData(airHumBtnVal);
 			//coConcentrateSensor.addCOConcentrateData(coConcentrateVal);
 			co2ConcentrateSensor.addCO2ConcentrateData(co2ConcentrateVal);
+			///////////////////////fan///////////////////////
+			fan.addFanButtonData(fanBtnVal);
+			////////////////////////////////////////////////
 			Thread.sleep(3000);
 			
 			
@@ -187,8 +195,8 @@ window.addWindowButtonData(windowBtnVal);
 }
 
 
-if (tempeVal>20 && (windowBtnVal==0)){
-cBtnVal=1;
+if (tempeVal>20){
+cBtnVal=0;
 hBtnVal=0;
 }
 if(airConditioner.getcButtonData()!=cBtnVal){
@@ -211,6 +219,14 @@ airConditioner.addcButtonData(cBtnVal);
 }
 
 
+if (tempeVal>20){
+fanBtnVal=1;
+}
+if(fan.getFanButtonData()!=fanBtnVal){
+fan.addFanButtonData(fanBtnVal);
+}
+
+
 if (brightnessVal<35){
 bulbBtnVal=1;
 }
@@ -229,6 +245,14 @@ microphone.addMicroButtonData(microBtnVal);
 
 if (proDistVal<2){
 proBtnVal=1;
+}
+if(projector.getProjButtonData()!=proBtnVal){
+projector.addProjButtonData(proBtnVal);
+}
+
+
+if (proDistVal>2){
+proBtnVal=0;
 }
 if(projector.getProjButtonData()!=proBtnVal){
 projector.addProjButtonData(proBtnVal);
@@ -283,7 +307,43 @@ microphone.addMicroButtonData(microBtnVal);
 }
 
 
-if (proDistVal>2){
+if (tempeVal<20){
+fanBtnVal=0;
+}
+if(fan.getFanButtonData()!=fanBtnVal){
+fan.addFanButtonData(fanBtnVal);
+}
+
+
+if (perNumVal==0){
+blindBtnVal=0;
+}
+if(blind.getBlindButtonData()!=blindBtnVal){
+blind.addBlindButtonData(blindBtnVal);
+}
+
+
+if (perNumVal==0){
+cBtnVal=0;
+hBtnVal=0;
+}
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+
+
+if (perNumVal==0){
+fanBtnVal=0;
+}
+if(fan.getFanButtonData()!=fanBtnVal){
+fan.addFanButtonData(fanBtnVal);
+}
+
+
+if (perNumVal==0){
 proBtnVal=0;
 }
 if(projector.getProjButtonData()!=proBtnVal){
@@ -291,58 +351,55 @@ projector.addProjButtonData(proBtnVal);
 }
 
 
-if (brightnessVal>35){
+if (perNumVal==0){
+airFreshBtnVal=0;
+}
+if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal){
+airFreshener.addAirFreshButtonData(airFreshBtnVal);
+}
+
+
+if (perNumVal==0){
+microBtnVal=0;
+}
+if(microphone.getMicroButtonData()!=microBtnVal){
+microphone.addMicroButtonData(microBtnVal);
+}
+
+
+if (perNumVal==0){
 bulbBtnVal=0;
 }
 if(bulb.getBulbButtonData()!=bulbBtnVal){
 bulb.addBulbButtonData(bulbBtnVal);
+}
+
+
+if (perNumVal==0){
+airHumBtnVal=0;
+}
+if(airHumidifier.getAirHumButtonData()!=airHumBtnVal){
+airHumidifier.addAirHumButtonData(airHumBtnVal);
+}
+
+
+if (perNumVal==0){
+windowBtnVal=0;
+}
+if(window.getWindowButtonData()!=windowBtnVal){
+window.addWindowButtonData(windowBtnVal);
 }
 				
 				//此处增加if...then...value的变化
 				//-----------
 				
 				//button数据传输
-    
-     if(airConditioner.gethButtonData()!=hBtnVal) {
-      airConditioner.addhButtonData(hBtnVal);
-     }
-     if(airConditioner.getcButtonData()!=cBtnVal) {
-      airConditioner.addcButtonData(cBtnVal);
-     }
-     
-     if(bulb.getBulbButtonData()!=bulbBtnVal) {
-      bulb.addBulbButtonData(bulbBtnVal);
-     }
-     
-     if(microphone.getMicroButtonData()!=microBtnVal) {
-      microphone.addMicroButtonData(microBtnVal);
-     }
-     
-     if(projector.getProjButtonData()!=proBtnVal) {
-      projector.addProjButtonData(proBtnVal);
-     }
-     
-     if(window.getWindowButtonData()!=windowBtnVal) {
-      window.addWindowButtonData(windowBtnVal);
-     }
-     
-     if(blind.getBlindButtonData()!=blindBtnVal) {
-      blind.addBlindButtonData(blindBtnVal);
-     }
-     
-     if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal) {
-      airFreshener.addAirFreshButtonData(airFreshBtnVal);
-     }
-     
-     if(airHumidifier.getAirHumButtonData()!=airHumBtnVal) {
-      airHumidifier.addAirHumButtonData(airHumBtnVal);
-     }
+
 				
 				
 			
 				
-				
-					if(co2ConcentrateCount==1) {
+				if(co2ConcentrateCount==1) {
 						if(airFreshener.getAirFreshButtonData()==1) {
 							co2ConcentrateVal=co2ConcentrateVal-30.0;
 						}
@@ -361,7 +418,10 @@ bulb.addBulbButtonData(bulbBtnVal);
 						//制冷的温度变化
 						tempeVal=tempeVal-0.5;
 					}
-					
+					else if(fan.getFanButtonData()==1){
+						//风扇的温度变化
+						tempeVal=tempeVal-0.2;
+					}
 					//重新置零
 					tempeCount=0;
 				}
@@ -370,8 +430,8 @@ bulb.addBulbButtonData(bulbBtnVal);
 				if(brightCount==1) {
 					//每1秒发送一次光亮数据
 					if(bulb.getBulbButtonData()==1) {
-						//如果灯开了，光度为200
-						brightnessVal=500.0;
+						//如果灯开了，光度为50
+						brightnessVal=50.0;
 					}
 					
 					brightCount=0;
@@ -491,10 +551,19 @@ bulb.addBulbButtonData(bulbBtnVal);
 					airHumidifier.addAirHumButtonData(airHumBtnVal);
 				}
 				
+				///////////////////////fan///////////////////////////////
+				if(fan.getFanButtonData()==1) {
+					fanBtnVal=0;
+					fan.addFanButtonData(fanBtnVal);
+				}
+				////////////////////////////////////////////////////////
+				
 				if(bulb.getBulbButtonData()==0) {
 					brightnessVal=30.0;
 					brightnessSensor.addBrightnessData(brightnessVal);
 				}
+				
+				
 				
 				
 				personCount=0;

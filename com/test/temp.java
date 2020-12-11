@@ -11,6 +11,7 @@ import com.device.AirHumidifier;
 import com.device.Bulb;
 import com.device.CO2ConcentrateSensor;
 import com.device.COConcentrateSensor;
+import com.device.Fan;
 import com.device.Blind;
 import com.device.BrightnessSensor;
 import com.device.HumiditySensor;
@@ -47,7 +48,9 @@ public class SmartConferRoom {
 		AirHumidifier airHumidifier = new AirHumidifier("634733103","airHumidifier","9XwR=auYtfMwaIDXcHZbOl4aPbk=");
 		COConcentrateSensor coConcentrateSensor = new COConcentrateSensor("634732894", "COConcentrateSensor", "5Z6yX8s3BfQVraseu=XhJiUK1pQ=");
 		CO2ConcentrateSensor co2ConcentrateSensor=new CO2ConcentrateSensor("642064527","CO2ConcentrateSensor","nomwB=7HJCuGGERbLAlnBIy6Erw=");
-		
+		//////////////////fan//////////////////////
+		Fan fan=new Fan("657048356","fan","fW9FfVzB0LVRkm4rkZ58C1vJ=TQ=");
+		/////////////////////////////////////////////
 		
 		Double tempeVal=random.nextDouble()*10+21;
 		Integer hBtnVal=0;
@@ -79,7 +82,9 @@ public class SmartConferRoom {
 		int co2ConcentrateCount=0;
 		int personCount=0;
 		int perNumCount=0;
-		
+		/////////////////////////fan//////////////////////
+		Integer fanBtnVal=0;
+		//////////////////////////////////////////////////
 		
 		double rain=random.nextDouble();
 		
@@ -113,6 +118,9 @@ public class SmartConferRoom {
 			airHumidifier.addAirHumButtonData(airHumBtnVal);
 			//coConcentrateSensor.addCOConcentrateData(coConcentrateVal);
 			co2ConcentrateSensor.addCO2ConcentrateData(co2ConcentrateVal);
+			///////////////////////fan///////////////////////
+			fan.addFanButtonData(fanBtnVal);
+			////////////////////////////////////////////////
 			Thread.sleep(3000);
 			
 			
@@ -148,47 +156,12 @@ public class SmartConferRoom {
 				//-----------
 				
 				//button数据传输
-    
-     if(airConditioner.gethButtonData()!=hBtnVal) {
-      airConditioner.addhButtonData(hBtnVal);
-     }
-     if(airConditioner.getcButtonData()!=cBtnVal) {
-      airConditioner.addcButtonData(cBtnVal);
-     }
-     
-     if(bulb.getBulbButtonData()!=bulbBtnVal) {
-      bulb.addBulbButtonData(bulbBtnVal);
-     }
-     
-     if(microphone.getMicroButtonData()!=microBtnVal) {
-      microphone.addMicroButtonData(microBtnVal);
-     }
-     
-     if(projector.getProjButtonData()!=proBtnVal) {
-      projector.addProjButtonData(proBtnVal);
-     }
-     
-     if(window.getWindowButtonData()!=windowBtnVal) {
-      window.addWindowButtonData(windowBtnVal);
-     }
-     
-     if(blind.getBlindButtonData()!=blindBtnVal) {
-      blind.addBlindButtonData(blindBtnVal);
-     }
-     
-     if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal) {
-      airFreshener.addAirFreshButtonData(airFreshBtnVal);
-     }
-     
-     if(airHumidifier.getAirHumButtonData()!=airHumBtnVal) {
-      airHumidifier.addAirHumButtonData(airHumBtnVal);
-     }
+
 				
 				
 			
 				
-				
-					if(co2ConcentrateCount==1) {
+				if(co2ConcentrateCount==1) {
 						if(airFreshener.getAirFreshButtonData()==1) {
 							co2ConcentrateVal=co2ConcentrateVal-30.0;
 						}
@@ -207,7 +180,10 @@ public class SmartConferRoom {
 						//制冷的温度变化
 						tempeVal=tempeVal-0.5;
 					}
-					
+					else if(fan.getFanButtonData()==1){
+						//风扇的温度变化
+						tempeVal=tempeVal-0.2;
+					}
 					//重新置零
 					tempeCount=0;
 				}
@@ -216,7 +192,7 @@ public class SmartConferRoom {
 				if(brightCount==1) {
 					//每1秒发送一次光亮数据
 					if(bulb.getBulbButtonData()==1) {
-						//如果灯开了，光度为200
+						//如果灯开了，光度为500
 						brightnessVal=500.0;
 					}
 					
@@ -337,10 +313,19 @@ public class SmartConferRoom {
 					airHumidifier.addAirHumButtonData(airHumBtnVal);
 				}
 				
+				///////////////////////fan///////////////////////////////
+				if(fan.getFanButtonData()==1) {
+					fanBtnVal=0;
+					fan.addFanButtonData(fanBtnVal);
+				}
+				////////////////////////////////////////////////////////
+				
 				if(bulb.getBulbButtonData()==0) {
 					brightnessVal=30.0;
 					brightnessSensor.addBrightnessData(brightnessVal);
 				}
+				
+				
 				
 				
 				personCount=0;

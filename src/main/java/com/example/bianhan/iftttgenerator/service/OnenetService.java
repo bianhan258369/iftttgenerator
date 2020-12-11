@@ -34,12 +34,12 @@ public class OnenetService {
                     String attribute = trigger.split(relation)[0];
                     if (triggerMap.containsKey(attribute) && triggerMap.get(attribute).contains("env")) {
                         String envVar = triggerMap.get(attribute).get(0);
-                        sb.append(trigger.replaceAll(attribute, envVar));
+                        sb.append(trigger.replaceAll(attribute, envVar).replaceAll("=","=="));
                         if(!trigger.equals(requirement.getTriggerList().get(requirement.getTriggerList().size() - 1))) sb.append(" && ");
                     } else {
                         sb.append("(");
                         for (int i = 0; i < triggerMap.get(trigger).size(); i++) {
-                            sb.append(triggerMap.get(trigger).get(i));
+                            sb.append(triggerMap.get(trigger).get(i).replaceAll("=","=="));
                             if(i != triggerMap.get(trigger).size() - 1) sb.append(" && ");
                         }
                         sb.append(")");

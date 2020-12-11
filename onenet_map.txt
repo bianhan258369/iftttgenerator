@@ -1,5 +1,5 @@
 light.brightness->brightnessVal//env
-person.number->peopleNum//env
+person.number->perNumVal//env
 air.temperature->tempeVal//env
 air.humidity->humidityVal//env
 co2.ppm->co2ConcentrateVal//env

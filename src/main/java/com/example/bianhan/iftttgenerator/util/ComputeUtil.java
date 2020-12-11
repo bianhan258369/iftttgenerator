@@ -592,6 +592,7 @@ public class ComputeUtil {
             if(requirement.getTime() == null && requirement.getTriggerList().size() == 1){
                 List<String> actions = requirement.getActionList();
                 String trigger = requirement.getTriggerList().get(0);
+                if(eo.getEvents().contains(trigger)) continue;
                 for(String action : actions){
                     String attritbueOrTriggerDevice = "";
                     String relation = computeRelation(trigger);
