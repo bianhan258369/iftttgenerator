@@ -4,6 +4,7 @@ public class PathConfiguration {
     public static final String DROOLSMAPPATH = "drools_map.txt";
     public static final String ONENETMAPPATH = "onenet_map.txt";
     public static final String IFTTTMAPPATH = "ifttt_map.txt";
+    public static final String DEVICEREGITRATIONTABLEPATH = "DeviceRegitrationTable.txt";
     private String scdPath = "";
     private String ontologyRootPath = "";
     private String smtPath = "";

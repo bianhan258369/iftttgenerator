@@ -17,3 +17,5 @@ M.ahonpulse->turn on the air humidifier
 M.ahoffpulse->turn off the air humidifier
 M.fonpulse->turn on the fan
 M.foffpulse->turn off the fan
+M.honpulse->turn on the heater
+M.hoffpulse->turn off the heater

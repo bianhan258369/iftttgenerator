@@ -18,6 +18,13 @@
 				</state>
 			</states>
 		</device>
+		<device name="heater">
+			<states>
+				<state name="hon" init="false">
+					<adjust_entity name="air.temperature" energy="2000" rate="0.4" method="/second"/>
+				</state>
+			</states>
+		</device>
 		<device name="ac">
 			<states>
 				<state name="coldon" init="false">
@@ -200,6 +207,22 @@
 		  <transition from="foff" event="fturnoff" action="foffpulse" to="foff"/>
 		  <transition from="fon" event="fturnon" action="fonpulse" to="fon"/>
 		  <transition from="foff" event="fturnon" action="fonpulse" to="fon"/>
+		</transitions>
+	  </device>
+	  <device name="heater">
+		<events>
+			<event>hturnon</event>
+			<event>hturnoff</event>
+		</events>
+		<states>
+		  <state init="false">hon</state>
+		  <state init="true">hoff</state>
+		</states>
+		<transitions>
+		  <transition from="hon" event="hturnoff" action="hoffpulse" to="hoff"/>
+		  <transition from="hoff" event="hturnoff" action="hoffpulse" to="hoff"/>
+		  <transition from="hon" event="hturnon" action="honpulse" to="hon"/>
+		  <transition from="hoff" event="hturnon" action="honpulse" to="hon"/>
 		</transitions>
 	  </device>
 	</statemachines>

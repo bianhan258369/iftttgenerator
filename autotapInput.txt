@@ -1,4 +1,4 @@
 IF bulb.on=true THEN projector.on=true
 IF projector.on=true THEN bulb.on=false
-IF light.brightness=below250 THEN bulb.on=true
-IF light.brightness=over250 THEN bulb.on=false
+IF light.brightness=below35 THEN bulb.on=true
+IF light.brightness=over35 THEN bulb.on=false

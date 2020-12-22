@@ -23,13 +23,19 @@ public class CheckService {
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
 
         JSONObject result = new JSONObject();
-        List<String> solvableErrors = new ArrayList<>();
-        List<String> unsolvableErrors = new ArrayList<>();
+        Map<String, List<Conflict>> groupMappingToSolvableErrors = new HashMap<>();
+        List<Conflict> unsolvableErrors = new ArrayList<>();
         //trigger conflict
         //if t>10 AND t<10 then a
-        for(IfThenRequirement ifThenRequirement : ifThenRequirements){
+        for(int i = 0;i < ifThenRequirements.size();i++){
+            IfThenRequirement ifThenRequirement = ifThenRequirements.get(i);
             List<String> triggerList = ifThenRequirement.getTriggerList();
-            if(selfConflict(triggerList)) unsolvableErrors.add("<" + ifThenRequirement.getIfThenClause() + "> has self conflict in triggers!");
+            if(selfConflict(triggerList)){
+                Map<Integer, String> lineMappingToClause = new HashMap<>();
+                lineMappingToClause.put(i + 1, ifThenRequirement.getIfThenClause());
+                Conflict conflict = new Conflict(lineMappingToClause,"unresolvable");
+                unsolvableErrors.add(conflict);
+            }
         }
 
         //if t>10 THEN a, if t<15 THEN !a
@@ -44,17 +50,23 @@ public class CheckService {
                     for(String action2 : ifThenRequirements.get(j).getActionList()){
                         if(action1.split("\\.")[0].equals(action2.split("\\.")[0]) && !action1.split("\\.")[1].equals(action2.split("\\.")[1])){
                             if(!hasConflict(triggerList1, triggerList2)){
-                                if(triggerList1.size() == 1 && triggerList2.size() == 1){
-                                    String trigger1 = triggerList1.get(0);
-                                    String trigger2 = triggerList2.get(0);
-                                    String relation1 = computeRelation(trigger1);
-                                    String relation2 = computeRelation(trigger2);
-                                    if(!relation1.equals("") && !relation2.equals("") && trigger1.split(relation1)[0].equals(trigger2.split(relation2)[0])){
-                                        solvableErrors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts!");
-                                    }
-                                    else unsolvableErrors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts!");
+                                Map<Integer, String> lineMappingToClause = new HashMap<>();
+                                lineMappingToClause.put(i + 1, ifThenRequirements.get(i).getIfThenClause());
+                                lineMappingToClause.put(j + 1, ifThenRequirements.get(j).getIfThenClause());
+                                Conflict conflict = new Conflict(lineMappingToClause,"unresolvable");
+                                String trigger1 = triggerList1.get(0);
+                                String trigger2 = triggerList2.get(0);
+                                String relation1 = computeRelation(trigger1);
+                                String relation2 = computeRelation(trigger2);
+                                if(triggerList1.size() == 1 && triggerList2.size() == 1 && !relation1.equals("") && !relation2.equals("") && trigger1.split(relation1)[0].equals(trigger2.split(relation2)[0])){
+                                    String group = trigger1.split(relation1)[0] + "//" + action1.split("\\.")[0];
+                                    if(!groupMappingToSolvableErrors.containsKey(group)) groupMappingToSolvableErrors.put(group, new ArrayList<>());
+                                    conflict.setErrorType("resolvable");
+                                    groupMappingToSolvableErrors.get(group).add(conflict);
                                 }
-                                else unsolvableErrors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has conflicts!");
+                                else{
+                                    unsolvableErrors.add(conflict);
+                                }
                                 break label;
                             }
                         }
@@ -87,22 +99,50 @@ public class CheckService {
                         if(!triggerList2.contains(trigger2)) flag2 = false;
                     }
                 }
-                for(IfThenRequirement ifThenRequirement : ifThenRequirements){
+                Map<Integer, String> lineMappingToClause = new HashMap<>();
+                lineMappingToClause.put(i + 1, ifThenRequirements.get(i).getIfThenClause());
+                lineMappingToClause.put(j + 1, ifThenRequirements.get(j).getIfThenClause());
+                for(int k = 0;k < ifThenRequirements.size();k++){
+                    IfThenRequirement ifThenRequirement = ifThenRequirements.get(k);
                     List<String> actionList = ifThenRequirement.getActionList();
                     if(actionList.contains(trigger1)){
                         flag3 = true;
+                        lineMappingToClause.put(k + 1, ifThenRequirements.get(k).getIfThenClause());
                         break;
                     }
                 }
                 if(flag1 & flag2 & flag3){
-                    unsolvableErrors.add("<" + ifThenRequirements.get(i).getIfThenClause() + "> and <" + ifThenRequirements.get(j).getIfThenClause() + "> has chain errors!");
+                    Conflict conflict = new Conflict(lineMappingToClause,"chain");
+                    unsolvableErrors.add(conflict);
                 }
             }
         }
-        if(solvableErrors.size() == 0) solvableErrors.add("No Solvable Errors");
-        if(unsolvableErrors.size() == 0) unsolvableErrors.add("No Unsolvable Errors");
-        result.put("solvableErrors",solvableErrors);
-        result.put("unsolvableErrors",unsolvableErrors);
+        List<String> resolvable = new ArrayList<>();
+        List<String> unresolvable = new ArrayList<>();
+        Iterator it = groupMappingToSolvableErrors.keySet().iterator();
+        int group = 1;
+        while (it.hasNext()){
+            StringBuilder sb = new StringBuilder("Group" + group + ":");
+            sb.append("\r\n");
+            List<Conflict> conflicts = groupMappingToSolvableErrors.get(it.next());
+            for(Conflict conflict : conflicts){
+                sb.append(conflict.toString());
+                sb.append("\r\n");
+            }
+            resolvable.add(sb.toString());
+        }
+//        for(int i = 0;i < solvableErrors.size();i++){
+//            Conflict conflict = solvableErrors.get(i);
+//
+//        }
+        for(int i = 0;i < unsolvableErrors.size();i++){
+            Conflict conflict = unsolvableErrors.get(i);
+            unresolvable.add("GROUP " + (i + 1) + " :\n " + conflict.toString());
+        }
+        if(resolvable.size() == 0) resolvable.add("No Solvable Errors");
+        if(unresolvable.size() == 0) unresolvable.add("No Unsolvable Errors");
+        result.put("solvableErrors",resolvable);
+        result.put("unsolvableErrors",unresolvable);
         return result;
     }
 

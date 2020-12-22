@@ -315,6 +315,14 @@ fan.addFanButtonData(fanBtnVal);
 }
 
 
+if (brightnessVal>35){
+bulbBtnVal=0;
+}
+if(bulb.getBulbButtonData()!=bulbBtnVal){
+bulb.addBulbButtonData(bulbBtnVal);
+}
+
+
 if (perNumVal==0){
 blindBtnVal=0;
 }
@@ -384,6 +392,14 @@ airHumidifier.addAirHumButtonData(airHumBtnVal);
 
 
 if (perNumVal==0){
+hBtnVal=0;
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
+}
+
+
+if (perNumVal==0){
 windowBtnVal=0;
 }
 if(window.getWindowButtonData()!=windowBtnVal){
@@ -430,8 +446,8 @@ window.addWindowButtonData(windowBtnVal);
 				if(brightCount==1) {
 					//每1秒发送一次光亮数据
 					if(bulb.getBulbButtonData()==1) {
-						//如果灯开了，光度为50
-						brightnessVal=50.0;
+						//如果灯开了，光度为500
+						brightnessVal=500.0;
 					}
 					
 					brightCount=0;

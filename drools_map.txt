@@ -14,6 +14,8 @@ window.wopen->$window.getState()==1
 window.wclosed->$window.getState()==0
 fan.fon->$fan.getState()==1
 fan.foff->$fan.getState()==0
+heater.hon->$heater.getState()==1
+heater.hoff->$heater.getState()==0
 !ac.aoff->$airConditioner.getState()!=0
 M.bonpulse->$bulb.openDevice()//update($bulb)->light.brightness should increase
 M.boffpulse->$bulb.closeDevice()//update($bulb)
@@ -34,6 +36,9 @@ M.afonpulse->$airFreshener.openDevice()//update($airFreshener)->allow freshing t
 M.afoffpulse->$airFreshener.closeDevice()//update($airFreshener)->forbid freshing the room
 M.ahonpulse->$airHumidifier.openDevice()//update($airHumidifier)->allow humidifying the room
 M.ahoffpulse->$airHumidifier.closeDevice()//update($airHumidifier)->forbid humidifying the room
+M.honpulse->$heater.openDevice()//update($heater)->air.temperature should increase
+M.hoffpulse->$heater.closeDevice()//update($heater)
+M.foffpulse->$fan.closeDevice()//update($fan)
 $airConditionor->AirConditioner()
 $airFreshener->AirFreshener()
 $airHumidifier->AirHumidifier()
@@ -42,3 +47,5 @@ $projector->Projector()
 $bulb->Light()
 $blind->Blind()
 $window->Window()
+$heater->Heater()
+$fan->Fan()

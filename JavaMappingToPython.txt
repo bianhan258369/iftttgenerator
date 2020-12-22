@@ -17,3 +17,5 @@ bulb.bon->bulb.on=true
 bulb.boff->bulb.on=false
 fan.fon->fan.on=true
 fan.foff->fan.on=false
+heater.hon->heater.on=true
+heater.hoff->heater.on=false

@@ -2,6 +2,7 @@ package com.example.bianhan.iftttgenerator.util;
 
 import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import com.example.bianhan.iftttgenerator.pojo.*;
+import com.example.bianhan.iftttgenerator.service.IFTTTService;
 import net.sf.json.JSONObject;
 import org.dom4j.DocumentException;
 
@@ -9,8 +10,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.PYTHONCMDPATH;
-import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.TEMPLATEPATH;
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.*;
 
 public class ComputeUtil {
     /**
@@ -415,6 +415,7 @@ public class ComputeUtil {
                     }
                 }
                 bestPerformance.add(maxRateReq);
+                System.out.println(minEnergyReq);
                 saveEnergy.add(minEnergyReq);
             }
             //TriggerActionRequirement
@@ -1026,6 +1027,73 @@ public class ComputeUtil {
         return sb.toString();
     }
 
+    public static JSONObject computeResources(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+        JSONObject result = new JSONObject();
+        Map<String, String> effectMap = computeEffectMap();
+        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
+
+        Map<String, Set<Resource>> deviecStateAndResourcesUsed = new HashMap<>();
+        File deviceRegistrationTable = new File(DEVICEREGITRATIONTABLEPATH);
+        BufferedReader br = new BufferedReader(new FileReader(deviceRegistrationTable));
+        String line = "";
+        while ((line = br.readLine()) != null){
+            if(line.startsWith("r:")){
+                line = line.substring(2);
+                String deviceState = line.split("->")[0];
+                if(!deviecStateAndResourcesUsed.containsKey(deviceState)) deviecStateAndResourcesUsed.put(deviceState, new HashSet<>());
+                List<String> resources = Arrays.asList(line.split("->")[1].split("//"));
+                for(String resource : resources){
+                    String resourceName = resource.split("=")[0];
+                    Double value = Double.parseDouble(resource.split("=")[1]);
+                    Resource temp = new Resource(resourceName, value);
+                    deviecStateAndResourcesUsed.get(deviceState).add(temp);
+                }
+            }
+        }
+
+        Map<String, Set<Resource>> deviceMappingToResources = new HashMap<>();
+        Map<String, Double> resourceNameMappingToValue = new HashMap<>();
+        for(IfThenRequirement ifThenRequirement : ifThenRequirements){
+            List<String> actions = ifThenRequirement.getActionList();
+            for(String deviceState : actions){
+                if(deviecStateAndResourcesUsed.containsKey(deviceState)){
+                    String deviceName = deviceState.split("\\.")[0];
+                    if(!deviceMappingToResources.containsKey(deviceName)) deviceMappingToResources.put(deviceName, new HashSet<>());
+                    Set<Resource> resources = deviecStateAndResourcesUsed.get(deviceState);
+                    for(Resource resource : resources){
+                        deviceMappingToResources.get(deviceName).add(resource);
+                    }
+                }
+            }
+        }
+        Iterator it = deviceMappingToResources.keySet().iterator();
+        while (it.hasNext()){
+            String deviceName = (String) it.next();
+            Set<Resource> resources = deviceMappingToResources.get(deviceName);
+            Map<String, Double> resourceNameMappingToMaxValues = new HashMap<>();
+            for(Resource resource : resources){
+                if(!resourceNameMappingToMaxValues.containsKey(resource.getResourceName()))resourceNameMappingToMaxValues.put(resource.getResourceName(), resource.getValue());
+                else {
+                    if(resourceNameMappingToMaxValues.get(resource.getResourceName()) < resource.getValue()) resourceNameMappingToMaxValues.put(resource.getResourceName(), resource.getValue());
+                }
+            }
+            for(String resourceName : resourceNameMappingToMaxValues.keySet()){
+                Double value = resourceNameMappingToMaxValues.get(resourceName);
+                if(!resourceNameMappingToValue.containsKey(resourceName)) resourceNameMappingToValue.put(resourceName, value);
+                else resourceNameMappingToValue.put(resourceName, resourceNameMappingToValue.get(resourceName) + value);
+            }
+        }
+
+        it = resourceNameMappingToValue.keySet().iterator();
+        while (it.hasNext()){
+            String resourceName = (String) it.next();
+            Double value = resourceNameMappingToValue.get(resourceName);
+            result.put(resourceName, value);
+        }
+        return  result;
+    }
+
 
     public static String modifyDot(String dot){
         dot = dot.replaceAll("S:","");
@@ -1045,16 +1113,22 @@ public class ComputeUtil {
         return true;
     }
 
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("onenet_map.xml"));
-        BufferedWriter bw = new BufferedWriter(new FileWriter("ontology.xml"));
-        String line = null;
-        while ((line = br.readLine()) != null){
-            bw.write(line.toLowerCase());
-            bw.newLine();
-            bw.flush();
-        }
-        br.close();
-        bw.close();
+//    public static void main(String[] args) throws IOException {
+//        BufferedReader br = new BufferedReader(new FileReader("onenet_map.xml"));
+//        BufferedWriter bw = new BufferedWriter(new FileWriter("ontology.xml"));
+//        String line = null;
+//        while ((line = br.readLine()) != null){
+//            bw.write(line.toLowerCase());
+//            bw.newLine();
+//            bw.flush();
+//        }
+//        br.close();
+//        bw.close();
+//    }
+
+    public static void main(String[] args) throws IOException, DocumentException {
+        String ontologyPath = "ontology_SmartConferenceRoom.xml";
+        String requirementTexts = "IF air.temperature<30 THEN ac.coldon//IF air.temperature>10 THEN ac.hoton//IF light.brightness<35 THEN bulb.bon//IF air.humidity<70 THEN ah.ahon";
+        System.out.println(computeResources(requirementTexts, ontologyPath,0));
     }
 }

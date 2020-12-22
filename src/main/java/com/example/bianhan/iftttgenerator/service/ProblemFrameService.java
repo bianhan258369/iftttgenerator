@@ -59,6 +59,7 @@ public class ProblemFrameService {
             ovalNum++;
             for(String trigger : requirement.getTriggerList()){
                 String entityName = trigger.split("\\.")[0];
+                if(entityName.startsWith("!")) entityName = entityName.substring(1);
                 String attributeValue = trigger.split("\\.")[1];
                 Rect rect = new Rect(800, 150 * recNum);
                 rect.setState(1);

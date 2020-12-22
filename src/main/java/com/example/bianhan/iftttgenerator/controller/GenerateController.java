@@ -36,6 +36,8 @@ public class GenerateController {
     private OnenetService onenetService;
     @Autowired
     private IFTTTService iftttService;
+    @Autowired
+    private ResourceService resourceService;
 
     @CrossOrigin
     @RequestMapping("/upload")
@@ -242,6 +244,13 @@ public class GenerateController {
             ifThenRequirements.add(new IfThenRequirement(triggerList, actionList, time, expectation));
         }
         return checkService.solve(ifThenRequirements);
+    }
+
+    @CrossOrigin
+    @RequestMapping("/getResourceUsed")
+    @ResponseBody
+    public JSONObject getResourceUsed(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException, InterruptedException {
+        return resourceService.getResourcesUsed(requirementTexts, ontologyPath, index);
     }
 
 //    @CrossOrigin

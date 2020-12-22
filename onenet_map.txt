@@ -12,6 +12,8 @@ ac.coldon->hBtnVal==0//cBtnVal==1
 ac.hoton->hBtnVal==1//cBtnVal==0
 window.wopen->windowBtnVal==1
 window.wclosed->windowBtnVal==0
+heater.hon->hBtnVal==1
+heater.hoff->hBtnVal==0
 !ac.aoff->hBtnVal==1||cBtnVal==1
 M.bonpulse->bulbBtnVal=1
 M.boffpulse->bulbBtnVal=0
@@ -32,6 +34,8 @@ M.ahonpulse->airHumBtnVal=1
 M.ahoffpulse->airHumBtnVal=0
 M.fonpulse->fanBtnVal=1
 M.foffpulse->fanBtnVal=0
+M.honpulse->hBtnVal=1
+M.hoffpulse->hBtnVal=0
 bulbBtnVal->bulb
 data:hBtnVal->airConditioner.gethButtonData()!=hBtnVal->airConditioner.addhButtonData(hBtnVal);
 data:cBtnVal->airConditioner.getcButtonData()!=cBtnVal->airConditioner.addcButtonData(cBtnVal);
