@@ -1,4 +1,18 @@
-IF bulb.on=true THEN projector.on=true
-IF projector.on=true THEN bulb.on=false
+window.on=true,ac.mode=cold SHOULD NEVER OCCUR TOGETHER
+window.on=true,ac.mode=hot SHOULD NEVER OCCUR TOGETHER
+IF air.temperature=below20 THEN ac.mode=hot
+IF air.temperature=over20 THEN fan.on=true
 IF light.brightness=below35 THEN bulb.on=true
+IF person.distancefrommc=below2 THEN microphone.on=true
+IF person.distancefrompro=below2 THEN projector.on=true
+IF person.distancefrompro=over1 THEN projector.on=false
+IF projector.on=true THEN blind.on=false
+IF projector.on=true THEN window.on=false
+IF co2.ppm=over800 THEN af.on=true
+IF air.humidity=below70 THEN ah.on=true
+IF co2.ppm=below800 THEN af.on=false
+IF air.humidity=over70 THEN ah.on=false
+IF person.distancefrommc=over2 THEN microphone.on=false
+IF air.temperature=below20 THEN fan.on=false
+IF air.temperature=over20 THEN ac.mode=off
 IF light.brightness=over35 THEN bulb.on=false
