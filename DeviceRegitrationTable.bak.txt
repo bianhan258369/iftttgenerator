@@ -1,0 +1,30 @@
+allow using microphone->mc.mon
+forbid using microphone->mc.moff
+allow using projector->projector.pon
+forbid using projector->projector.poff
+allow ventilating the room->window.wopen,blind.bopen
+forbid ventilating the room->window.wclosed,blind.bclosed
+air.temperature should increase->ac.hoton//heater.hon
+air.temperature should decrease->ac.coldon//fan.fon
+light.brightness should increase->bulb.bon
+allow freshing the room->af.afon
+forbid freshing the room->af.afoff
+air.humidity should increase->ah.ahon
+air.humidity should decrease->ah.ahoff
+s:TemperatureSensor->air.temperature
+s:HumiditySensor->air.humidity
+s:LightSensor->light.brightness
+s:CO2Sensor->co2.ppm
+s:InfraredSensor->person.number
+s:InfraredSensor->person.distancefrommc
+s:InfraredSensor->person.distancefrompro
+s:RainSensor->weather.raining
+r:ac.coldon->power=700//cooler=1
+r:ac.hoton->power=1500//heater=1
+r:mc.mon->power=20
+r:projector.pon->power=350
+r:bulb.bon->power=5
+r:af.afon->power=500
+r:ah.ahon->power=500
+r:fan.fon->power=15//cooler=1
+r:heater.hon->power=2000//heater=1

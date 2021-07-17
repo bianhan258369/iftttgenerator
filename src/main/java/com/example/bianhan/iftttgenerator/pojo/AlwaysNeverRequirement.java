@@ -19,8 +19,25 @@ public class AlwaysNeverRequirement extends Requirement {
         this.value = value;
     }
 
+    public AlwaysNeverRequirement(String requirement, String room, String alwaysNever, String attribute, String relation, int value) {
+        super(requirement, room);
+        this.alwaysNever = alwaysNever;
+        this.deviceEventOrState = null;
+        this.attribute = attribute;
+        this.relation = relation;
+        this.value = value;
+    }
+
     public AlwaysNeverRequirement(String requirement, String alwaysNever, String deviceEventOrState) {
         super(requirement);
+        this.alwaysNever = alwaysNever;
+        this.deviceEventOrState = deviceEventOrState;
+        this.attribute = null;
+        this.relation = null;
+    }
+
+    public AlwaysNeverRequirement(String requirement, String room, String alwaysNever, String deviceEventOrState) {
+        super(requirement, room);
         this.alwaysNever = alwaysNever;
         this.deviceEventOrState = deviceEventOrState;
         this.attribute = null;

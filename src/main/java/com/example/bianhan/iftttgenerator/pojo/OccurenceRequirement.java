@@ -21,4 +21,9 @@ public class OccurenceRequirement extends Requirement{
         super(requirement);
         this.deviceStates = deviceStates;
     }
+
+    public OccurenceRequirement(String requirement, String room, List<String> deviceStates) {
+        super(requirement, room);
+        this.deviceStates = deviceStates;
+    }
 }

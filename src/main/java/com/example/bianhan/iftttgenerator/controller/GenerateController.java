@@ -38,6 +38,8 @@ public class GenerateController {
     private IFTTTService iftttService;
     @Autowired
     private ResourceService resourceService;
+    @Autowired
+    private HAService haService;
 
     @CrossOrigin
     @RequestMapping("/upload")
@@ -246,6 +248,16 @@ public class GenerateController {
         return checkService.solve(ifThenRequirements);
     }
 
+//    @CrossOrigin
+//    @RequestMapping("/chooseScenario")
+//    @ResponseBody
+//    public JSONObject generatePi(@RequestParam String requirementTexts,@RequestParam String room, @RequestParam String ontologyPath, @RequestParam int index, @RequestParam String complementedRequirements) throws IOException, DocumentException, InterruptedException {
+//        JSONObject result = new JSONObject();
+//        piService.generatePiProgram(requirementTexts, room, ontologyPath, index, complementedRequirements);
+//        result.put("result","success");
+//        return result;
+//    }
+
     @CrossOrigin
     @RequestMapping("/getResourceUsed")
     @ResponseBody
@@ -272,6 +284,13 @@ public class GenerateController {
     }
 
     @CrossOrigin
+    @RequestMapping("/writeAutomations")
+    @ResponseBody
+    public void writeAutomations(@RequestParam String requirementTexts, @RequestParam String ontologyPath, @RequestParam int index) throws IOException, DocumentException {
+        haService.writeAutomations(requirementTexts, ontologyPath, index);
+    }
+
+    @CrossOrigin
     @RequestMapping("/downloadOntology")
     public void downloadOntology() throws IOException {
         String filePath = "ontology_SmartConferenceRoom.xml";
@@ -288,4 +307,17 @@ public class GenerateController {
         FileUtil.download(filePath, response);
     }
 
+    @CrossOrigin
+    @RequestMapping("/getEntityIds")
+    @ResponseBody
+    public List<String> getEntityIds() throws IOException, InterruptedException {
+        return haService.getEntityIds();
+    }
+
+    @CrossOrigin
+    @RequestMapping("/writePersonalDeviceTable")
+    @ResponseBody
+    public void writePersonalDeviceTable(@RequestBody JSONObject entityAreas) throws IOException, InterruptedException {
+        haService.writePersonalDeviceTable(entityAreas);
+    }
 }

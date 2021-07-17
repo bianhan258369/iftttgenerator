@@ -9,14 +9,25 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.strListEquals;
 @Data
 public class IfThenRequirement{
 
+    private String room;
     private List<String> triggerList;
     private List<String> actionList;
     private String time;
     private String expectation;
     private Set<String> expectations;
 
-
     public IfThenRequirement(List<String> triggerList, List<String> actionList, String time, String expectation) {
+        this.triggerList = triggerList;
+        this.actionList = actionList;
+        this.time = time;
+        this.expectation = expectation;
+        this.expectations = new HashSet<>();
+        this.expectations.add(expectation);
+    }
+
+
+    public IfThenRequirement(String room, List<String> triggerList, List<String> actionList, String time, String expectation) {
+        this.room = room;
         this.triggerList = triggerList;
         this.actionList = actionList;
         this.time = time;

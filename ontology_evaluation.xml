@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ontology>
+	<environment>
+		<attribute name="air.temperature" fluctuation="3"/>
+	</environment>
+	<devices>
+		<device name="bulb">
+			<states>
+				<state name="bon" init="false">
+					<adjust_entity name="light.brightness" energy="5" rate="50000" method="prompt"/>
+				</state>
+			</states>
+		</device>
+	</devices>
+	<statemachines>
+
+		<device name="window">
+		<events>
+			<event>wopen</event>
+			<event>wclose</event>
+		</events>
+		<states>
+		  <state init="false">wopen</state>
+		  <state init="true">wclosed</state>
+		</states>
+		<transitions>
+		  <transition from="wopen" event="wclose" action="wclosepulse" to="wclosed"/>
+		  <transition from="wclosed" event="wclose" action="wclosepulse" to="wclosed"/>
+		  <transition from="wopen" event="wopen" action="wopenpulse" to="wopen"/>
+		  <transition from="wclosed" event="wopen" action="wopenpulse" to="wopen"/>
+		</transitions>
+	  </device>
+
+	  <device name="window1">
+		<events>
+			<event>wopen1</event>
+			<event>wclose1</event>
+		</events>
+		<states>
+		  <state init="false">wopen1</state>
+		  <state init="true">wclosed1</state>
+		</states>
+		<transitions>
+		  <transition from="wopen1" event="wclose1" action="wclosepulse1" to="wclosed1"/>
+		  <transition from="wclosed1" event="wclose1" action="wclosepulse1" to="wclosed1"/>
+		  <transition from="wopen1" event="wopen1" action="wopenpulse1" to="wopen1"/>
+		  <transition from="wclosed1" event="wopen1" action="wopenpulse1" to="wopen1"/>
+		</transitions>
+	  </device>
+
+	  <device name="window2">
+		<events>
+			<event>wopen2</event>
+			<event>wclose2</event>
+		</events>
+		<states>
+		  <state init="false">wopen2</state>
+		  <state init="true">wclosed2</state>
+		</states>
+		<transitions>
+		  <transition from="wopen2" event="wclose2" action="wclosepulse2" to="wclosed2"/>
+		  <transition from="wclosed2" event="wclose2" action="wclosepulse2" to="wclosed2"/>
+		  <transition from="wopen2" event="wopen2" action="wopenpulse2" to="wopen2"/>
+		  <transition from="wclosed2" event="wopen2" action="wopenpulse2" to="wopen2"/>
+		</transitions>
+	  </device>
+
+	<device name="window3">
+		<events>
+			<event>wopen3</event>
+			<event>wclose3</event>
+		</events>
+		<states>
+		  <state init="false">wopen3</state>
+		  <state init="true">wclosed3</state>
+		</states>
+		<transitions>
+		  <transition from="wopen3" event="wclose3" action="wclosepulse3" to="wclosed3"/>
+		  <transition from="wclosed3" event="wclose3" action="wclosepulse3" to="wclosed3"/>
+		  <transition from="wopen3" event="wopen3" action="wopenpulse3" to="wopen3"/>
+		  <transition from="wclosed3" event="wopen3" action="wopenpulse3" to="wopen3"/>
+		</transitions>
+	  </device>
+
+	  <device name="window4">
+		<events>
+			<event>wopen4</event>
+			<event>wclose4</event>
+		</events>
+		<states>
+		  <state init="false">wopen4</state>
+		  <state init="true">wclosed4</state>
+		</states>
+		<transitions>
+		  <transition from="wopen4" event="wclose4" action="wclosepulse4" to="wclosed4"/>
+		  <transition from="wclosed4" event="wclose4" action="wclosepulse4" to="wclosed4"/>
+		  <transition from="wopen4" event="wopen4" action="wopenpulse4" to="wopen4"/>
+		  <transition from="wclosed4" event="wopen4" action="wopenpulse4" to="wopen4"/>
+		</transitions>
+	  </device>
+
+	  <device name="window5">
+		<events>
+			<event>wopen5</event>
+			<event>wclose5</event>
+		</events>
+		<states>
+		  <state init="false">wopen5</state>
+		  <state init="true">wclosed5</state>
+		</states>
+		<transitions>
+		  <transition from="wopen5" event="wclose5" action="wclosepulse5" to="wclosed5"/>
+		  <transition from="wclosed5" event="wclose5" action="wclosepulse5" to="wclosed5"/>
+		  <transition from="wopen5" event="wopen5" action="wopenpulse5" to="wopen5"/>
+		  <transition from="wclosed5" event="wopen5" action="wopenpulse5" to="wopen5"/>
+		</transitions>
+	  </device>
+
+	  <device name="window6">
+		<events>
+			<event>wopen6</event>
+			<event>wclose6</event>
+		</events>
+		<states>
+		  <state init="false">wopen6</state>
+		  <state init="true">wclosed6</state>
+		</states>
+		<transitions>
+		  <transition from="wopen6" event="wclose6" action="wclosepulse6" to="wclosed6"/>
+		  <transition from="wclosed6" event="wclose6" action="wclosepulse6" to="wclosed6"/>
+		  <transition from="wopen6" event="wopen6" action="wopenpulse6" to="wopen6"/>
+		  <transition from="wclosed6" event="wopen6" action="wopenpulse6" to="wopen6"/>
+		</transitions>
+	  </device>
+
+	  <device name="window7">
+		<events>
+			<event>wopen7</event>
+			<event>wclose7</event>
+		</events>
+		<states>
+		  <state init="false">wopen7</state>
+		  <state init="true">wclosed7</state>
+		</states>
+		<transitions>
+		  <transition from="wopen7" event="wclose7" action="wclosepulse7" to="wclosed7"/>
+		  <transition from="wclosed7" event="wclose7" action="wclosepulse7" to="wclosed7"/>
+		  <transition from="wopen7" event="wopen7" action="wopenpulse7" to="wopen7"/>
+		  <transition from="wclosed7" event="wopen7" action="wopenpulse7" to="wopen7"/>
+		</transitions>
+	  </device>
+
+	  <device name="window8">
+		<events>
+			<event>wopen8</event>
+			<event>wclose8</event>
+		</events>
+		<states>
+		  <state init="false">wopen8</state>
+		  <state init="true">wclosed8</state>
+		</states>
+		<transitions>
+		  <transition from="wopen8" event="wclose8" action="wclosepulse8" to="wclosed8"/>
+		  <transition from="wclosed8" event="wclose8" action="wclosepulse8" to="wclosed8"/>
+		  <transition from="wopen8" event="wopen8" action="wopenpulse8" to="wopen8"/>
+		  <transition from="wclosed8" event="wopen8" action="wopenpulse8" to="wopen8"/>
+		</transitions>
+	  </device>
+
+	  <device name="window9">
+		<events>
+			<event>wopen9</event>
+			<event>wclose9</event>
+		</events>
+		<states>
+		  <state init="false">wopen9</state>
+		  <state init="true">wclosed9</state>
+		</states>
+		<transitions>
+		  <transition from="wopen9" event="wclose9" action="wclosepulse9" to="wclosed9"/>
+		  <transition from="wclosed9" event="wclose9" action="wclosepulse9" to="wclosed9"/>
+		  <transition from="wopen9" event="wopen9" action="wopenpulse9" to="wopen9"/>
+		  <transition from="wclosed9" event="wopen9" action="wopenpulse9" to="wopen9"/>
+		</transitions>
+	  </device>
+
+	  <device name="window10">
+		<events>
+			<event>wopen10</event>
+			<event>wclose10</event>
+		</events>
+		<states>
+		  <state init="false">wopen10</state>
+		  <state init="true">wclosed10</state>
+		</states>
+		<transitions>
+		  <transition from="wopen10" event="wclose10" action="wclosepulse10" to="wclosed10"/>
+		  <transition from="wclosed10" event="wclose10" action="wclosepulse10" to="wclosed10"/>
+		  <transition from="wopen10" event="wopen10" action="wopenpulse10" to="wopen10"/>
+		  <transition from="wclosed10" event="wopen10" action="wopenpulse10" to="wopen10"/>
+		</transitions>
+	  </device>
+
+	  <device name="ac">
+		<events>
+			<event>turnoncold</event>
+			<event>turnonhot</event>
+			<event>aturnoff</event>
+		</events>
+		<states>
+		  <state init="false">coldon</state>
+		  <state init="false">hoton</state>
+		  <state init="true">aoff</state>
+		</states>
+		<transitions>
+		  <transition from="aoff" event="aturnoff" action="aoffpulse" to="aoff"/>
+		  <transition from="aoff" event="turnoncold" action="coldpulse" to="coldon"/>
+		  <transition from="aoff" event="turnonhot" action="hotpulse" to="hoton"/>
+		  <transition from="coldon" event="aturnoff" action="aoffpulse" to="aoff"/>
+		  <transition from="coldon" event="turnoncold" action="coldpulse" to="coldon"/>
+		  <transition from="coldon" event="turnonhot" action="hotpulse" to="hoton"/>
+		  <transition from="hoton" event="aturnoff" action="aoffpulse" to="aoff"/>
+		  <transition from="hoton" event="turnoncold" action="coldpulse" to="coldon"/>
+		  <transition from="hoton" event="turnonhot" action="hotpulse" to="hoton"/>
+		</transitions>
+	  </device>
+
+	</statemachines>
+</ontology>

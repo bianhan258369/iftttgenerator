@@ -151,175 +151,43 @@ public class SmartConferRoom {
 				
 				
 				//-----------
-if ((hBtnVal==0 && cBtnVal==1) && (windowBtnVal==1)){
-cBtnVal=0;
-hBtnVal=0;
-}
-if(airConditioner.getcButtonData()!=cBtnVal){
-airConditioner.addcButtonData(cBtnVal);
-}
-if(airConditioner.gethButtonData()!=hBtnVal){
-airConditioner.addhButtonData(hBtnVal);
-}
-
-
-if ((hBtnVal==1 && cBtnVal==0) && (windowBtnVal==1)){
-cBtnVal=0;
-hBtnVal=0;
-}
-if(airConditioner.getcButtonData()!=cBtnVal){
-airConditioner.addcButtonData(cBtnVal);
-}
-if(airConditioner.gethButtonData()!=hBtnVal){
-airConditioner.addhButtonData(hBtnVal);
-}
-
-
-if ((windowBtnVal==1) && (hBtnVal==1||cBtnVal==1)){
-cBtnVal=0;
-hBtnVal=0;
-}
-if(airConditioner.getcButtonData()!=cBtnVal){
-airConditioner.addcButtonData(cBtnVal);
-}
-if(airConditioner.gethButtonData()!=hBtnVal){
-airConditioner.addhButtonData(hBtnVal);
-}
-
-
-if ((proBtnVal==1)){
-windowBtnVal=0;
-}
-if(window.getWindowButtonData()!=windowBtnVal){
-window.addWindowButtonData(windowBtnVal);
-}
-
-
-if (tempeVal>20){
-cBtnVal=0;
-hBtnVal=0;
-}
-if(airConditioner.getcButtonData()!=cBtnVal){
-airConditioner.addcButtonData(cBtnVal);
-}
-if(airConditioner.gethButtonData()!=hBtnVal){
-airConditioner.addhButtonData(hBtnVal);
-}
-
-
-if (tempeVal<20 && (windowBtnVal==0)){
+if (tempeVal<20){
 hBtnVal=1;
-cBtnVal=0;
 }
 if(airConditioner.gethButtonData()!=hBtnVal){
 airConditioner.addhButtonData(hBtnVal);
 }
+
+
+if (tempeVal>==20){
+cBtnVal=1;
+hBtnVal=0;
+}
 if(airConditioner.getcButtonData()!=cBtnVal){
 airConditioner.addcButtonData(cBtnVal);
 }
-
-
-if (tempeVal>20){
-fanBtnVal=1;
-}
-if(fan.getFanButtonData()!=fanBtnVal){
-fan.addFanButtonData(fanBtnVal);
-}
-
-
-if (brightnessVal<35){
-bulbBtnVal=1;
-}
-if(bulb.getBulbButtonData()!=bulbBtnVal){
-bulb.addBulbButtonData(bulbBtnVal);
-}
-
-
-if (microDistVal<2){
-microBtnVal=1;
-}
-if(microphone.getMicroButtonData()!=microBtnVal){
-microphone.addMicroButtonData(microBtnVal);
-}
-
-
-if (proDistVal<2){
-proBtnVal=1;
-}
-if(projector.getProjButtonData()!=proBtnVal){
-projector.addProjButtonData(proBtnVal);
-}
-
-
-if (proDistVal>2){
-proBtnVal=0;
-}
-if(projector.getProjButtonData()!=proBtnVal){
-projector.addProjButtonData(proBtnVal);
-}
-
-
-if ((proBtnVal==1)){
-blindBtnVal=0;
-}
-if(blind.getBlindButtonData()!=blindBtnVal){
-blind.addBlindButtonData(blindBtnVal);
-}
-
-
-if (co2ConcentrateVal>800){
-airFreshBtnVal=1;
-}
-if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal){
-airFreshener.addAirFreshButtonData(airFreshBtnVal);
-}
-
-
-if (humidityVal<70){
-airHumBtnVal=1;
-}
-if(airHumidifier.getAirHumButtonData()!=airHumBtnVal){
-airHumidifier.addAirHumButtonData(airHumBtnVal);
-}
-
-
-if (co2ConcentrateVal<800){
-airFreshBtnVal=0;
-}
-if(airFreshener.getAirFreshButtonData()!=airFreshBtnVal){
-airFreshener.addAirFreshButtonData(airFreshBtnVal);
-}
-
-
-if (humidityVal>70){
-airHumBtnVal=0;
-}
-if(airHumidifier.getAirHumButtonData()!=airHumBtnVal){
-airHumidifier.addAirHumButtonData(airHumBtnVal);
-}
-
-
-if (microDistVal>2){
-microBtnVal=0;
-}
-if(microphone.getMicroButtonData()!=microBtnVal){
-microphone.addMicroButtonData(microBtnVal);
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
 }
 
 
 if (tempeVal<20){
-fanBtnVal=0;
+cBtnVal=0;
+hBtnVal=0;
 }
-if(fan.getFanButtonData()!=fanBtnVal){
-fan.addFanButtonData(fanBtnVal);
+if(airConditioner.getcButtonData()!=cBtnVal){
+airConditioner.addcButtonData(cBtnVal);
+}
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
 }
 
 
-if (brightnessVal>35){
-bulbBtnVal=0;
+if (tempeVal>==20){
+hBtnVal=0;
 }
-if(bulb.getBulbButtonData()!=bulbBtnVal){
-bulb.addBulbButtonData(bulbBtnVal);
+if(airConditioner.gethButtonData()!=hBtnVal){
+airConditioner.addhButtonData(hBtnVal);
 }
 
 

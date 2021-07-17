@@ -4,11 +4,17 @@ import com.example.bianhan.iftttgenerator.configuration.PathConfiguration;
 import com.example.bianhan.iftttgenerator.pojo.*;
 import com.example.bianhan.iftttgenerator.service.IFTTTService;
 import net.sf.json.JSONObject;
+import org.apache.tomcat.jni.Time;
 import org.dom4j.DocumentException;
+import org.java_websocket.WebSocket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.net.URI;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.*;
 
@@ -216,16 +222,18 @@ public class ComputeUtil {
         else return null;
     }
 
-    public static List<Requirement> initRequirements(List<String> inputRequirements) throws IOException, DocumentException {
+    public static List<Requirement> initRequirements(List<String> inputRequirements) {
         List<Requirement> requirements = new ArrayList<>();
         for (String requirement : inputRequirements) {
             requirement = requirement.trim();
+            String room = requirement.contains(":") ? requirement.split(":")[0] : "home";
+            if(requirement.contains(":")) requirement = requirement.split(":")[1];
             //empty
-            if(requirement.equals("")) continue;
+            if(requirement.equals("") || requirement.indexOf(" ") == -1) continue;
             //OccurenceRequirement
             else if(requirement.contains("OCCUR TOGETHER")){
                 List<String> deviceStates = Arrays.asList(requirement.split(" SHOULD ")[0].split(","));
-                requirements.add(new OccurenceRequirement(requirement, deviceStates));
+                requirements.add(new OccurenceRequirement(requirement, room, deviceStates));
             }
             //AlwaysNeverRequirement
             else if(requirement.contains("ALWAYS") || requirement.contains("NEVER")){
@@ -234,18 +242,18 @@ public class ComputeUtil {
                     String attribute = requirement.split(" ")[0];
                     String relation = requirement.contains("ABOVE") ? "ABOVE" : "BELOW";
                     int value = Integer.parseInt(requirement.split(" ")[5]);
-                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, attribute, relation, value));
+                    requirements.add(new AlwaysNeverRequirement(requirement, room, alwaysNever, attribute, relation, value));
                 }
                 else if(requirement.contains("ACTIVE") || requirement.contains("HAPPEN")){
                     String deviceEventOrState = requirement.split(" SHOULD ")[0];
-                    requirements.add(new AlwaysNeverRequirement(requirement, alwaysNever, deviceEventOrState));
+                    requirements.add(new AlwaysNeverRequirement(requirement, room, alwaysNever, deviceEventOrState));
                 }
             }
             //PreferredRequirement
             else if(requirement.contains("PREFERRED")){
                 String attribute = requirement.split(" ")[1];
                 int value = Integer.parseInt(requirement.split(" ")[3]);
-                requirements.add(new PreferredRequirement(requirement, attribute, value));
+                requirements.add(new PreferredRequirement(requirement, room, attribute, value));
             }
             //TriggerActionRequirement
             else if(requirement.contains("IF") && requirement.contains("THEN")){
@@ -253,13 +261,14 @@ public class ComputeUtil {
                 String trigger = tempRequirement.contains(" FOR ") ? tempRequirement.split(" THEN ")[0].split(" FOR ")[0] : tempRequirement.split(" THEN ")[0];
                 String action = tempRequirement.split(" THEN ")[1];
                 String time = tempRequirement.contains(" FOR ") ? tempRequirement.split(" THEN ")[0].split(" FOR ")[1] : null;
-                requirements.add(new TriggerActionRequirement(requirement, trigger, action, time));
+                requirements.add(new TriggerActionRequirement(requirement, room, trigger, action, time));
             }
         }
         return requirements;
     }
 
     public static List<List<IfThenRequirement>> computeIfThenRequirements(List<Requirement> requirements, Map<String, String> effectMap, String ontologyPath) throws IOException, DocumentException {
+        if(requirements == null || requirements.size() == 0) return null;
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         List<Device> devices = eo.getDevicesAffectingEnvironment();
         List<List<IfThenRequirement>> results = new ArrayList<>();
@@ -267,7 +276,9 @@ public class ComputeUtil {
         List<IfThenRequirement> saveEnergy = new ArrayList<>();
         List<IfThenRequirement> bestPerformance = new ArrayList<>();
         for (Requirement requirement : requirements) {
+//            if(requirement.getRequirement().indexOf(" ") == -1) continue;
             String originalRequirement = requirement.getRequirement();
+            String room = requirement.getRoom();
             //AlwaysNeverRequirement
             if(requirement instanceof AlwaysNeverRequirement){
                 AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
@@ -296,16 +307,16 @@ public class ComputeUtil {
                                             triggers.add(attribute + "<" + value);
                                             actions.add(device.getDeviceName() + "." + state);
                                             if(randomAddFlag){
-                                                random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                                random.add(new IfThenRequirement(room, triggers, actions, null, originalRequirement));
                                                 randomAddFlag = false;
                                             }
                                             if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
                                                 maxRate = Math.abs(monitoredEntity.getAdjustRate());
-                                                maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                                maxRateReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                             }
                                             if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
                                                 minEnergy = Math.abs(monitoredEntity.getEnergy());
-                                                minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                                minEnergyReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                             }
                                         }
                                         else if(monitoredEntity.getAdjustRate() < 0 && alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS") && alwaysNeverRequirement.getRelation().equals("BELOW")
@@ -313,16 +324,16 @@ public class ComputeUtil {
                                             triggers.add(attribute + ">" + value);
                                             actions.add(device.getDeviceName() + "." + state);
                                             if(randomAddFlag){
-                                                random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                                random.add(new IfThenRequirement(room, triggers, actions, null, originalRequirement));
                                                 randomAddFlag = false;
                                             }
                                             if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
                                                 maxRate = Math.abs(monitoredEntity.getAdjustRate());
-                                                maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                                maxRateReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                             }
                                             if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
                                                 minEnergy = Math.abs(monitoredEntity.getEnergy());
-                                                minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                                minEnergyReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                             }
                                         }
                                     }
@@ -359,16 +370,16 @@ public class ComputeUtil {
                                     triggers.add(attribute + "<" + value);
                                     actions.add(device.getDeviceName() + "." + state);
                                     if(randomAddFlag){
-                                        random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        random.add(new IfThenRequirement(room, triggers, actions, null, originalRequirement));
                                         randomAddFlag = false;
                                     }
                                     if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
                                         maxRate = Math.abs(monitoredEntity.getAdjustRate());
-                                        maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                        maxRateReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                     }
                                     if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
                                         minEnergy = Math.abs(monitoredEntity.getEnergy());
-                                        minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                        minEnergyReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                     }
                                 }
                             }
@@ -398,16 +409,16 @@ public class ComputeUtil {
                                     triggers.add(attribute + ">=" + value);
                                     actions.add(device.getDeviceName() + "." + state);
                                     if(randomAddFlag){
-                                        random.add(new IfThenRequirement(triggers, actions, null, originalRequirement));
+                                        random.add(new IfThenRequirement(room, triggers, actions, null, originalRequirement));
                                         randomAddFlag = false;
                                     }
                                     if(Math.abs(monitoredEntity.getAdjustRate()) > maxRate){
                                         maxRate = Math.abs(monitoredEntity.getAdjustRate());
-                                        maxRateReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                        maxRateReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                     }
                                     if(Math.abs(monitoredEntity.getEnergy()) < minEnergy){
                                         minEnergy = Math.abs(monitoredEntity.getEnergy());
-                                        minEnergyReq = new IfThenRequirement(triggers, actions, null, originalRequirement);
+                                        minEnergyReq = new IfThenRequirement(room, triggers, actions, null, originalRequirement);
                                     }
                                 }
                             }
@@ -499,9 +510,9 @@ public class ComputeUtil {
                         triggers = Arrays.asList(trigger.split(" AND "));
                         if (action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
-                        random.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
-                        saveEnergy.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
-                        bestPerformance.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        random.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
                     } else if (trigger.contains(" OR ")) {
                         for (int i = 0; i < trigger.split(" OR ").length; i++) {
                             List<String> triggers = new ArrayList<>();
@@ -509,9 +520,9 @@ public class ComputeUtil {
                             triggers.add(trigger.split(" OR ")[i]);
                             if (action.contains(",")) actions = Arrays.asList(action.split(","));
                             else actions.add(action);
-                            random.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
-                            saveEnergy.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
-                            bestPerformance.add(new IfThenRequirement(triggers, actions, time,originalRequirement));
+                            random.add(new IfThenRequirement(room, triggers, actions, time,originalRequirement));
+                            saveEnergy.add(new IfThenRequirement(room, triggers, actions, time,originalRequirement));
+                            bestPerformance.add(new IfThenRequirement(room, triggers, actions, time,originalRequirement));
                         }
                     } else {
                         List<String> triggers = new ArrayList<>();
@@ -519,9 +530,9 @@ public class ComputeUtil {
                         triggers.add(trigger);
                         if (action.contains(",")) actions = Arrays.asList(action.split(","));
                         else actions.add(action);
-                        random.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
-                        saveEnergy.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
-                        bestPerformance.add(new IfThenRequirement(triggers, actions, time, originalRequirement));
+                        random.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(room, triggers, actions, time, originalRequirement));
                     }
                 }
                 else {
@@ -537,9 +548,9 @@ public class ComputeUtil {
                         else saveEnergyActions.add(saveEnergyAction);
                         if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
                         else bestPerformanceActions.add(bestPerformanceAction);
-                        random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
-                        saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
-                        bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                        random.add(new IfThenRequirement(room, triggers, randomActions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(room, triggers, saveEnergyActions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(room, triggers, bestPerformanceActions, time, originalRequirement));
                     } else if (trigger.contains(" OR ")) {
                         for (int i = 0; i < trigger.split(" OR ").length; i++) {
                             List<String> triggers = new ArrayList<>();
@@ -553,9 +564,9 @@ public class ComputeUtil {
                             else saveEnergyActions.add(saveEnergyAction);
                             if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
                             else bestPerformanceActions.add(bestPerformanceAction);
-                            random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
-                            saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
-                            bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                            random.add(new IfThenRequirement(room, triggers, randomActions, time, originalRequirement));
+                            saveEnergy.add(new IfThenRequirement(room, triggers, saveEnergyActions, time, originalRequirement));
+                            bestPerformance.add(new IfThenRequirement(room, triggers, bestPerformanceActions, time, originalRequirement));
                         }
                     } else {
                         List<String> triggers = new ArrayList<>();
@@ -569,9 +580,9 @@ public class ComputeUtil {
                         else saveEnergyActions.add(saveEnergyAction);
                         if (bestPerformanceAction.contains(",")) bestPerformanceActions = Arrays.asList(bestPerformanceAction.split(","));
                         else bestPerformanceActions.add(bestPerformanceAction);
-                        random.add(new IfThenRequirement(triggers, randomActions, time, originalRequirement));
-                        saveEnergy.add(new IfThenRequirement(triggers, saveEnergyActions, time, originalRequirement));
-                        bestPerformance.add(new IfThenRequirement(triggers, bestPerformanceActions, time, originalRequirement));
+                        random.add(new IfThenRequirement(room, triggers, randomActions, time, originalRequirement));
+                        saveEnergy.add(new IfThenRequirement(room, triggers, saveEnergyActions, time, originalRequirement));
+                        bestPerformance.add(new IfThenRequirement(room, triggers, bestPerformanceActions, time, originalRequirement));
                     }
                 }
             }
@@ -586,10 +597,12 @@ public class ComputeUtil {
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> effectMap = computeEffectMap();
         List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+        if(initRequirements(requirements).size() == 0) return new ArrayList<>();
         List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
         List<String> reverseRequirements = new ArrayList<>();
-        Map<String, List<String>> triggerAndDeviceMappingToStates = new HashMap<>();
+        Map<String, List<String>> roomAndTriggerAndDeviceMappingToStates = new HashMap<>();
         for(IfThenRequirement requirement : ifThenRequirements){
+            String room = requirement.getRoom();
             if(requirement.getTime() == null && requirement.getTriggerList().size() == 1){
                 List<String> actions = requirement.getActionList();
                 String trigger = requirement.getTriggerList().get(0);
@@ -599,27 +612,28 @@ public class ComputeUtil {
                     String relation = computeRelation(trigger);
                     if(relation.equals("")) attritbueOrTriggerDevice = trigger.split("\\.")[0];
                     else attritbueOrTriggerDevice = trigger.split(relation)[0];
-                    String triggerAndDeviceName = attritbueOrTriggerDevice + "//" + action.split("\\.")[0];
+                    String roomAndTriggerAndDeviceName = room + "//" + attritbueOrTriggerDevice + "//" + action.split("\\.")[0];
                     String temp = action.split("\\.")[1];
                     String state = eo.getEvents().contains(temp) ? eo.getEventMappingToState().get(temp) : temp;
-                    if(!triggerAndDeviceMappingToStates.containsKey(triggerAndDeviceName)) triggerAndDeviceMappingToStates.put(triggerAndDeviceName, new ArrayList<>());
-                    if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(state)) triggerAndDeviceMappingToStates.get(triggerAndDeviceName).add(state);
+                    if(!roomAndTriggerAndDeviceMappingToStates.containsKey(roomAndTriggerAndDeviceName)) roomAndTriggerAndDeviceMappingToStates.put(roomAndTriggerAndDeviceName, new ArrayList<>());
+                    if(!roomAndTriggerAndDeviceMappingToStates.get(roomAndTriggerAndDeviceName).contains(state)) roomAndTriggerAndDeviceMappingToStates.get(roomAndTriggerAndDeviceName).add(state);
                 }
             }
         }
         List<String> devicesShouldBeRefined = new ArrayList<>();
-        Iterator it = triggerAndDeviceMappingToStates.keySet().iterator();
+        Iterator it = roomAndTriggerAndDeviceMappingToStates.keySet().iterator();
         while (it.hasNext()){
-            String triggerAndDeviceName = (String) it.next();
-            String deviceName = triggerAndDeviceName.split("//")[1];
-            if(!triggerAndDeviceMappingToStates.get(triggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(triggerAndDeviceName);
+            String roomAndTriggerAndDeviceName = (String) it.next();
+            String deviceName = roomAndTriggerAndDeviceName.split("//")[2];
+            if(!roomAndTriggerAndDeviceMappingToStates.get(roomAndTriggerAndDeviceName).contains(eo.getDeviceMappingToInitState().get(deviceName))) devicesShouldBeRefined.add(roomAndTriggerAndDeviceName);
         }
-        for(String triggerAndDeviceName : devicesShouldBeRefined){
-            String triggerAttrubute = triggerAndDeviceName.split("//")[0];
-            String deviceName = triggerAndDeviceName.split("//")[1];
+        for(String roomAndTriggerAndDeviceName : devicesShouldBeRefined){
+            String room = roomAndTriggerAndDeviceName.split("//")[0];
+            String triggerAttrubute = roomAndTriggerAndDeviceName.split("//")[1];
+            String deviceName = roomAndTriggerAndDeviceName.split("//")[2];
             Map<String, List<String>> attributeMappingToValue = new HashMap<>();//[air.temperature->(>30,<10)]
             for(IfThenRequirement requirement : ifThenRequirements){
-                if(requirement.getTime() == null){
+                if(requirement.getTime() == null && requirement.getRoom().equals(room)){
                     List<String> actions = requirement.getActionList();
                     for(String action : actions){
                         if(action.split("\\.")[0].equals(deviceName) && requirement.getTriggerList().size() == 1){
@@ -649,11 +663,10 @@ public class ComputeUtil {
             List<String> triggers = computeReverseRange(values);
             if(triggers.size() > 0 && attribute != null && !attribute.trim().equals("")){
                 for(String trigger : triggers){
-                    reverseRequirements.add("IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
+                    reverseRequirements.add(room + ":IF " + attribute + trigger + " THEN " + deviceName + "." + eo.getDeviceMappingToInitState().get(deviceName));
                 }
             }
         }
-
         return reverseRequirements;
     }
 
@@ -669,10 +682,12 @@ public class ComputeUtil {
         return complementedRequirements;
     }
 
-        public static JSONObject toFunctionalRequirements(String requirementTexts, String ontologyPath, int index, String complementedRequirements) throws IOException, DocumentException, InterruptedException {
+    public static JSONObject toFunctionalRequirements(String requirementTexts, String ontologyPath, int index, String complementedRequirements) throws IOException, DocumentException, InterruptedException {
+//        System.out.println(requirementTexts);
         JSONObject jsonObject = new JSONObject();
         List<IfThenRequirement> ifThenRequirementList = new ArrayList<>();
         List<String> functionalRequirements = new ArrayList<>();
+        List<String> functionalRequirementsWithAreas = new ArrayList<>();
         EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
         Map<String, String> effectMap = computeEffectMap();
 
@@ -752,6 +767,7 @@ public class ComputeUtil {
         List<String> functionalAndNonfunctionalRequirements = new ArrayList<>();
         boolean flag = false;
         for(Requirement requirement : requirements){
+            String room = requirement.getRoom();
             if(requirement instanceof AlwaysNeverRequirement){
                 String req = "";
                 AlwaysNeverRequirement alwaysNeverRequirement = (AlwaysNeverRequirement) requirement;
@@ -766,11 +782,11 @@ public class ComputeUtil {
                     String deviceState = device + "." + eventOrState;
                     req = req + getPythonFromJava(deviceState.trim().toLowerCase());
                     if(alwaysNeverRequirement.getAlwaysNever().equals("ALWAYS")){
-                        req = req + " SHOULD ALWAYS BE ACTIVE";
+                        req = room + ":" + req + " SHOULD ALWAYS BE ACTIVE";
                         functionalAndNonfunctionalRequirements.add(req);
                     }
                     else {
-                        req = req + " SHOULD NEVER HAPPEN";
+                        req = room + ":" + req + " SHOULD NEVER HAPPEN";
                         functionalAndNonfunctionalRequirements.add(req);
                     }
                 }
@@ -784,13 +800,13 @@ public class ComputeUtil {
                     req = req + getPythonFromJava(deviceStates.get(i).trim().toLowerCase());
                     if(i != deviceStates.size() - 1) req = req + ",";
                 }
-                req = req + " SHOULD NEVER OCCUR TOGETHER";
+                req = room + ":" + req + " SHOULD NEVER OCCUR TOGETHER";
                 functionalAndNonfunctionalRequirements.add(req);
             }
         }
 
         for(IfThenRequirement requirement : ifThenRequirements){
-            String time = requirement.getTime();
+            String room = requirement.getRoom();
             if(true){
                 for(int i = 0;i < requirement.getActionList().size();i++){
                     String deviceAndState = "";
@@ -807,14 +823,14 @@ public class ComputeUtil {
                     conditions.remove(0);
                     String autotapTrigger = getPythonFromJava(trigger);
                     String autotapAction = getPythonFromJava(deviceAndState);
-                    if(conditions.size() == 0) functionalAndNonfunctionalRequirements.add("IF " + autotapTrigger + " THEN " + autotapAction);
+                    if(conditions.size() == 0) functionalAndNonfunctionalRequirements.add(room + ":IF " + autotapTrigger + " THEN " + autotapAction);
                     else {
                         String autotapCondition = "";
                         for(int j = 0;j< conditions.size();j++){
                             autotapCondition = autotapCondition + conditions.get(j);
                             if(j != conditions.size() - 1) autotapCondition = autotapCondition + ",";
                         }
-                        functionalAndNonfunctionalRequirements.add("IF " + autotapTrigger + " WHILE " + autotapCondition + " THEN " + autotapAction);
+                        functionalAndNonfunctionalRequirements.add(room + ":IF " + autotapTrigger + " WHILE " + autotapCondition + " THEN " + autotapAction);
                     }
                 }
             }
@@ -843,6 +859,8 @@ public class ComputeUtil {
                 InputStream es = proc.getErrorStream();
                 br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
                 while ((line = br.readLine()) != null) {
+                    String room = line.split(":")[0];
+                    line = line.split(":")[1];
                     String req = "";
                     String trigger = "";
                     String action = "";
@@ -890,6 +908,7 @@ public class ComputeUtil {
                     }
                     req = "IF " + trigger + " THEN " + action;
                     functionalRequirements.add(req);
+                    functionalRequirementsWithAreas.add(room + ":" + req);
                     boolean matchFlag = false;
                     for(IfThenRequirement ifThenRequirement : ifThenRequirements){
                         String originalTrigger = ifThenRequirement.getTriggerList().get(0);
@@ -917,7 +936,7 @@ public class ComputeUtil {
                         if(matchFlag){
                             List<String> functionalActions = new ArrayList<>();
                             functionalActions.add(functionalAction);
-                            ifThenRequirementList.add(new IfThenRequirement(functionalTriggers, functionalActions ,null ,ifThenRequirement.getExpectation()));
+                            ifThenRequirementList.add(new IfThenRequirement(room,functionalTriggers, functionalActions ,null ,ifThenRequirement.getExpectation()));
                             break;
                         }
                     }
@@ -980,13 +999,20 @@ public class ComputeUtil {
             for(IfThenRequirement ifThenRequirement : ifThenRequirements){
                 ifThenRequirementList.add(ifThenRequirement);
                 functionalRequirements.add(ifThenRequirement.getIfThenClause());
+                functionalRequirementsWithAreas.add(ifThenRequirement.getRoom() + ":" + ifThenRequirement.getIfThenClause());
             }
         }
-        List<Requirement> tempRequirements = initRequirements(Arrays.asList(complementedRequirements.split("//")));
-        List<IfThenRequirement> tempIfThenRequirements = computeIfThenRequirements(tempRequirements, effectMap, ontologyPath).get(index);
-        ifThenRequirementList.addAll(tempIfThenRequirements);
+        List<Requirement> tempRequirements = new ArrayList<>();
+        if(complementedRequirements!= null && complementedRequirements.length()>0){
+            tempRequirements = initRequirements(Arrays.asList(complementedRequirements.split("//")));
+            List<IfThenRequirement> tempIfThenRequirements = computeIfThenRequirements(tempRequirements, effectMap, ontologyPath).get(index);
+            ifThenRequirementList.addAll(tempIfThenRequirements);
+        }
         jsonObject.put("functionalRequirements",functionalRequirements);
         jsonObject.put("ifThenRequirements", ifThenRequirementList);
+        jsonObject.put("functionalRequirementsWithAreas", functionalRequirementsWithAreas);
+//        long endTime = System.currentTimeMillis();
+//        System.out.println("time : " + (endTime - startTime));
         return jsonObject;
     }
 
@@ -1094,6 +1120,183 @@ public class ComputeUtil {
         return  result;
     }
 
+//    public static void writeAutomationsYAML(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException {
+//        Map<String, String> effectMap = computeEffectMap();
+//        List<String> requirements = Arrays.asList(requirementTexts.split("//"));
+//        List<IfThenRequirement> ifThenRequirements = computeIfThenRequirements(initRequirements(requirements), effectMap, ontologyPath).get(index);
+//        Map<String, NumericSensor> numericSensorMap = new HashMap<>();
+//        Map<String, BinarySensor> binarySensorMap = new HashMap<>();
+//        Map<String, DeviceRegistryItem> deviceRegistryItemMap = new HashMap<>();
+//        List <Entity> entities = new ArrayList<>();
+//        BufferedReader br = new BufferedReader(new FileReader("device_registry.txt"));
+//        String line = "";
+//        while ((line = br.readLine()) != null){
+//            if(line.startsWith("s:") && line.contains("binary")){
+//                String[] splits = line.split("->");
+//                binarySensorMap.put(splits[2], new BinarySensor(line));
+//            }
+//            else if(line.startsWith("s:") && line.contains("numeric")){
+//                String[] splits = line.split("->");
+//                numericSensorMap.put(splits[2], new NumericSensor(line));
+//            }
+//            else if(line.startsWith("d:")){
+//                String[] splits = line.split("->");
+//                deviceRegistryItemMap.put(splits[1], new DeviceRegistryItem(line));
+//            }
+//        }
+//        br = new BufferedReader(new FileReader("personal_device.txt"));
+//        while ((line = br.readLine()) != null){
+//            Entity entity = new Entity(line);
+//            entities.add(entity);
+//        }
+//        BufferedWriter bw = new BufferedWriter(new FileWriter(AUTOMATIONSYAMLPATH));
+//        for(int i = 0;i < ifThenRequirements.size();i++){
+//            IfThenRequirement ifThenRequirement = ifThenRequirements.get(i);
+//            String id = UUID.randomUUID().toString();
+//            bw.write("- id: " + "\'" + id +"\'");
+//            bw.newLine();
+//            bw.write("  alias: auto_" + id);
+//            bw.newLine();
+//            bw.write("  description: " + ifThenRequirement.getIfThenClause());
+//            bw.newLine();
+//            bw.write("  trigger:");
+//            bw.newLine();
+//            List<String> triggerList = ifThenRequirement.getTriggerList();
+//            String time = ifThenRequirement.getTime();
+//            //write trigger
+//            for(String trigger : triggerList){
+//                String relation = computeRelation(trigger);
+//                //device state trigger
+//                if(relation.equals("")){
+//                    //TODO
+//                    String domain = trigger.split("\\.")[0];
+//                    String state = trigger.split("\\.")[1];
+//                    DeviceRegistryItem deviceRegistryItem = deviceRegistryItemMap.get(state);
+//                    bw.write("  - platform: device");
+//                    bw.newLine();
+//                    bw.write("    type: " + deviceRegistryItem.getType());
+//                    bw.newLine();
+//                    for(Entity entity : entities){
+//                        if(entity.getDomainOrDeviceClass().equals(deviceRegistryItem.getDomain())){
+//                            bw.write("    device_id: " + entity.getDevice_id());
+//                            bw.newLine();
+//                            bw.write("    entity_id: " + entity.getEntity_id());
+//                            bw.newLine();
+//                            bw.write("    domain: " + entity.getDomainOrDeviceClass());
+//                            bw.newLine();
+//                            break;
+//                        }
+//                    }
+//                }
+//                //attribute value trigger
+//                else {
+//                    String monitor = trigger.split(relation)[0];
+//                    String value = trigger.split(relation)[1];
+//                    //binary sensor trigger
+//                    if(binarySensorMap.containsKey(monitor)){
+//                        BinarySensor binarySensor = binarySensorMap.get(monitor);
+//                        if(relation.equals("=")){
+//                            if(value.equals("0")) bw.write("  - type: " + binarySensor.getFalseValue());
+//                            else bw.write("  - type: " + binarySensor.getTrueValue());
+//                        }
+//                        else if(relation.equals("!=")){
+//                            if(value.equals("0")) bw.write("  - type: " + binarySensor.getTrueValue());
+//                            else bw.write("  - type: " + binarySensor.getFalseValue());
+//                        }
+//                        bw.newLine();
+//                        bw.write("    platform: device");
+//                        bw.newLine();
+//                        for (Entity entity : entities){
+//                            if(entity.getDomainOrDeviceClass().equals(binarySensor.getType())){
+//                                bw.write("    device_id: " + entity.getDevice_id());
+//                                bw.newLine();
+//                                bw.write("    entity_id: " + entity.getEntity_id());
+//                                bw.newLine();
+//                                break;
+//                            }
+//                        }
+//                        bw.write("    domain: binary_sensor");
+//                        bw.newLine();
+//                    }
+//                    //numeric sensor trigger
+//                    else if(numericSensorMap.containsKey(monitor)){
+//                        NumericSensor numericSensor = numericSensorMap.get(monitor);
+//                        bw.write("  - type: " + numericSensor.getType());
+//                        bw.newLine();
+//                        bw.write("    platform: device");
+//                        bw.newLine();
+//                        for (Entity entity : entities){
+//                            if(entity.getDomainOrDeviceClass().equals(numericSensor.getType())){
+//                                bw.write("    device_id: " + entity.getDevice_id());
+//                                bw.newLine();
+//                                bw.write("    entity_id: " + entity.getEntity_id());
+//                                bw.newLine();
+//                                break;
+//                            }
+//                        }
+//                        bw.write("    domain: sensor");
+//                        bw.newLine();
+//                        if(relation.equals(">") || relation.equals(">=")) bw.write("    above: " + value);
+//                        else bw.write("    below: " + value);
+//                        bw.newLine();
+//                    }
+//                }
+//                if(time != null){
+//                    bw.write("    for:");
+//                    bw.newLine();
+//                    //hour
+//                    if(time.contains("h")) bw.write("      hours: " + time.substring(0, time.length() - 1));
+//                    else bw.write("      hours: 0");
+//                    bw.newLine();
+//                    //minute
+//                    if (time.contains("m")) bw.write("      minutes: " + time.substring(0, time.length() - 1));
+//                    else bw.write("      minutes: 0");
+//                    bw.newLine();
+//                    //second
+//                    if (time.contains("s")) bw.write("      seconds: " + time.substring(0, time.length() - 1));
+//                    else bw.write("      seconds: 0");
+//                    bw.newLine();
+//                    //millionseconds
+//                    bw.write("      milliseconds: 0");
+//                    bw.newLine();
+//                }
+//            }
+//            bw.write("  condition: []");
+//            bw.newLine();
+//            bw.write("  action:");
+//            bw.newLine();
+//            List<String> actironList = ifThenRequirement.getActionList();
+//            if(actironList.size() > 1) {
+//                //TODO
+//            }
+//
+//
+//            else {
+//                String action = actironList.get(0);
+//                String state = action.split("\\.")[1];
+//                DeviceRegistryItem deviceRegistryItem = deviceRegistryItemMap.get(state);
+//                bw.write("  - service: " + deviceRegistryItem.getType() + "." + deviceRegistryItem.getService());
+//                bw.newLine();
+//                bw.write("    target:");
+//                bw.newLine();
+//                for(Entity entity : entities){
+//                    if(entity.getDomainOrDeviceClass().equals(deviceRegistryItem.getType())){
+//                        bw.write("      entity_id: " + entity.getEntity_id());
+//                        bw.newLine();
+//                        break;
+//                    }
+//                }
+//            }
+//            bw.write("  mode: single");
+//            bw.newLine();
+//            bw.flush();
+//        }
+//
+//        String cmd = "python3 " + HAPATH;
+//        System.out.println(cmd);
+//        Runtime.getRuntime().exec(cmd);
+//    }
+
 
     public static String modifyDot(String dot){
         dot = dot.replaceAll("S:","");
@@ -1126,9 +1329,77 @@ public class ComputeUtil {
 //        bw.close();
 //    }
 
-    public static void main(String[] args) throws IOException, DocumentException {
-        String ontologyPath = "ontology_SmartConferenceRoom.xml";
-        String requirementTexts = "IF air.temperature<30 THEN ac.coldon//IF air.temperature>10 THEN ac.hoton//IF light.brightness<35 THEN bulb.bon//IF air.humidity<70 THEN ah.ahon";
-        System.out.println(computeResources(requirementTexts, ontologyPath,0));
+    public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
+        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+        List<String> entityIds = new ArrayList<>();
+        Set<String> device_domain_set = new HashSet<>();
+        Set<String> binary_sensor_device_class_set = new HashSet<>();
+        Set<String> numeric_sensor_device_class_set = new HashSet<>();
+
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
+        String line = "";
+        while ((line = br.readLine()) != null){
+            if(line.startsWith("d:")) device_domain_set.add(line.substring(2).split("->")[0]);
+            else if(line.startsWith("s:binary")) binary_sensor_device_class_set.add(line.split("->")[1]);
+            else if(line.startsWith("s:numeric")) numeric_sensor_device_class_set.add(line.split("->")[1]);
+        }
+
+        WebSocketClient client = new WebSocketClient(uri){
+            @Override
+            public void onOpen(ServerHandshake handshakedata) {
+                System.out.println("open!");
+            }
+
+            @Override
+            public void onMessage(String message) {
+                JSONObject result = JSONObject.fromObject(message);
+                if(result.getBoolean("success") && result.getInt("id") == 2){
+                    for(int i = 0;i < result.getJSONArray("result").size();i++){
+                        JSONObject json = (JSONObject) result.getJSONArray("result").get(i);
+                        String entity_id = json.getString("entity_id");
+                        String domain = entity_id.split("\\.")[0];
+//                        String currentState = json.getString("state");
+                        JSONObject attributes = json.getJSONObject("attributes");
+                        String device_class = attributes.containsKey("device_class")? attributes.getString("device_class") : null;
+                        if(device_domain_set.contains(domain)) entityIds.add(entity_id);
+                        else if(domain.equals("binary_sensor") && binary_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
+                        else if(domain.equals("sensor") && numeric_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
+                    }
+                }
+            }
+
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
+                System.out.println("close!");
+            }
+
+            @Override
+            public void onError(Exception ex) {
+
+            }
+        };
+
+        client.connect();
+        while(!client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
+            Thread.sleep(10);
+        }
+        JSONObject auth = new JSONObject();
+        auth.put("type", "auth");
+        auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
+        client.send(auth.toString());
+
+        JSONObject states = new JSONObject();
+        states.put("id", 2);
+        states.put("type", "get_states");
+        client.send(states.toString());
+
+        while (entityIds.size() == 0){
+            Thread.sleep(10);
+        }
+        client.close();
+        System.out.println(entityIds.size());
+        System.out.println(entityIds);
     }
+
+
 }

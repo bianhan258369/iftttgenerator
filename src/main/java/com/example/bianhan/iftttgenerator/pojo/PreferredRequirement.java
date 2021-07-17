@@ -22,4 +22,10 @@ public class PreferredRequirement extends Requirement {
         this.attribute = attribute;
         this.value = value;
     }
+
+    public PreferredRequirement(String requirement, String room, String attribute, int value) {
+        super(requirement, room);
+        this.attribute = attribute;
+        this.value = value;
+    }
 }
