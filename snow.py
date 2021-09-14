@@ -12,6 +12,7 @@ import webbrowser
 from fetchToken import fetch_token
 import time
 import unicodedata
+import uploadFile
 
 IS_PY3 = sys.version_info.major == 3
 if IS_PY3:
@@ -126,6 +127,7 @@ def my_record():
             string_audio_data = stream.read(num_samples)
             my_buf.append(string_audio_data)
             save_wave_file(FILEPATH, my_buf)
+        uploadFile(FILEPATH)
         speech = get_audio(FILEPATH)
         result = speech2text(speech, TOKEN, int(80001))
         text = result
@@ -133,7 +135,9 @@ def my_record():
         if text == '' : text = '再见。'
         if text != '再见。':
             try:
-                eRequirement = c2e(text).strip()
+                r = retrieval.Retrieval()
+                text_modified = r.retrieve(text)
+                eRequirement = c2e(text_modified).strip()
                 print(eRequirement)
                 requirementTexts = requirementTexts + eRequirement + '//'
                 play(music_listen)
