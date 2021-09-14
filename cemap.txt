@@ -33,7 +33,5 @@
 门关闭->door.open=0
 有人->person.in=1
 没人->person.in=0
-窗打开->window.wopen
-窗关闭->window.wclosed
 窗户打开->window.wopen
 窗户关闭->window.wclosed
