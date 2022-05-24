@@ -7,6 +7,7 @@
 		<attribute name="co2.ppm" fluctuation="30"/>
 		<attribute name="light.brightness" fluctuation="50"/>
 		<attribute name="person.in"/>
+		<attribute name="door.open"/>
 	</environment>
 	<devices>
 		<device name="light">
@@ -101,6 +102,22 @@
 		  <transition from="hoff" event="hturnoff" action="hoffpulse" to="hoff"/>
 		  <transition from="hon" event="hturnon" action="honpulse" to="hon"/>
 		  <transition from="hoff" event="hturnon" action="honpulse" to="hon"/>
+		</transitions>
+	  </device>
+	  <device name="vacuum">
+		<events>
+			<event>vturnon</event>
+			<event>vturnoff</event>
+		</events>
+		<states>
+		  <state init="false">von</state>
+		  <state init="true">voff</state>
+		</states>
+		<transitions>
+		  <transition from="von" event="vturnoff" action="voffpulse" to="voff"/>
+		  <transition from="voff" event="vturnoff" action="voffpulse" to="voff"/>
+		  <transition from="von" event="vturnon" action="vonpulse" to="von"/>
+		  <transition from="voff" event="vturnon" action="vonpulse" to="von"/>
 		</transitions>
 	  </device>
 	</statemachines>

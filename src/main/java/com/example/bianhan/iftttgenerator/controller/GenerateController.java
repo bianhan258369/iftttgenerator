@@ -11,7 +11,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.activation.MimetypesFileTypeMap;
+//import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
@@ -290,22 +290,22 @@ public class GenerateController {
         haService.writeAutomations(requirementTexts, ontologyPath, index);
     }
 
-    @CrossOrigin
-    @RequestMapping("/downloadOntology")
-    public void downloadOntology() throws IOException {
-        String filePath = "ontology_SmartConferenceRoom.xml";
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletResponse response = requestAttributes.getResponse();
-        // 设置信息给客户端不解析
-        String type = new MimetypesFileTypeMap().getContentType(filePath);
-        // 设置contenttype，即告诉客户端所发送的数据属于什么类型
-        response.setHeader("Content-type",type);
-        // 设置编码
-        String hehe = new String(filePath.getBytes("utf-8"), "iso-8859-1");
-        // 设置扩展头，当Content-Type 的类型为要下载的类型时 , 这个信息头会告诉浏览器这个文件的名字和类型。
-        response.setHeader("Content-Disposition", "attachment;filename=" + hehe);
-        FileUtil.download(filePath, response);
-    }
+//    @CrossOrigin
+//    @RequestMapping("/downloadOntology")
+//    public void downloadOntology() throws IOException {
+//        String filePath = "ontology_SmartConferenceRoom.xml";
+//        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+//        HttpServletResponse response = requestAttributes.getResponse();
+//        // 设置信息给客户端不解析
+//        String type = new MimetypesFileTypeMap().getContentType(filePath);
+//        // 设置contenttype，即告诉客户端所发送的数据属于什么类型
+//        response.setHeader("Content-type",type);
+//        // 设置编码
+//        String hehe = new String(filePath.getBytes("utf-8"), "iso-8859-1");
+//        // 设置扩展头，当Content-Type 的类型为要下载的类型时 , 这个信息头会告诉浏览器这个文件的名字和类型。
+//        response.setHeader("Content-Disposition", "attachment;filename=" + hehe);
+//        FileUtil.download(filePath, response);
+//    }
 
     @CrossOrigin
     @RequestMapping("/getEntityIds")

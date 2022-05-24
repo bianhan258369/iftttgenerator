@@ -1,3 +1,4 @@
+import retrieval
 import snowboydecoder
 import signal
 import wave
@@ -118,8 +119,9 @@ def my_record():
     pa = PyAudio()
     global requirementTexts
     text = ''
+    text_modified = ''
     TOKEN = fetch_token()  # 获取token
-    while text != '再见。':
+    while text_modified != '再见':
         stream = pa.open(format=paInt16, channels=channels, rate=framerate, input=True, frames_per_buffer=num_samples)
         my_buf = []
         print('开始录音...')
@@ -127,16 +129,17 @@ def my_record():
             string_audio_data = stream.read(num_samples)
             my_buf.append(string_audio_data)
             save_wave_file(FILEPATH, my_buf)
-        uploadFile(FILEPATH)
+        uploadFile.uploadFile(FILEPATH)
         speech = get_audio(FILEPATH)
         result = speech2text(speech, TOKEN, int(80001))
         text = result
         print(text)
-        if text == '' : text = '再见。'
-        if text != '再见。':
+        r = retrieval.Retrieval()
+        text_modified = r.retrieve(text)
+        print(text_modified)
+        if text_modified == '' : text_modified = '再见'
+        if text_modified != '再见':
             try:
-                r = retrieval.Retrieval()
-                text_modified = r.retrieve(text)
                 eRequirement = c2e(text_modified).strip()
                 print(eRequirement)
                 requirementTexts = requirementTexts + eRequirement + '//'
@@ -147,7 +150,9 @@ def my_record():
     print('再见!')
     play(music_over)
     if requirementTexts != '':
+        print(requirementTexts)
         os.system("java -jar iftttgenerator.jar \"" + requirementTexts + "\"")
+        requirementTexts = ''
 
 # def my_record():
 #     """
@@ -263,7 +268,7 @@ def c2e(cRequirement):
     cRequirement = cRequirement.replace("？", "")
     eRequirement = ''
     cemap = initDict(MAPPATH)
-    rooms = ["办公室"]
+    rooms = ["屋内","办公室"]
     room = ''
     for temp in rooms:
         if cRequirement.startswith(temp):
@@ -478,8 +483,6 @@ def check_contain_chinese(check_str):
         if u'\u4e00' <= ch <= u'\u9fff':
             return True
     return False
-
-# print(c2e('办公室窗户打开和灯打开不能同时发生'))
 
 while 1:
     interrupted = False

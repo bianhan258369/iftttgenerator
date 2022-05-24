@@ -36,7 +36,8 @@ import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 @Service("haService")
 public class HAService {
     public List<String> getEntityIds() throws InterruptedException, IOException {
-        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+//        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+        URI uri = URI.create("ws://" + haIP + "/api/websocket");
         List<String> entityIds = new ArrayList<>();
         Set<String> device_domain_set = new HashSet<>();
         Set<String> binary_sensor_device_class_set = new HashSet<>();
@@ -100,7 +101,7 @@ public class HAService {
         }
         JSONObject auth = new JSONObject();
         auth.put("type", "auth");
-        auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
+        auth.put("access_token", HATOKEN);
         client.send(auth.toString());
 
         JSONObject states = new JSONObject();
@@ -117,7 +118,8 @@ public class HAService {
 
     public void writePersonalDeviceTable(JSONObject entityAreas) throws IOException, InterruptedException {
         {
-            URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+//            URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+            URI uri = URI.create("ws://" + haIP + "/api/websocket");
             Set<String> device_domain_set = new HashSet<>();
             Set<String> binary_sensor_device_class_set = new HashSet<>();
             Set<String> numeric_sensor_device_class_set = new HashSet<>();
@@ -202,7 +204,7 @@ public class HAService {
             }
             JSONObject auth = new JSONObject();
             auth.put("type", "auth");
-            auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
+            auth.put("access_token", HATOKEN);
             client.send(auth.toString());
 
             JSONObject states = new JSONObject();
@@ -249,7 +251,7 @@ public class HAService {
         Map<String, BinarySensor> binarySensorMap = new HashMap<>();
         Map<String, DeviceRegistryItem> deviceRegistryItemMap = new HashMap<>();
         List <Entity> entities = new ArrayList<>();
-        BufferedReader br = new BufferedReader(new FileReader("device_registry.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
         String line = "";
         while ((line = br.readLine()) != null){
             if(line.startsWith("s:") && line.contains("binary")){
@@ -265,15 +267,16 @@ public class HAService {
                 deviceRegistryItemMap.put(splits[1], new DeviceRegistryItem(line));
             }
         }
-        br = new BufferedReader(new FileReader("personal_device.txt"));
+        br = new BufferedReader(new FileReader(PERSONALDEVICETABLEPATH));
         while ((line = br.readLine()) != null){
             Entity entity = new Entity(line);
             entities.add(entity);
         }
-        br = new BufferedReader(new FileReader("automation_ids.txt"));
+        br = new BufferedReader(new FileReader(AUTOMATIONIDS));
         while ((line = br.readLine()) != null){
             if(!line.trim().equals("")){
-                HttpDelete httpDelete = new HttpDelete("http://192.168.31.238:8123/api/config/automation/config/" + line);
+//                HttpDelete httpDelete = new HttpDelete("http://192.168.31.238:8123/api/config/automation/config/" + line);
+                HttpDelete httpDelete = new HttpDelete("http://" + haIP + "/api/config/automation/config/" + line);
                 RequestConfig requestConfig = RequestConfig.custom().
                         setConnectTimeout(180 * 1000).setConnectionRequestTimeout(180 * 1000)
                         .setSocketTimeout(180 * 1000).setRedirectsEnabled(true).build();
@@ -291,10 +294,10 @@ public class HAService {
                 }
             }
         }
-        BufferedWriter bw = new BufferedWriter(new FileWriter("automation_ids.txt"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(AUTOMATIONIDS));
 
         Map<String, Set<String>> locationmap = new HashMap<>();
-        br = new BufferedReader(new FileReader("locationmap.txt"));
+        br = new BufferedReader(new FileReader(LOCATIONMAP));
         while ((line = br.readLine()) != null){
             if(!line.trim().equals("")){
                 String left = line.split("->")[0];
@@ -423,7 +426,8 @@ public class HAService {
         for(JSONObject message : messages){
             System.out.println(message);
             String id = message.getString("alias").substring(5);
-            HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+//            HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+            HttpPost httpPost = new HttpPost("http://" + haIP + "/api/config/automation/config/" + id);
             RequestConfig requestConfig = RequestConfig.custom().
                     setConnectTimeout(180 * 1000).setConnectionRequestTimeout(180 * 1000)
                     .setSocketTimeout(180 * 1000).setRedirectsEnabled(true).build();
@@ -486,7 +490,7 @@ public class HAService {
         triggers.add(trigger);
         action.put("service","light.turn_on");
         JSONObject target = new JSONObject();
-        target.put("entity_id","light.mibedsidelamp2_6b92");
+        target.put("entity_id","light.midesklamppro_7a9b");
         action.put("target",target);
         actions.add(action);
         message.put("trigger",triggers);
@@ -498,7 +502,8 @@ public class HAService {
 
 
 
-        HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+//        HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+        HttpPost httpPost = new HttpPost("http://" + haIP + "/api/config/automation/config/" + id);
         RequestConfig requestConfig = RequestConfig.custom().
                 setConnectTimeout(180 * 1000).setConnectionRequestTimeout(180 * 1000)
                 .setSocketTimeout(180 * 1000).setRedirectsEnabled(true).build();
@@ -506,6 +511,7 @@ public class HAService {
         Header[] headers = {new BasicHeader("Content-type", "application/json"), new BasicHeader("Authorization","Bearer " + HATOKEN)};
         httpPost.setHeaders(headers);
         try {
+            System.out.println(message);
             httpPost.setEntity(new StringEntity(message.toString(), ContentType.create("application/json", "utf-8")));
             System.out.println("request parameters" + EntityUtils.toString(httpPost.getEntity()));
             System.out.println("httpPost:" + httpPost);

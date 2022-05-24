@@ -21,10 +21,10 @@ else:
 
 # 替换你的 API_KEY
 
-API_KEY = 'dU66zuj45IeTTPU3hEe4qMFo'
+API_KEY = 'uhKo4AmwYbRmgmR4So7jAQsV'
 
 # 替换你的 SECRET_KEY
-SECRET_KEY = '4Dej3DuIxm3g8LkgNaMH7GSPI9KM39ZS'
+SECRET_KEY = 'oA56u220ScasGhy2dQ3UBSksNq4Oc2W0'
 
 TOKEN_URL = 'http://openapi.baidu.com/oauth/2.0/token'
 

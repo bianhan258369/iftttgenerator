@@ -1,11 +1,35 @@
 Manifest-Version: 1.0
-Class-Path: lib/jackson-databind-2.9.5.jar lib/jackson-datatype-joda-2.8
- .7.jar lib/jackson-core-2.9.5.jar lib/jackson-annotations-2.9.0.jar lib
- /httpcore-4.3.3.jar lib/commons-codec-1.6.jar lib/commons-io-1.3.2.jar 
- lib/commons-lang3-3.1.jar lib/commons-logging-1.1.3.jar lib/hamcrest-co
- re-1.3.jar lib/httpclient-4.3.6.jar lib/httpmime-4.3.6.jar lib/joda-tim
- e-2.7.jar lib/json-20141113.jar lib/junit-4.12.jar lib/logback-classic-
- 1.2.3.jar lib/logback-core-1.2.3.jar lib/onenet_edp_sdk-1.1.1.jar lib/s
- lf4j-api-1.7.20.jar
-Main-Class: com.test.SmartConferRoom
+Main-Class: com.example.bianhan.iftttgenerator.controller.Iftttgenerator
+ Application
+Class-Path: spring-boot-starter-2.3.3.RELEASE.jar ezmorph-1.0.6.jar comm
+ ons-beanutils-1.8.0.jar jackson-databind-2.11.2.jar jakarta.el-3.0.3.ja
+ r spring-boot-starter-tomcat-2.3.3.RELEASE.jar commons-compress-1.20.ja
+ r commons-io-2.6.jar spring-boot-starter-web-2.3.3.RELEASE.jar jackson-
+ datatype-jdk8-2.11.2.jar slf4j-api-1.7.30.jar spring-core-5.2.8.RELEASE
+ .jar logback-core-1.2.3.jar httpcore-4.4.13.jar jena-iri-3.16.0.jar spr
+ ing-boot-autoconfigure-2.3.3.RELEASE.jar spring-context-5.2.8.RELEASE.j
+ ar commons-logging-1.1.1.jar commons-lang3-3.10.jar httpclient-4.5.13.j
+ ar commons-codec-1.14.jar jackson-module-parameter-names-2.11.2.jar jak
+ arta.annotation-api-1.3.5.jar libthrift-0.13.0.jar commons-csv-1.8.jar 
+ log4j-api-2.13.3.jar commons-collections-3.2.1.jar spring-web-5.2.8.REL
+ EASE.jar jul-to-slf4j-1.7.30.jar spring-boot-starter-logging-2.3.3.RELE
+ ASE.jar jsonld-java-0.12.5.jar jena-dboe-transaction-3.16.0.jar logback
+ -classic-1.2.3.jar javax.annotation-api-1.3.2.jar jena-shacl-3.16.0.jar
+  lombok-1.18.12.jar snakeyaml-1.26.jar jena-dboe-trans-data-3.16.0.jar 
+ jena-dboe-base-3.16.0.jar spring-websocket-5.2.8.RELEASE.jar jena-arq-3
+ .16.0.jar jena-tdb-3.16.0.jar spring-boot-starter-websocket-1.3.5.RELEA
+ SE.jar log4j-to-slf4j-2.13.3.jar spring-webmvc-5.2.8.RELEASE.jar jackso
+ n-core-2.11.2.jar javax.transaction.jar javax.servlet.jsp.jstl.jar java
+ x.resource.jar javax.jms.jar javax.ejb.jar javax.servlet.jsp.jar javax.
+ persistence.jar tomcat-embed-websocket-9.0.37.jar tomcat-embed-core-9.0
+ .37.jar httpclient-cache-4.5.12.jar dom4j-2.1.1.jar spring-expression-5
+ .2.8.RELEASE.jar jena-base-3.16.0.jar jackson-annotations-2.11.2.jar Ja
+ va-WebSocket-1.3.8.jar spring-jcl-5.2.8.RELEASE.jar collection-0.7.jar 
+ spring-boot-starter-json-2.3.3.RELEASE.jar jena-dboe-index-3.16.0.jar j
+ ena-shaded-guava-3.16.0.jar spring-boot-2.3.3.RELEASE.jar spring-beans-
+ 5.2.8.RELEASE.jar jena-tdb2-3.16.0.jar json-lib-2.4-jdk15.jar jena-rdfc
+ onnection-3.16.0.jar jackson-datatype-jsr310-2.11.2.jar jena-dboe-stora
+ ge-3.16.0.jar commons-lang-2.5.jar jena-core-3.16.0.jar commons-cli-1.4
+ .jar jcl-over-slf4j-1.7.30.jar spring-aop-5.2.8.RELEASE.jar spring-mess
+ aging-5.2.8.RELEASE.jar
 

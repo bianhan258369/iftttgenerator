@@ -27,6 +27,12 @@ import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 
 public class HaProgramGenerator {
+//    public static void main(String[] args) throws DocumentException, InterruptedException, IOException {
+//        String[] temp = new String[1];
+//        temp[0] = "home : IF door.open=1 THEN light.lon//";
+//        temp(temp);
+//    }
+
     public static void main(String[] args) throws DocumentException, InterruptedException, IOException {
         String requirementTexts = args[0];
 //        String requirementTexts = "light.loff";
@@ -67,14 +73,15 @@ public class HaProgramGenerator {
                 rules = rules + requirement + "//";
             }
             rules = rules.substring(0, rules.length() - 2);
-//        System.out.println(rules);
+            System.out.println(rules);
             writeAutomations(rules, SMARTHOMEONTOLOGYPATH, 0);
         }
     }
 
     public static void writePersonalDeviceTable() throws IOException, InterruptedException {
         {
-            URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+//            URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+            URI uri = URI.create("ws://" + haIP + "/api/websocket");
             Set<String> device_domain_set = new HashSet<>();
             Set<String> binary_sensor_device_class_set = new HashSet<>();
             Set<String> numeric_sensor_device_class_set = new HashSet<>();
@@ -159,7 +166,7 @@ public class HaProgramGenerator {
             }
             JSONObject auth = new JSONObject();
             auth.put("type", "auth");
-            auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
+            auth.put("access_token", HATOKEN);
             client.send(auth.toString());
 
             JSONObject states = new JSONObject();
@@ -199,8 +206,9 @@ public class HaProgramGenerator {
         }
     }
 
-    public static void runCommands(List<String> commands) throws IOException, InterruptedException {
-        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+    public static void runCommands(List<String> commands) throws IOException, InterruptedException, DocumentException {
+//        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+        URI uri = URI.create("ws://" + haIP + "/api/websocket");
         WebSocketClient client = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
@@ -232,7 +240,7 @@ public class HaProgramGenerator {
         Map<String, BinarySensor> binarySensorMap = new HashMap<>();
         Map<String, DeviceRegistryItem> deviceRegistryItemMap = new HashMap<>();
         List <Entity> entities = new ArrayList<>();
-        BufferedReader br = new BufferedReader(new FileReader("device_registry.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
         String line = "";
         while ((line = br.readLine()) != null){
             if(line.startsWith("s:") && line.contains("binary")){
@@ -248,13 +256,20 @@ public class HaProgramGenerator {
                 deviceRegistryItemMap.put(splits[2], new DeviceRegistryItem(line));
             }
         }
-        br = new BufferedReader(new FileReader("personal_device.txt"));
+        br = new BufferedReader(new FileReader(PERSONALDEVICETABLEPATH));
+        Map<String, String> domainMap = new HashMap<>();
         while ((line = br.readLine()) != null){
             Entity entity = new Entity(line);
             entities.add(entity);
+            String domain = line.split("->")[0];
+            if(domain.contains(".")){
+                String left = domain.split("\\.")[0];
+                String right = domain.split("\\.")[1];
+                domainMap.put(right, left);
+            }
         }
         Map<String, Set<String>> locationmap = new HashMap<>();
-        br = new BufferedReader(new FileReader("locationmap.txt"));
+        br = new BufferedReader(new FileReader(LOCATIONMAP));
         while ((line = br.readLine()) != null){
             if(!line.trim().equals("")){
                 String left = line.split("->")[0];
@@ -281,10 +296,11 @@ public class HaProgramGenerator {
             Set<String> rooms = locationmap.get(room);
             for(String tempRoom : rooms){
                 String domain = command.split("\\.")[0];
+                if(domainMap.containsKey(domain)) domain = domainMap.get(domain);
                 String state = command.split("\\.")[1];
                 JSONObject auth = new JSONObject();
                 auth.put("type", "auth");
-                auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
+                auth.put("access_token", HATOKEN);
                 client.send(auth.toString());
 
                 JSONObject message = new JSONObject();
@@ -304,13 +320,15 @@ public class HaProgramGenerator {
                     }
                 }
                 message.put("target",targetJSON);
-//                System.out.println(message.toString());
+                System.out.println(message.toString());
                 client.send(message.toString());
                 Thread.sleep(100);
                 i++;
             }
         }
         client.close();
+
+
     }
 
     public static void writeAutomations(String requirementTexts, String ontologyPath, int index) throws IOException, DocumentException, InterruptedException {
@@ -323,7 +341,7 @@ public class HaProgramGenerator {
         Map<String, BinarySensor> binarySensorMap = new HashMap<>();
         Map<String, DeviceRegistryItem> deviceRegistryItemMap = new HashMap<>();
         List <Entity> entities = new ArrayList<>();
-        BufferedReader br = new BufferedReader(new FileReader("device_registry.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
         String line = "";
         while ((line = br.readLine()) != null){
             if(line.startsWith("s:") && line.contains("binary")){
@@ -339,15 +357,16 @@ public class HaProgramGenerator {
                 deviceRegistryItemMap.put(splits[2], new DeviceRegistryItem(line));
             }
         }
-        br = new BufferedReader(new FileReader("personal_device.txt"));
+        br = new BufferedReader(new FileReader(PERSONALDEVICETABLEPATH));
         while ((line = br.readLine()) != null){
             Entity entity = new Entity(line);
             entities.add(entity);
         }
-        br = new BufferedReader(new FileReader("automation_ids.txt"));
+        br = new BufferedReader(new FileReader(AUTOMATIONIDS));
         while ((line = br.readLine()) != null){
             if(!line.trim().equals("")){
-                HttpDelete httpDelete = new HttpDelete("http://192.168.31.238:8123/api/config/automation/config/" + line);
+//                HttpDelete httpDelete = new HttpDelete("http://192.168.31.238:8123/api/config/automation/config/" + line);
+                HttpDelete httpDelete = new HttpDelete("http://" + haIP + "/api/config/automation/config/" + line);
                 RequestConfig requestConfig = RequestConfig.custom().
                         setConnectTimeout(180 * 1000).setConnectionRequestTimeout(180 * 1000)
                         .setSocketTimeout(180 * 1000).setRedirectsEnabled(true).build();
@@ -365,10 +384,10 @@ public class HaProgramGenerator {
                 }
             }
         }
-        BufferedWriter bw = new BufferedWriter(new FileWriter("automation_ids.txt"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(AUTOMATIONIDS));
 
         Map<String, Set<String>> locationmap = new HashMap<>();
-        br = new BufferedReader(new FileReader("locationmap.txt"));
+        br = new BufferedReader(new FileReader(LOCATIONMAP));
         while ((line = br.readLine()) != null){
             if(!line.trim().equals("")){
                 String left = line.split("->")[0];
@@ -380,7 +399,7 @@ public class HaProgramGenerator {
             }
         }
         for(IfThenRequirement ifThenRequirement : ifThenRequirements){
-            Set<String> rooms = locationmap.get(ifThenRequirement.getRoom());
+            Set<String> rooms = locationmap.get(ifThenRequirement.getRoom().trim());
             for(String room : rooms){
                 JSONObject message = new JSONObject();
                 JSONArray triggers = new JSONArray();
@@ -494,10 +513,12 @@ public class HaProgramGenerator {
                 messages.add(message);
             }
         }
+        System.out.println(messages);
         for(JSONObject message : messages){
             System.out.println(message);
             String id = message.getString("alias").substring(5);
-            HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+//            HttpPost httpPost = new HttpPost("http://192.168.31.238:8123/api/config/automation/config/" + id);
+            HttpPost httpPost = new HttpPost("http://" + haIP + "/api/config/automation/config/" + id);
             RequestConfig requestConfig = RequestConfig.custom().
                     setConnectTimeout(180 * 1000).setConnectionRequestTimeout(180 * 1000)
                     .setSocketTimeout(180 * 1000).setRedirectsEnabled(true).build();

@@ -59,10 +59,15 @@ public class CheckService {
                                 String relation1 = computeRelation(trigger1);
                                 String relation2 = computeRelation(trigger2);
                                 if(triggerList1.size() == 1 && triggerList2.size() == 1 && !relation1.equals("") && !relation2.equals("") && trigger1.split(relation1)[0].equals(trigger2.split(relation2)[0])){
-                                    String group = trigger1.split(relation1)[0] + "//" + action1.split("\\.")[0];
-                                    if(!groupMappingToSolvableErrors.containsKey(group)) groupMappingToSolvableErrors.put(group, new ArrayList<>());
-                                    conflict.setErrorType("resolvable");
-                                    groupMappingToSolvableErrors.get(group).add(conflict);
+                                    int value1 = Integer.parseInt(trigger1.split(relation1)[1]);
+                                    int value2 = Integer.parseInt(trigger2.split(relation2)[1]);
+                                    if(((relation1.equals(">") || relation1.equals(">=")) && (relation2.equals("<") || relation2.equals("<=")) && value1 < value2) ||
+                                            ((relation1.equals("<") || relation1.equals("<=")) && (relation2.equals(">") || relation2.equals(">=")) && value1 > value2)){
+                                        String group = trigger1.split(relation1)[0] + "//" + action1.split("\\.")[0];
+                                        if(!groupMappingToSolvableErrors.containsKey(group)) groupMappingToSolvableErrors.put(group, new ArrayList<>());
+                                        conflict.setErrorType("resolvable");
+                                        groupMappingToSolvableErrors.get(group).add(conflict);
+                                    }
                                 }
                                 else{
                                     unsolvableErrors.add(conflict);
@@ -248,24 +253,112 @@ public class CheckService {
         return !z3Sat(smtFilePath);
     }
 
-    private boolean hasConflict(List<String> triggerList1, List<String> triggerList2) throws IOException {
+//    private boolean hasConflict(List<String> triggerList1, List<String> triggerList2) throws IOException {
+//        Set<String> declares = new HashSet<>();
+//        Set<String> expressions = new HashSet<>();
+//        Map<String, Integer> deviceStateMappingToInterger = new HashMap<>();
+//        deviceStateMappingToInterger.put("MAX",-1);
+//        List<String> triggerList = new ArrayList<>();
+//        triggerList.addAll(triggerList1);
+//        triggerList.addAll(triggerList2);
+//        for(String trigger : triggerList){
+//            String relation = computeRelation(trigger);
+//            if(!relation.equals("")){
+//                String attribute = trigger.split(relation)[0];
+//                String value = trigger.split(relation)[1];
+//                //(declare-const a Int)
+//                String declare = "(declare-const " + attribute + " Real)";
+//                //(assert (> a 10))
+//                String expression = "(assert (" + relation + " " + attribute + " " + value + "))";
+//                declares.add(declare);
+//                expressions.add(expression);
+//            }
+//            else {
+//                boolean notFlag = false;
+//                if(trigger.startsWith("!")){
+//                    notFlag = true;
+//                    trigger = trigger.substring(1);
+//                }
+//                //ac.coldOn,!ac.coldOn
+//                String device = trigger.split("\\.")[0];
+//                String state = trigger.split("\\.")[1];
+//                String declare = "(declare-const " + device + " Int)";
+//                int stateValue = 0;
+//                if(deviceStateMappingToInterger.containsKey(trigger)) stateValue = deviceStateMappingToInterger.get(trigger);
+//                else{
+//                    stateValue = deviceStateMappingToInterger.get("MAX") + 1;
+//                    deviceStateMappingToInterger.put(trigger, stateValue);
+//                    deviceStateMappingToInterger.put("MAX",stateValue);
+//                }
+//                String expression = "";
+//                if(notFlag) expression = "(assert (not(= " + device + " " + stateValue + ")))";
+//                else expression = "(assert (= " + device + " " + stateValue + "))";
+//                declares.add(declare);
+//                expressions.add(expression);
+//            }
+//        }
+//        String smtFilePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
+//        createSmtFile(declares,expressions,smtFilePath);
+//        return !z3Sat(smtFilePath);
+//    }
+
+    private Set<String> transformTriggerToZ3Form_Declares(List<String> triggerList){
         Set<String> declares = new HashSet<>();
+        if((triggerList.size() == 1)) {
+            String trigger = triggerList.get(0);
+            String relation = computeRelation(trigger);
+            if (!relation.equals("")) {
+                String attribute = trigger.split(relation)[0];
+                //(declare-const a Int)
+                String declare = "(declare-const " + attribute + " Real)";
+                declares.add(declare);
+            } else {
+                String device = trigger.split("\\.")[0];
+                String declare = "(declare-const " + device + " Int)";
+                declares.add(declare);
+            }
+        }
+        else {
+            String trigger1 = triggerList.get(0);
+            String trigger2 = triggerList.get(1);
+            String relation1 = computeRelation(trigger1);
+            String relation2 = computeRelation(trigger2);
+            if(!relation1.equals("")){
+                String attribute1 = trigger1.split(relation1)[0];
+                String declare1 = "(declare-const " + attribute1 + " Real)";
+                declares.add(declare1);
+            }
+            else {
+                String device = trigger1.split("\\.")[0];
+                String declare = "(declare-const " + device + " Int)";
+                declares.add(declare);
+            }
+            if(!relation2.equals("")){
+                String attribute2 = trigger2.split(relation2)[0];
+                String declare2 = "(declare-const " + attribute2 + " Real)";
+                declares.add(declare2);
+            }
+            else {
+                String device = trigger2.split("\\.")[0];
+                String declare = "(declare-const " + device + " Int)";
+                declares.add(declare);
+            }
+        }
+        return declares;
+    }
+
+    private Set<String> transformTriggerToZ3Form_Expressions(List<String> triggerList, Map<String, Integer> deviceStateMappingToInterger){
         Set<String> expressions = new HashSet<>();
-        Map<String, Integer> deviceStateMappingToInterger = new HashMap<>();
-        deviceStateMappingToInterger.put("MAX",-1);
-        List<String> triggerList = new ArrayList<>();
-        triggerList.addAll(triggerList1);
-        triggerList.addAll(triggerList2);
-        for(String trigger : triggerList){
+        if((triggerList.size() == 1)){
+            String trigger = triggerList.get(0);
             String relation = computeRelation(trigger);
             if(!relation.equals("")){
                 String attribute = trigger.split(relation)[0];
                 String value = trigger.split(relation)[1];
-                //(declare-const a Int)
-                String declare = "(declare-const " + attribute + " Real)";
                 //(assert (> a 10))
-                String expression = "(assert (" + relation + " " + attribute + " " + value + "))";
-                declares.add(declare);
+                String expression = "";
+                if(relation.equals("!=")) expression = "(assert (not(" + relation + " " + attribute + " " + value + ")))";
+                else expression = "(assert (" + relation + " " + attribute + " " + value + "))";
                 expressions.add(expression);
             }
             else {
@@ -276,8 +369,6 @@ public class CheckService {
                 }
                 //ac.coldOn,!ac.coldOn
                 String device = trigger.split("\\.")[0];
-                String state = trigger.split("\\.")[1];
-                String declare = "(declare-const " + device + " Int)";
                 int stateValue = 0;
                 if(deviceStateMappingToInterger.containsKey(trigger)) stateValue = deviceStateMappingToInterger.get(trigger);
                 else{
@@ -288,10 +379,80 @@ public class CheckService {
                 String expression = "";
                 if(notFlag) expression = "(assert (not(= " + device + " " + stateValue + ")))";
                 else expression = "(assert (= " + device + " " + stateValue + "))";
-                declares.add(declare);
                 expressions.add(expression);
             }
         }
+        else {
+            String trigger1 = triggerList.get(0);
+            String trigger2 = triggerList.get(1);
+            String relation1 = computeRelation(trigger1);
+            String relation2 = computeRelation(trigger2);
+            String expression1 = "";
+            String expression2 = "";
+            if(!relation1.equals("")){
+                String attribute1 = trigger1.split(relation1)[0];
+                String value1 = trigger1.split(relation1)[1];
+                if(relation1.equals("!=")) expression1 = "(not(= " +  attribute1 + " " + value1 + "))";
+                else expression1 = "(" + relation1 + " " + attribute1 + " " + value1 + ")";
+            }
+            else {
+                boolean notFlag = false;
+                if(trigger1.startsWith("!")){
+                    notFlag = true;
+                    trigger1 = trigger1.substring(1);
+                }
+                //ac.coldOn,!ac.coldOn
+                String device = trigger1.split("\\.")[0];
+                int stateValue = 0;
+                if(deviceStateMappingToInterger.containsKey(trigger1)) stateValue = deviceStateMappingToInterger.get(trigger1);
+                else{
+                    stateValue = deviceStateMappingToInterger.get("MAX") + 1;
+                    deviceStateMappingToInterger.put(trigger1, stateValue);
+                    deviceStateMappingToInterger.put("MAX",stateValue);
+                }
+                if(notFlag) expression1 = "(not(= " + device + " " + stateValue + "))";
+                else expression1 = "(= " + device + " " + stateValue + ")";
+            }
+            if(!relation2.equals("")){
+                String attribute2 = trigger2.split(relation2)[0];
+                String value2 = trigger2.split(relation2)[1];
+                if(relation2.equals("!=")) expression2 = "(not(= " +  attribute2 + " " + value2 + "))";
+                else expression2 = "(" + relation2 + " " + attribute2 + " " + value2 + ")";
+            }
+            else {
+                boolean notFlag = false;
+                if(trigger2.startsWith("!")){
+                    notFlag = true;
+                    trigger2 = trigger2.substring(1);
+                }
+                //ac.coldOn,!ac.coldOn
+                String device = trigger2.split("\\.")[0];
+                int stateValue = 0;
+                if(deviceStateMappingToInterger.containsKey(trigger2)) stateValue = deviceStateMappingToInterger.get(trigger2);
+                else{
+                    stateValue = deviceStateMappingToInterger.get("MAX") + 1;
+                    deviceStateMappingToInterger.put(trigger2, stateValue);
+                    deviceStateMappingToInterger.put("MAX",stateValue);
+                }
+                if(notFlag) expression2 = "(not(= " + device + " " + stateValue + "))";
+                else expression2 = "(= " + device + " " + stateValue + ")";
+            }
+
+            String expression = "(assert (and " + expression1 + expression2 + "))";
+            expressions.add(expression);
+        }
+        return expressions;
+    }
+
+    private boolean hasConflict(List<String> triggerList1, List<String> triggerList2) throws IOException {
+        Set<String> declares = new HashSet<>();
+        Set<String> expressions = new HashSet<>();
+        Map<String, Integer> deviceStateMappingToInterger = new HashMap<>();
+        deviceStateMappingToInterger.put("MAX",-1);
+        declares.addAll(transformTriggerToZ3Form_Declares(triggerList1));
+        declares.addAll(transformTriggerToZ3Form_Declares(triggerList2));
+        expressions.addAll(transformTriggerToZ3Form_Expressions(triggerList1, deviceStateMappingToInterger));
+        expressions.addAll(transformTriggerToZ3Form_Expressions(triggerList2, deviceStateMappingToInterger));
         String smtFilePath = SMTPATH + UUID.randomUUID().toString() + ".smt2";
         createSmtFile(declares,expressions,smtFilePath);
         return !z3Sat(smtFilePath);
@@ -315,7 +476,7 @@ public class CheckService {
     }
 
     private boolean z3Sat(String smtFilePath) throws IOException {
-        String command = "z3 " + smtFilePath;
+        String command = "/usr/local/bin/z3 " + smtFilePath;
         String temp = "";
         try {
             Process process = Runtime.getRuntime().exec(command);

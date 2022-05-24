@@ -1,8 +1,52 @@
-M.lonpulse->turn on the light
-M.loffpulse->turn off the light
-M.ponpulse->turn on the purifier
-M.poffpulse->turn off the purifier
-M.honpulse->turn on the humidifier
-M.hoffpulse->turn off the humidifier
-M.fonpulse->turn on the fan
-M.foffpulse->turn off the fan
+M.lonpulse->turn on light1
+M.loffpulse->turn off light1
+M.ponpulse->turn on purifier1
+M.poffpulse->turn off purifier1
+M.heonpulse->turn on heater1
+M.heoffpulse->turn off heater1
+M.fonpulse->turn on fan1
+M.foffpulse->turn off fan1
+M.bonpulse->turn on bulb1
+M.boffpulse->turn off bulb1
+M.aoffpulse->turn off ac1
+M.coldpulse->turn ac1 cooling
+M.hotpulse->turn ac1 heating
+M.honpulse->turn on humidifier1
+M.hoffpulse->turn off humidifier1
+M.ahonpulse->turn on humidifier1
+M.ahoffpulse->turn off humidifier1
+M.wopenpulse->open window1
+M.wclosepulse->close window1
+M.bopenpulse->open blind1
+M.bclosepulse->close blind1
+M.vonpulse->turn on vacuum1
+M.voffpulse->turn off vacuum1
+M.tonpulse->turn on tv1
+M.toffpulse->turn off tv1
+M.dopenpulse->open door1
+M.dclosepulse->close door1
+M.alonpulse->turn on alarm1
+M.aloffpulse->turn off alarm1
+M.auonpulse->turn on audio1
+M.auoffpulse->turn off audio1
+M.afonpulse->turn on purifier1
+M.afoffpulse->turn off purifier1
+M.monpulse->turn on microphone1
+M.moffpulse->turn off microphone1
+air.temperature->temperature_sensor1.read
+air.humidity->humidity_sensor1.read
+co2.ppm->co2_sensor1.read
+door.open->door_sensor.read
+light.brightness->light_sensor1.read
+person.number->ps1.readnumber
+person.in->ps1.readin
+window.wopen->window1.open
+window.wclosed->window1.closed
+ac.coldon->ac1.cold
+ac.hoton->ac1.hot
+!ac.aoff->!ac1.off
+fan.fon->fan1.on
+fan.foff->fan1.off
+purifier.pon->purifier1.on
+purifier.poff->purifier1.off
+vacuum.voff->vacuum1.on

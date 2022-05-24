@@ -77,7 +77,7 @@ public class ComputeUtil {
     public static String getPythonFromJava(String java) throws IOException {
         java = java.trim().toLowerCase();
         Map<String, String> map = new HashMap();
-        BufferedReader br = new BufferedReader(new FileReader("JavaMappingToPython.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(JAVAMAPPINGTOPYTHONPATH));
         String line;
         while ((line = br.readLine()) != null){
             String from = line.split("->")[0].toLowerCase();
@@ -107,7 +107,7 @@ public class ComputeUtil {
         boolean notFlag = false;
         String result = null;
         Map<String, String> map = new HashMap();
-        BufferedReader br = new BufferedReader(new FileReader("JavaMappingToPython.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(JAVAMAPPINGTOPYTHONPATH));
         String line;
         while ((line = br.readLine()) != null){
             String from = line.split("->")[1].toLowerCase();
@@ -164,7 +164,7 @@ public class ComputeUtil {
     }
 
     public static Map computeEffectMap() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("DeviceRegitrationTable.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGITRATIONTABLEPATH));
         String line = "";
         Map<String, String> effectMap = new HashMap<>();
         while ((line = br.readLine()) != null) {
@@ -178,7 +178,7 @@ public class ComputeUtil {
     }
 
     public static Map computeSensorMap() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("DeviceRegitrationTable.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGITRATIONTABLEPATH));
         String line = "";
         Map<String, List<String>> sensorMap = new HashMap<>();
         while ((line = br.readLine()) != null) {
@@ -827,7 +827,7 @@ public class ComputeUtil {
                     else {
                         String autotapCondition = "";
                         for(int j = 0;j< conditions.size();j++){
-                            autotapCondition = autotapCondition + conditions.get(j);
+                            autotapCondition = autotapCondition + getPythonFromJava(conditions.get(j));
                             if(j != conditions.size() - 1) autotapCondition = autotapCondition + ",";
                         }
                         functionalAndNonfunctionalRequirements.add(room + ":IF " + autotapTrigger + " WHILE " + autotapCondition + " THEN " + autotapAction);
@@ -841,7 +841,7 @@ public class ComputeUtil {
                  */
             }
         }
-        bw = new BufferedWriter(new FileWriter("autotapInput.txt"));
+        bw = new BufferedWriter(new FileWriter(AUTOTAPINPUTPATH));
         for(String requirement : functionalAndNonfunctionalRequirements){
             bw.write(requirement);
             bw.newLine();
@@ -851,7 +851,7 @@ public class ComputeUtil {
         bw.close();
 
         if(flag){
-            String cmd = "python3 " + PYTHONCMDPATH + " autotapInput.txt";
+            String cmd = "/usr/local/bin/python3 " + PYTHONCMDPATH + " " + AUTOTAPINPUTPATH;
             try {
                 Runtime rt = Runtime.getRuntime();
                 Process proc = rt.exec(cmd);
@@ -868,15 +868,15 @@ public class ComputeUtil {
                         //IF <ac.mode=Cold> WHILE [window.on=true], THEN <['ac.mode=Off', 'window.on=false']>.
                         if(line.contains("WHILE")){
                             trigger = line.split(" ")[1];
-                            action = line.split(" ")[5];
+                            action = line.split(" THEN ")[1];
                             trigger = trigger.substring(1, trigger.length() - 1);
                             trigger = getJavaFromPython(trigger);
                             if(action.contains(",")) action = action.substring(3,action.indexOf(",") - 1);
                             else action = action.substring(3, action.length() - 4);
                             action = getJavaFromPython(action);
-                            String conditions = line.split(" ")[3];
+                            String conditions = line.split(" THEN ")[0].split(" WHILE ")[1];
                             conditions = conditions.substring(1, conditions.length() - 2);
-                            if(conditions.contains(" AND ")){
+                            if(!conditions.contains(" AND ")){
                                 trigger = trigger + " AND " + getJavaFromPython(conditions);
                             }
                             else {
@@ -892,9 +892,15 @@ public class ComputeUtil {
                             trigger = line.split(" ")[1];
                             action = line.split(" ")[3];
                             trigger = trigger.substring(1, trigger.length() - 2);
+//                            System.out.println("----");
+//                            System.out.println(trigger);
+//                            System.out.println("----");
                             trigger = getJavaFromPython(trigger);
                             if(action.contains(",")) action = action.substring(3,action.indexOf(",") - 1);
                             else action = action.substring(3, action.length() - 4);
+//                            System.out.println("----");
+//                            System.out.println(action);
+//                            System.out.println("----");
                             action = getJavaFromPython(action);
                         }
                     }
@@ -907,6 +913,9 @@ public class ComputeUtil {
                         action = getJavaFromPython(action);
                     }
                     req = "IF " + trigger + " THEN " + action;
+//                    System.out.println("---");
+//                    System.out.println(req);
+//                    System.out.println("---");
                     functionalRequirements.add(req);
                     functionalRequirementsWithAreas.add(room + ":" + req);
                     boolean matchFlag = false;
@@ -1330,75 +1339,94 @@ public class ComputeUtil {
 //    }
 
     public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
-        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
-        List<String> entityIds = new ArrayList<>();
-        Set<String> device_domain_set = new HashSet<>();
-        Set<String> binary_sensor_device_class_set = new HashSet<>();
-        Set<String> numeric_sensor_device_class_set = new HashSet<>();
-
-        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
-        String line = "";
-        while ((line = br.readLine()) != null){
-            if(line.startsWith("d:")) device_domain_set.add(line.substring(2).split("->")[0]);
-            else if(line.startsWith("s:binary")) binary_sensor_device_class_set.add(line.split("->")[1]);
-            else if(line.startsWith("s:numeric")) numeric_sensor_device_class_set.add(line.split("->")[1]);
-        }
-
-        WebSocketClient client = new WebSocketClient(uri){
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-                System.out.println("open!");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                JSONObject result = JSONObject.fromObject(message);
-                if(result.getBoolean("success") && result.getInt("id") == 2){
-                    for(int i = 0;i < result.getJSONArray("result").size();i++){
-                        JSONObject json = (JSONObject) result.getJSONArray("result").get(i);
-                        String entity_id = json.getString("entity_id");
-                        String domain = entity_id.split("\\.")[0];
-//                        String currentState = json.getString("state");
-                        JSONObject attributes = json.getJSONObject("attributes");
-                        String device_class = attributes.containsKey("device_class")? attributes.getString("device_class") : null;
-                        if(device_domain_set.contains(domain)) entityIds.add(entity_id);
-                        else if(domain.equals("binary_sensor") && binary_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
-                        else if(domain.equals("sensor") && numeric_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
-                    }
+        List<Requirement> reqs = new ArrayList<>();
+        Requirement requirement = new Requirement("IF air.temperature>25 THEN ac.coldon", "office");
+        Map<String, String> effectMap = computeEffectMap();
+        reqs.add(requirement);
+        long totalTime= 0;
+        for(int i = 0;i < 11;i++){
+            if(i != 0){
+                long startTime=System.currentTimeMillis();
+                for (int j = 0;j < 72;j++){
+                    computeIfThenRequirements(reqs,effectMap, SMARTHOMEONTOLOGYPATH);
                 }
+                long endTime=System.currentTimeMillis();
+                long time = endTime-startTime;
+                totalTime += time;
             }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-                System.out.println("close!");
-            }
-
-            @Override
-            public void onError(Exception ex) {
-
-            }
-        };
-
-        client.connect();
-        while(!client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
-            Thread.sleep(10);
         }
-        JSONObject auth = new JSONObject();
-        auth.put("type", "auth");
-        auth.put("access_token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI2MTIyNjExYmFlZmU0NzExOTcyZmIyNzA4MDIwMTc4NCIsImlhdCI6MTYyMjE2NzM2MywiZXhwIjoxOTM3NTI3MzYzfQ.UnqYoPOE1jY9672CcLkIoIhpdBnaLcaiMhhNYWTAsEs");
-        client.send(auth.toString());
+        System.out.println("程序运行时间： "+(totalTime/10)+"ms");
 
-        JSONObject states = new JSONObject();
-        states.put("id", 2);
-        states.put("type", "get_states");
-        client.send(states.toString());
-
-        while (entityIds.size() == 0){
-            Thread.sleep(10);
-        }
-        client.close();
-        System.out.println(entityIds.size());
-        System.out.println(entityIds);
+//        URI uri = URI.create("ws://192.168.31.238:8123/api/websocket");
+//        URI uri = URI.create("ws://" + haIP + "/api/websocket");
+//        List<String> entityIds = new ArrayList<>();
+//        Set<String> device_domain_set = new HashSet<>();
+//        Set<String> binary_sensor_device_class_set = new HashSet<>();
+//        Set<String> numeric_sensor_device_class_set = new HashSet<>();
+//
+//        BufferedReader br = new BufferedReader(new FileReader(DEVICEREGISTRYTABLE));
+//        String line = "";
+//        while ((line = br.readLine()) != null){
+//            if(line.startsWith("d:")) device_domain_set.add(line.substring(2).split("->")[0]);
+//            else if(line.startsWith("s:binary")) binary_sensor_device_class_set.add(line.split("->")[1]);
+//            else if(line.startsWith("s:numeric")) numeric_sensor_device_class_set.add(line.split("->")[1]);
+//        }
+//
+//        WebSocketClient client = new WebSocketClient(uri){
+//            @Override
+//            public void onOpen(ServerHandshake handshakedata) {
+//                System.out.println("open!");
+//            }
+//
+//            @Override
+//            public void onMessage(String message) {
+//                JSONObject result = JSONObject.fromObject(message);
+//                if(result.getBoolean("success") && result.getInt("id") == 2){
+//                    for(int i = 0;i < result.getJSONArray("result").size();i++){
+//                        JSONObject json = (JSONObject) result.getJSONArray("result").get(i);
+//                        String entity_id = json.getString("entity_id");
+//                        String domain = entity_id.split("\\.")[0];
+////                        String currentState = json.getString("state");
+//                        JSONObject attributes = json.getJSONObject("attributes");
+//                        String device_class = attributes.containsKey("device_class")? attributes.getString("device_class") : null;
+//                        if(device_domain_set.contains(domain)) entityIds.add(entity_id);
+//                        else if(domain.equals("binary_sensor") && binary_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
+//                        else if(domain.equals("sensor") && numeric_sensor_device_class_set.contains(device_class)) entityIds.add(entity_id);
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onClose(int code, String reason, boolean remote) {
+//                System.out.println("close!");
+//            }
+//
+//            @Override
+//            public void onError(Exception ex) {
+//
+//            }
+//        };
+//
+//        client.connect();
+//        while(!client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
+//            Thread.sleep(10);
+//        }
+//        JSONObject auth = new JSONObject();
+//        auth.put("type", "auth");
+//        auth.put("access_token", HATOKEN);
+//        client.send(auth.toString());
+//
+//        JSONObject states = new JSONObject();
+//        states.put("id", 2);
+//        states.put("type", "get_states");
+//        client.send(states.toString());
+//
+//        while (entityIds.size() == 0){
+//            Thread.sleep(10);
+//        }
+//        client.close();
+//        System.out.println(entityIds.size());
+//        System.out.println(entityIds);
     }
 
 

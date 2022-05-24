@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
-Main-Class: com.example.bianhan.iftttgenerator.util.HaProgramGenerator
+Main-Class: com.example.bianhan.iftttgenerator.controller.Iftttgenerator
+ Application
 

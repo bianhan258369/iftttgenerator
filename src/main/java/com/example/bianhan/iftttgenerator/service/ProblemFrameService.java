@@ -15,6 +15,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SMARTHOMEONTOLOGYPATH;
 import static com.example.bianhan.iftttgenerator.util.ComputeUtil.*;
 import static com.example.bianhan.iftttgenerator.configuration.PathConfiguration.SCDPATH;
 
@@ -242,7 +243,8 @@ public class ProblemFrameService {
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(scenarioNodes);
         String sbFilePath = scFolderPath + "ServiceRequirement";
         scenarioDiagram.toDotFile_ServiceRequirement(eo, sbFilePath + ".dot");
-        String cmd1 = "dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
+        String cmd1 = "/usr/local/bin/dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
+        System.out.println(System.getenv());
         Process p1 = Runtime.getRuntime().exec(cmd1);
         p1.waitFor();
         p1.destroy();
@@ -331,7 +333,7 @@ public class ProblemFrameService {
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
         String drFilePath = scFolderPath + "DeviceRequirement";
         scenarioDiagram.toDotFile_DeviceRequirement(eo, drFilePath + ".dot");
-        String cmd1 = "dot -Gdpi=300 " + drFilePath + ".dot -n -Tpng -o " + drFilePath + ".png";
+        String cmd1 = "/usr/local/bin/dot -Gdpi=300 " + drFilePath + ".dot -n -Tpng -o " + drFilePath + ".png";
         Process p1 = Runtime.getRuntime().exec(cmd1);
         p1.waitFor();
         p1.destroy();
@@ -420,7 +422,7 @@ public class ProblemFrameService {
         ScenarioDiagram scenarioDiagram = new ScenarioDiagram(totalScenarioNodes);
         String sbFilePath = scFolderPath + "SystemBehaviour";
         scenarioDiagram.toDotFile_SystemBehaviour(eo, sbFilePath + ".dot");
-        String cmd1 = "dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
+        String cmd1 = "/usr/local/bin/dot -Gdpi=300 " + sbFilePath + ".dot -n -Tpng -o " + sbFilePath + ".png";
         Process p1 = Runtime.getRuntime().exec(cmd1);
         p1.waitFor();
         p1.destroy();
@@ -461,11 +463,25 @@ public class ProblemFrameService {
 
 
     public static void main(String[] args) throws IOException, DocumentException, InterruptedException {
-//        ProblemFrameService problemFrameService = new ProblemFrameService();
-//        String ontologyPath = "ontology_SmartConferenceRoom.xml";
-//        EnvironmentOntology eo = new EnvironmentOntology(ontologyPath);
-//        String re = "IF Person.distanceFromPro<2 THEN Blind.bclosed,Projector.pon//IF Air.humidity>30 THEN allow ventilating the room";
-//        System.out.println(problemFrameService.getDrPng(re, ontologyPath, SCDPATH,0));
-//        System.out.println(problemFrameService.getSbPng(re, ontologyPath, SCDPATH,0));
+        ProblemFrameService problemFrameService = new ProblemFrameService();
+        List<Requirement> reqs = new ArrayList<>();
+        Requirement requirement = new Requirement("IF air.temperature>25 THEN ac.coldon", "office");
+        Map<String, String> effectMap = computeEffectMap();
+        reqs.add(requirement);
+        List<IfThenRequirement> ifThenReqs = computeIfThenRequirements(reqs,effectMap, SMARTHOMEONTOLOGYPATH).get(0);
+        long totalTime= 0;
+        for(int i = 0;i < 11;i++){
+            if(i != 0){
+                long startTime=System.currentTimeMillis();
+                for (int j = 0;j < 30;j++){
+                    problemFrameService.getElementsOfPD("IF air.temperature>25 THEN fan.fon", SMARTHOMEONTOLOGYPATH,0);
+                    problemFrameService.getSbPng(ifThenReqs, SMARTHOMEONTOLOGYPATH, SCDPATH);
+                }
+                long endTime=System.currentTimeMillis();
+                long time = endTime-startTime;
+                totalTime += time;
+            }
+        }
+        System.out.println("程序运行时间： "+(totalTime/10)+"ms");
     }
 }

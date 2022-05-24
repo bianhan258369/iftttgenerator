@@ -89,6 +89,9 @@ public class IfThenRequirement{
             action = action + actionList.get(i);
             if(i != actionList.size() - 1) action = action + ",";
         }
+        trigger = trigger.trim();
+        action = action.trim();
+        if(time != null) time = time.trim();
         if(time == null) return "IF " + trigger + " THEN " + action;
         else return "IF " + trigger + " FOR " + time + " THEN " + action;
     }
